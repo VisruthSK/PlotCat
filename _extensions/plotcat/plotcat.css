@@ -15,6 +15,25 @@
   font-family: var(--bs-body-font-family, system-ui, -apple-system, sans-serif);
 }
 
+/* Explicit Dark Mode Overrides */
+.quarto-dark .plotcat,
+[data-bs-theme="dark"] .plotcat,
+[data-mode="dark"] .plotcat {
+  --plotcat-border: var(--bs-border-color, #444);
+  --plotcat-bg: var(--bs-body-bg, #1e1e1e);
+  --plotcat-nested-bg: var(--bs-tertiary-bg, #2d2d2d);
+  color: var(--bs-body-color, #f8f9fa);
+}
+
+@media (prefers-color-scheme: dark) {
+  .plotcat {
+    --plotcat-border: var(--bs-border-color, #444);
+    --plotcat-bg: var(--bs-body-bg, #1e1e1e);
+    --plotcat-nested-bg: var(--bs-tertiary-bg, #2d2d2d);
+    color: var(--bs-body-color, #f8f9fa);
+  }
+}
+
 .plotcat__header {
   display: flex;
   align-items: center;
@@ -62,25 +81,112 @@
   max-height: 100%;
 }
 
-.plotcat__textarea {
+.plotcat-editor-container {
+  position: relative;
   width: 100%;
-  min-height: 11rem;
+  height: 12rem;
   margin-block: 0.5rem 1rem;
-  padding: 0.75rem;
-  font-family: var(--bs-font-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
-  font-size: 0.9rem;
-  color: inherit;
-  background: var(--plotcat-nested-bg);
   border: 1px solid var(--plotcat-border);
   border-radius: 0.5rem;
-  resize: vertical;
+  background: var(--plotcat-nested-bg);
+  overflow: hidden;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.plotcat__textarea:focus {
+.plotcat-editor-container:focus-within {
   border-color: var(--plotcat-accent);
   box-shadow: 0 0 0 0.25rem rgba(var(--plotcat-accent-rgb), 0.25);
   outline: 0;
+}
+
+.plotcat__textarea,
+.plotcat-highlight-overlay {
+  margin: 0;
+  padding: 0.75rem;
+  width: 100%;
+  height: 100%;
+  font-family: var(--bs-font-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  tab-size: 4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  box-sizing: border-box;
+}
+
+.plotcat__textarea {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: transparent !important;
+  color: transparent !important;
+  caret-color: var(--bs-body-color, #212529);
+  resize: none;
+  border: none;
+  outline: none;
+  z-index: 2;
+  overflow-y: auto;
+}
+
+.plotcat-highlight-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--bs-body-color, #212529);
+  z-index: 1;
+  pointer-events: none;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.plotcat-highlight-overlay::-webkit-scrollbar {
+  display: none;
+}
+
+/* Syntax Highlighting Colors */
+.plotcat-hl-keyword {
+  color: var(--plotcat-accent, #0d6efd);
+  font-weight: 600;
+}
+.plotcat-hl-string {
+  color: #22863a;
+}
+.plotcat-hl-number {
+  color: #005cc5;
+}
+.plotcat-hl-comment {
+  color: #6a737d;
+  font-style: italic;
+}
+.plotcat-hl-function {
+  color: #6f42c1;
+}
+
+/* Dark mode overrides for syntax highlighting colors */
+.quarto-dark .plotcat-hl-keyword,
+[data-bs-theme="dark"] .plotcat-hl-keyword,
+[data-mode="dark"] .plotcat-hl-keyword {
+  color: #ff7b72;
+}
+.quarto-dark .plotcat-hl-string,
+[data-bs-theme="dark"] .plotcat-hl-string,
+[data-mode="dark"] .plotcat-hl-string {
+  color: #85e89d;
+}
+.quarto-dark .plotcat-hl-number,
+[data-bs-theme="dark"] .plotcat-hl-number,
+[data-mode="dark"] .plotcat-hl-number {
+  color: #79c0ff;
+}
+.quarto-dark .plotcat-hl-comment,
+[data-bs-theme="dark"] .plotcat-hl-comment,
+[data-mode="dark"] .plotcat-hl-comment {
+  color: #8b949e;
+}
+.quarto-dark .plotcat-hl-function,
+[data-bs-theme="dark"] .plotcat-hl-function,
+[data-mode="dark"] .plotcat-hl-function {
+  color: #d2a8ff;
 }
 
 .plotcat__actions {

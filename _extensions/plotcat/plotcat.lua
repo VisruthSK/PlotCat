@@ -110,7 +110,10 @@ local function widget(id, engine, target, starter, target_svg, extra_classes)
     <figure class="plotcat__plot plotcat__student" data-plotcat-student aria-label="Your plot"></figure>
   </div>
   <label for="]] .. escape_html(dom_id) .. [[-editor">Code</label>
-  <textarea class="plotcat__editor plotcat__textarea" id="]] .. escape_html(dom_id) .. [[-editor" spellcheck="false">]] .. escape_html(starter) .. [[</textarea>
+  <div class="plotcat-editor-container">
+    <div class="plotcat-highlight-overlay" aria-hidden="true"></div>
+    <textarea class="plotcat__editor plotcat__textarea" id="]] .. escape_html(dom_id) .. [[-editor" spellcheck="false">]] .. escape_html(starter) .. [[</textarea>
+  </div>
   <div class="plotcat__actions">
     <button class="plotcat__button" type="button" data-plotcat-run>Run</button>
     <div class="plotcat__compare plotcat__controls"><span class="plotcat__compare-label">Compare</span>

@@ -58,6 +58,34 @@ export function mountPlotCat(root, manager = runtimeManager) {
     root.style.setProperty('--plotcat-wipe', `${event.target.value}%`);
   });
 
+  const overlay = root.querySelector('.plotcat-highlight-overlay');
+  const textarea = root.querySelector('.plotcat__textarea');
+
+  function updateHighlight() {
+    if (overlay && textarea) {
+      overlay.innerHTML = highlightCode(textarea.value, manifest.engine) + '\n';
+    }
+  }
+
+  if (textarea && overlay) {
+    textarea.addEventListener('input', updateHighlight);
+    textarea.addEventListener('scroll', () => {
+      overlay.scrollTop = textarea.scrollTop;
+      overlay.scrollLeft = textarea.scrollLeft;
+    });
+    textarea.addEventListener('keydown', event => {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        textarea.value = textarea.value.substring(0, start) + '    ' + textarea.value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + 4;
+        updateHighlight();
+      }
+    });
+    updateHighlight();
+  }
+
   run.addEventListener('click', async () => {
     root.classList.remove('plotcat--error', 'plotcat--complete');
     root.classList.add('plotcat--running');
@@ -81,6 +109,35 @@ export function mountPlotCat(root, manager = runtimeManager) {
       root.classList.remove('plotcat--running');
     }
   });
+}
+
+function highlightCode(code, engine) {
+  let html = code
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  const rKeywords = /\b(library|function|if|else|for|in|while|repeat|next|break|TRUE|FALSE|NULL)\b/g;
+  const pyKeywords = /\b(import|from|def|class|return|if|else|elif|for|in|while|try|except|as|lambda|True|False|None)\b/g;
+
+  const tokens = [];
+  const tokenRegex = /(".*?"|'.*?'|#.*|[^\s"'\#]+|\s+)/g;
+  let match;
+  while ((match = tokenRegex.exec(html)) !== null) {
+    let part = match[0];
+    if (part.startsWith('#')) {
+      tokens.push(`<span class="plotcat-hl-comment">${part}</span>`);
+    } else if ((part.startsWith('"') && part.endsWith('"')) || (part.startsWith("'") && part.endsWith("'"))) {
+      tokens.push(`<span class="plotcat-hl-string">${part}</span>`);
+    } else {
+      const kw = engine === 'r' ? rKeywords : pyKeywords;
+      part = part.replace(kw, '<span class="plotcat-hl-keyword">$1</span>');
+      part = part.replace(/(\b\d+(?:\.\d+)?\b)/g, '<span class="plotcat-hl-number">$1</span>');
+      part = part.replace(/(\b[a-zA-Z_][a-zA-Z0-9_]*)(?=\()/g, '<span class="plotcat-hl-function">$1</span>');
+      tokens.push(part);
+    }
+  }
+  return tokens.join('');
 }
 
 document.querySelectorAll('.plotcat[data-plotcat-manifest]').forEach(el => mountPlotCat(el));
