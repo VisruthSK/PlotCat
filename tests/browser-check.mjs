@@ -73,6 +73,33 @@ try {
   assert.deepEqual(successfulRun, { engine: 'r', overlay: true, wipe: '73%', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: 'Plot rendered.', complete: true, enabled: true });
 
   await load();
+  const forEachRun = await page.evaluate(async () => {
+    const root = document.querySelector('.plotcat');
+    root.dataset.plotcatManifest = '{"id":"test","engine":"r","packages":[]}';
+    const { runtimeManager } = await import('../../_extensions/plotcat/runtime-manager.js');
+    const calls = [];
+    runtimeManager.get = async (engine, manifest) => {
+      calls.push({ engine, manifest });
+      return { renderSvg: async () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg>` };
+    };
+    runtimeManager.run = async (_engine, task) => task();
+
+    // Call using forEach to simulate automatic mounting (passes index as second argument)
+    [root].forEach(window.plotcatUi.mountPlotCat);
+
+    root.querySelector('[data-plotcat-run]').click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    return {
+      engine: calls[0]?.engine,
+      student: root.querySelector('[data-plotcat-student]').innerHTML,
+      score: root.querySelector('.plotcat__score').textContent,
+      status: root.querySelector('.plotcat__status').textContent,
+      complete: root.classList.contains('plotcat--complete')
+    };
+  });
+  assert.deepEqual(forEachRun, { engine: 'r', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: 'Plot rendered.', complete: true });
+
+  await load();
   const failedRun = await page.evaluate(async () => {
     const root = document.querySelector('.plotcat'); root.dataset.plotcatManifest = '{"id":"test","engine":"r","packages":[]}';
     window.plotcatUi.mountPlotCat(root, { get: async () => { throw new Error('R package tinyplot is unavailable.'); }, run: async () => {} });

@@ -10,6 +10,7 @@ plot(cars, main = "Target title")
 ```
 ```{r}
 #| eval: false
+library(ggplot2)
 plot(cars)
 ```
 :::

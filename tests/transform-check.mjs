@@ -42,7 +42,8 @@ try {
   assert.equal(two.status, 0, two.stdout + two.stderr);
   const twoHtml = readFileSync(resolve(output, 'two-chunks.html'), 'utf8');
   assert.match(twoHtml, /id="plotcat-two-r"/);
-  assert.match(twoHtml, /<textarea[^>]*>plot\(cars\)<\/textarea>/);
+  assert.match(twoHtml, /&quot;packages&quot;:\[&quot;ggplot2&quot;\]/);
+  assert.match(twoHtml, /<textarea[^>]*>library\(ggplot2\)\r?\nplot\(cars\)<\/textarea>/);
   assert.doesNotMatch(twoHtml, /main = "Target title"/);
 
   const multiple = render('multiple.qmd');

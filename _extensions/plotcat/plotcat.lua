@@ -81,7 +81,17 @@ end
 local function widget(id, engine, target, starter, target_svg)
   local dom_id = "plotcat-" .. id:gsub("[^%w_-]", "-")
   local package_json = {}
-  for _, package in ipairs(packages_for(engine, target)) do table.insert(package_json, json_string(package)) end
+  local seen = {}
+  local function add_packages(code)
+    for _, package in ipairs(packages_for(engine, code)) do
+      if not seen[package] then
+        seen[package] = true
+        table.insert(package_json, json_string(package))
+      end
+    end
+  end
+  add_packages(target)
+  add_packages(starter)
   local manifest = '{"id":' .. json_string(id) .. ',"engine":' .. json_string(engine) .. ',"packages":[' .. table.concat(package_json, ",") .. ']}'
   local html = [[
 <section class="plotcat plotcat--side-by-side" id="]] .. escape_html(dom_id) .. [[" data-plotcat-manifest="]] .. escape_html(manifest) .. [[">

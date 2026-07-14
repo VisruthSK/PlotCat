@@ -8,9 +8,19 @@ PlotCat turns a plotting chunk into an exercise. Students see the finished plot,
 
 ## Install
 
-Copy `_extensions/plotcat` into your Quarto project and add the filter to `_quarto.yml`:
+Add the extension to a Quarto project:
+
+```bash
+quarto add VisruthSK/PlotCat
+```
+
+Then enable the filter in a document or project config:
 
 ```yaml
+format:
+  html:
+    fig-format: svg
+
 filters:
   - plotcat
 ```

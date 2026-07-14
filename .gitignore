@@ -6,3 +6,4 @@
 /.tmp-render/
 /node_modules/
 /tests/fixtures/*_files/
+/.test-output/

@@ -11,7 +11,14 @@ function svgFragment(svg) {
 }
 
 export function mountPlotCat(root, manager = runtimeManager) {
+  if (!manager || typeof manager.get !== 'function') {
+    manager = runtimeManager;
+  }
   const manifest = JSON.parse(root.dataset.plotcatManifest);
+  const adapterPromise = manager.get(manifest.engine, manifest);
+  // Prevent unhandled promise rejection warnings in the console
+  adapterPromise.catch(() => {});
+
   const run = root.querySelector('[data-plotcat-run]');
   const status = root.querySelector('.plotcat__status');
   const target = root.querySelector('[data-plotcat-target]');
@@ -36,7 +43,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     run.disabled = true;
     status.textContent = `Loading ${manifest.engine === 'r' ? 'WebR' : 'Pyodide'}…`;
     try {
-      const adapter = await manager.get(manifest.engine, manifest);
+      const adapter = await adapterPromise;
       status.textContent = 'Running…';
       const svg = sanitizeSvg(await manager.run(manifest.engine, () => adapter.renderSvg(root.querySelector('textarea').value, {})));
       student.replaceChildren(svgFragment(svg));
@@ -55,4 +62,4 @@ export function mountPlotCat(root, manager = runtimeManager) {
   });
 }
 
-document.querySelectorAll('.plotcat[data-plotcat-manifest]').forEach(mountPlotCat);
+document.querySelectorAll('.plotcat[data-plotcat-manifest]').forEach(el => mountPlotCat(el));
