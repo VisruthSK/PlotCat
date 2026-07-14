@@ -1,0 +1,10 @@
+{
+  "name": "plotcat",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-isolation=none",
+    "build": "quarto render",
+    "check": "pnpm test && quarto render"
+  }
+}

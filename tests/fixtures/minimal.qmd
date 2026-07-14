@@ -1,0 +1,13 @@
+---
+title: Minimal
+format: html
+filters:
+  - ../../_extensions/plotcat/plotcat.lua
+---
+
+::: {.plotcat id="minimal-r"}
+```{r}
+#| eval: false
+plot(cars)
+```
+:::

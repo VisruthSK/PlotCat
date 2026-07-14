@@ -1,0 +1,22 @@
+.plotcat { --plotcat-border: var(--bs-border-color, #7775); --plotcat-accent: var(--bs-primary, #1769aa); border: 1px solid var(--plotcat-border); border-radius: .5rem; margin-block: 1.5rem; padding: 1rem; color: var(--bs-body-color, inherit); background: var(--bs-body-bg, transparent); }
+.plotcat__header, .plotcat__actions, .plotcat__controls { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.plotcat__header { justify-content: space-between; font-weight: 600; margin-bottom: .75rem; }
+.plotcat__body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.plotcat__plot { min-height: 12rem; margin: 0; border: 1px solid var(--plotcat-border); overflow: hidden; background: var(--bs-body-bg, white); }
+.plotcat__plot svg { display: block; width: 100%; height: auto; }
+.plotcat__textarea { width: 100%; min-height: 11rem; margin-block: .35rem .75rem; padding: .65rem; font-family: var(--bs-font-monospace, monospace); color: inherit; background: var(--bs-tertiary-bg, transparent); border: 1px solid var(--plotcat-border); border-radius: .25rem; }
+.plotcat__button { padding: .35rem .75rem; color: inherit; background: transparent; border: 1px solid var(--plotcat-accent); border-radius: .25rem; }
+.plotcat__button:hover { background: color-mix(in srgb, var(--plotcat-accent) 12%, transparent); }
+.plotcat :focus-visible { outline: 3px solid color-mix(in srgb, var(--plotcat-accent) 55%, transparent); outline-offset: 2px; }
+.plotcat__controls { margin: 0; padding: .4rem .65rem; border: 1px solid var(--plotcat-border); }
+.plotcat__status, .plotcat__feedback { margin-top: .65rem; }
+.plotcat--running { opacity: .82; }
+.plotcat--error .plotcat__status { color: var(--bs-danger, #b02a37); }
+.plotcat--complete .plotcat__score { color: var(--bs-success, #146c43); }
+.plotcat--overlay .plotcat__body, .plotcat--wipe .plotcat__body { position: relative; display: grid; }
+.plotcat--overlay .plotcat__plot, .plotcat--wipe .plotcat__plot { grid-area: 1 / 1; }
+.plotcat--overlay .plotcat__student { opacity: .5; }
+.plotcat--wipe .plotcat__student { clip-path: inset(0 calc(100% - var(--plotcat-wipe, 50%)) 0 0); }
+.plotcat--side-by-side .plotcat__slider, .plotcat--overlay .plotcat__slider { display: none; }
+@media (max-width: 42rem) { .plotcat__body { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .plotcat * { scroll-behavior: auto !important; transition: none !important; } }
