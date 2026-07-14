@@ -1,12 +1,13 @@
 ---
-title: Minimal
 format: html
 filters:
   - ../../_extensions/plotcat/plotcat.lua
 ---
 
-::: {.plotcat id="minimal-r"}
-```{r}
-plot(cars)
+::: {.plotcat id="unsupported"}
+::: {.cell}
+```{.bash .cell-code}
+echo plot
 ```
+:::
 :::

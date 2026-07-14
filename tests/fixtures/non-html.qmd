@@ -1,11 +1,10 @@
 ---
-title: Minimal
-format: html
+format: gfm
 filters:
   - ../../_extensions/plotcat/plotcat.lua
 ---
 
-::: {.plotcat id="minimal-r"}
+::: {.plotcat id="static"}
 ```{r}
 plot(cars)
 ```

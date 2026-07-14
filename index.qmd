@@ -1,8 +1,10 @@
 ---
 title: PlotCat
+execute:
+  enabled: false
 ---
 
-PlotCat turns a plotting chunk into an exercise. Students see the finished plot, write R or Python in the browser, and compare their SVG with the target. Their code and results stay in the browser.
+PlotCat turns a plotting chunk into an exercise. Students see the finished plot, write R or Python in the browser, and compare their SVG with the target.
 
 ## Install
 
@@ -17,11 +19,11 @@ R exercises use WebR. Python exercises use Pyodide. Both runtimes load after a s
 
 ## Write an exercise
 
-Wrap one target chunk in a `.plotcat` div. Give the div a unique `id`.
+Wrap one target chunk in a `.plotcat` Div.
 
 ````markdown
-::: {.plotcat id="cars"}
-```{r}
+::: {.plotcat}
+```{{r}}
 plot(cars)
 ```
 :::
@@ -30,12 +32,12 @@ plot(cars)
 Add a second chunk for starter code. Mark it `eval: false` so Quarto does not run it while rendering the page.
 
 ````markdown
-::: {.plotcat id="cars-with-starter"}
-```{r}
+::: {.plotcat}
+```{{r}}
 plot(cars, main = "Stopping distance")
 ```
 
-```{r}
+```{{r}}
 #| eval: false
 plot(cars)
 ```

@@ -17,3 +17,17 @@ test('runs for one engine are queued after failures', async () => {
   await assert.rejects(one, /bad code/); await two;
   assert.deepEqual(order, ['one', 'two']);
 });
+
+test('different language queues can run independently', async () => {
+  const manager = new RuntimeManager({}); const order = [];
+  let releaseR; const rGate = new Promise(resolve => { releaseR = resolve; });
+  const r = manager.run('r', async () => { order.push('r-start'); await rGate; order.push('r-end'); });
+  const python = manager.run('python', async () => { order.push('python'); });
+  await python; assert.deepEqual(order, ['r-start', 'python']);
+  releaseR(); await r; assert.deepEqual(order, ['r-start', 'python', 'r-end']);
+});
+
+test('unsupported engines fail before creating a runtime', async () => {
+  const manager = new RuntimeManager({});
+  await assert.rejects(manager.get('julia', {}), /Unsupported runtime: julia/);
+});

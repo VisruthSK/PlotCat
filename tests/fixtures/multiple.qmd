@@ -1,12 +1,17 @@
 ---
-title: Minimal
 format: html
 filters:
   - ../../_extensions/plotcat/plotcat.lua
 ---
 
-::: {.plotcat id="minimal-r"}
+::: {.plotcat id="first"}
 ```{r}
 plot(cars)
+```
+:::
+
+::: {.plotcat id="second"}
+```{r}
+plot(pressure)
 ```
 :::

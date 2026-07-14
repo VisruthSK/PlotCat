@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>PlotCat browser fixture</title></head>
+<body>
+<section class="plotcat plotcat--side-by-side">
+  <figure data-plotcat-target><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg></figure>
+  <figure data-plotcat-student></figure>
+  <textarea>plot(1)</textarea><button data-plotcat-run>Run</button>
+  <fieldset><input type="radio" value="side-by-side" checked><input type="radio" value="overlay"><input type="radio" value="wipe"></fieldset>
+  <input type="range" data-plotcat-wipe value="50"><button data-plotcat-toggle>Show student</button>
+  <div class="plotcat__status"></div><output class="plotcat__score"></output><div class="plotcat__feedback"></div>
+</section>
+<script type="module">
+  window.plotcatSvg = await import('../../_extensions/plotcat/svg.js');
+  window.plotcatUi = await import('../../_extensions/plotcat/plotcat.js');
+  window.fixtureReady = true;
+</script>
+</body>
+</html>

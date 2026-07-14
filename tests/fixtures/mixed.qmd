@@ -1,12 +1,16 @@
 ---
-title: Minimal
 format: html
 filters:
   - ../../_extensions/plotcat/plotcat.lua
 ---
 
-::: {.plotcat id="minimal-r"}
+::: {.plotcat id="mixed"}
 ```{r}
+#| eval: false
 plot(cars)
+```
+```{python}
+#| eval: false
+print('starter')
 ```
 :::

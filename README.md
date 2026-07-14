@@ -1,0 +1,94 @@
+
+
+# PlotCat
+
+`plotcat` is a Quarto extension for plot recreation exercises. Authors
+provide a target plot and optional starter code. Students write R or
+Python in the browser, render a plot with WebR or Pyodide, and compare
+it with the target.
+
+See the [examples](examples.qmd) for exercises using tinyplot, ggplot2,
+Matplotlib, and plotnine.
+
+## Installation
+
+Add the extension to a Quarto project:
+
+``` bash
+quarto add VisruthSK/PlotCat
+```
+
+Then enable the filter in a document or project config:
+
+``` yaml
+format:
+  html:
+    fig-format: svg
+
+filters:
+  - plotcat
+```
+
+## Example
+
+Write the target plot as the first executable chunk inside a `.plotcat`
+Div.
+
+```` markdown
+::: {.plotcat}
+```{r}
+tinyplot::tinyplot(
+  dist ~ speed,
+  data = cars,
+  main = "Stopping distance by speed",
+  xlab = "Speed",
+  ylab = "Stopping distance"
+)
+```
+:::
+````
+
+Add a second chunk to give students starter code. Set `eval: false` so
+Quarto does not run the starter while rendering the document.
+
+```` markdown
+::: {.plotcat}
+```{r}
+tinyplot::tinyplot(
+  dist ~ speed,
+  data = cars,
+  main = "Stopping distance by speed",
+  xlab = "Speed",
+  ylab = "Stopping distance"
+)
+```
+
+```{r}
+#| eval: false
+tinyplot::tinyplot(
+  dist ~ speed,
+  data = cars
+)
+```
+:::
+````
+
+The first chunk runs during `quarto render` and becomes the target SVG.
+Its source code is omitted from the rendered HTML. The second chunk
+appears in the editor.
+
+PlotCat accepts R and Python chunks. Both chunks in an exercise must use
+the same language.
+
+## Known limitations
+
+PlotCat currently requires `format.html.fig-format: svg`, which also
+makes plots outside `.plotcat` render as SVG. The filter receives plots
+after Quarto executes their chunks, so a future execution integration is
+needed to apply this setting only inside PlotCat exercises.
+
+Starter chunks need `#| eval: false` because Quarto also executes them
+before the filter runs.
+
+PlotCat was inspired by [ggplot2
+Battles](https://github.com/MikeLydeamore/ggplot2-battles).

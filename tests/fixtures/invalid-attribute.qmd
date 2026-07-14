@@ -1,12 +1,12 @@
 ---
-title: Minimal
 format: html
 filters:
   - ../../_extensions/plotcat/plotcat.lua
 ---
 
-::: {.plotcat id="minimal-r"}
+::: {.plotcat id="bad-attribute" title="Unsupported"}
 ```{r}
+#| eval: false
 plot(cars)
 ```
 :::

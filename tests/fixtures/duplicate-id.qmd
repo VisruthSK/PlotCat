@@ -1,0 +1,18 @@
+---
+format: html
+filters:
+  - ../../_extensions/plotcat/plotcat.lua
+---
+
+::: {.plotcat id="same"}
+```{r}
+#| eval: false
+plot(cars)
+```
+:::
+::: {.plotcat id="same"}
+```{r}
+#| eval: false
+plot(pressure)
+```
+:::

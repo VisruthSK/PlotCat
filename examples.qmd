@@ -12,9 +12,8 @@ reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine"))
 
 ## R tinyplot
 
-::: {.plotcat id="cars-tinyplot"}
+::: {.plotcat}
 ```{r}
-#| fig-format: svg
 tinyplot::tinyplot(dist ~ speed, data = cars, main = "Stopping distance by speed", xlab = "Speed", ylab = "Stopping distance")
 ```
 
@@ -26,9 +25,8 @@ tinyplot::tinyplot(dist ~ speed, data = cars)
 
 ## R ggplot2
 
-::: {.plotcat id="penguins-ggplot"}
+::: {.plotcat}
 ```{r}
-#| fig-format: svg
 library(ggplot2)
 library(palmerpenguins)
 ggplot(penguins, aes(bill_length_mm, flipper_length_mm, colour = species)) +
@@ -47,9 +45,8 @@ ggplot(penguins, aes()) + geom_point()
 
 ## Python matplotlib
 
-::: {.plotcat id="iris-matplotlib"}
+::: {.plotcat}
 ```{python}
-#| fig-format: svg
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
 iris = load_iris(as_frame=True)
@@ -74,9 +71,8 @@ ax.scatter(df["sepal length (cm)"], df["petal length (cm)"])
 
 ## Python plotnine
 
-::: {.plotcat id="mtcars-plotnine"}
+::: {.plotcat}
 ```{python}
-#| fig-format: svg
 from plotnine import ggplot, aes, geom_point, labs, theme_minimal
 from plotnine.data import mtcars
 plot = (

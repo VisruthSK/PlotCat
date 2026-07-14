@@ -19,6 +19,7 @@ format:
       light: cosmo
       dark: darkly
     toc: true
+    fig-format: svg
 
 filters:
   - plotcat
