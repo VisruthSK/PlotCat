@@ -87,6 +87,6 @@ export function compareSvg(target, student) {
   const style = setOverlap(a.styles, b.styles);
   const frame = (a.viewBox === b.viewBox ? .7 : 0) + (a.dimensions.join('|') === b.dimensions.join('|') ? .3 : 0);
   const score = Math.round((geometry * .45 + text * .25 + style * .2 + frame * .1) * 1e6) / 1e6;
-  const feedback = [geometry > .8 ? 'Marks and geometry are close.' : 'Check the marks and geometry.', text > .8 ? 'Text matches well.' : 'Check labels and titles.', style > .8 ? 'Styles are close.' : 'Check fills and strokes.'];
+  const feedback = [];
   return { score, categories: { geometry, text, style, frame }, feedback };
 }

@@ -23,18 +23,39 @@ export function mountPlotCat(root, manager = runtimeManager) {
   const status = root.querySelector('.plotcat__status');
   const target = root.querySelector('[data-plotcat-target]');
   const student = root.querySelector('[data-plotcat-student]');
-  const targetSvg = sanitizeSvg(target.querySelector('svg').outerHTML);
+  const targetSvgEl = target.querySelector('svg');
+  const targetSvg = sanitizeSvg(targetSvgEl.outerHTML);
   target.replaceChildren(svgFragment(targetSvg));
+
+  let width = 7;
+  let height = 7;
+  if (targetSvgEl) {
+    const viewBox = targetSvgEl.getAttribute('viewBox');
+    if (viewBox) {
+      const parts = viewBox.split(/\s+/).map(Number);
+      if (parts.length === 4) {
+        const w = parts[2] - parts[0];
+        const h = parts[3] - parts[1];
+        if (w > 0 && h > 0) {
+          width = w / 72;
+          height = h / 72;
+        }
+      }
+    } else {
+      const w = parseFloat(targetSvgEl.getAttribute('width'));
+      const h = parseFloat(targetSvgEl.getAttribute('height'));
+      if (w > 0 && h > 0) {
+        width = w / 72;
+        height = h / 72;
+      }
+    }
+  }
 
   root.querySelectorAll('input[type=radio]').forEach(input => {
     input.addEventListener('change', () => setMode(root, input.value));
   });
   root.querySelector('[data-plotcat-wipe]').addEventListener('input', event => {
     root.style.setProperty('--plotcat-wipe', `${event.target.value}%`);
-  });
-  root.querySelector('[data-plotcat-toggle]').addEventListener('click', event => {
-    const hidden = student.hidden = !student.hidden;
-    event.currentTarget.textContent = hidden ? 'Show student' : 'Hide student';
   });
 
   run.addEventListener('click', async () => {
@@ -45,7 +66,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     try {
       const adapter = await adapterPromise;
       status.textContent = 'Running…';
-      const svg = sanitizeSvg(await manager.run(manifest.engine, () => adapter.renderSvg(root.querySelector('textarea').value, {})));
+      const svg = sanitizeSvg(await manager.run(manifest.engine, () => adapter.renderSvg(root.querySelector('textarea').value, { width, height })));
       student.replaceChildren(svgFragment(svg));
       const result = compareSvg(targetSvg, svg);
       root.querySelector('.plotcat__score').textContent = `${Math.round(result.score * 100)}%`;

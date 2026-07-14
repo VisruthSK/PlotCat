@@ -113,15 +113,14 @@ local function widget(id, engine, target, starter, target_svg, extra_classes)
   <textarea class="plotcat__editor plotcat__textarea" id="]] .. escape_html(dom_id) .. [[-editor" spellcheck="false">]] .. escape_html(starter) .. [[</textarea>
   <div class="plotcat__actions">
     <button class="plotcat__button" type="button" data-plotcat-run>Run</button>
-    <fieldset class="plotcat__compare plotcat__controls"><legend>Compare</legend>
+    <div class="plotcat__compare plotcat__controls"><span class="plotcat__compare-label">Compare</span>
       <div class="plotcat__compare-options">
         <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="side-by-side" checked> Side by side</label>
         <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="overlay"> Overlay</label>
         <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="wipe"> Wipe</label>
       </div>
       <label class="plotcat__slider">Wipe <input type="range" min="0" max="100" value="50" data-plotcat-wipe></label>
-      <button class="plotcat__button" type="button" data-plotcat-toggle>Hide student</button>
-    </fieldset>
+    </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite">Ready.</div>
   <div class="plotcat__feedback"></div>

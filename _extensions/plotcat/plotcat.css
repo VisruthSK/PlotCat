@@ -85,7 +85,7 @@
 
 .plotcat__actions {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
@@ -124,29 +124,29 @@
 /* Premium Segmented Compare Control */
 .plotcat__compare {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   border: none;
   margin: 0;
   padding: 0;
-  gap: 0.35rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-.plotcat__compare legend {
+.plotcat__compare-label {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--bs-secondary-color, #6c757d);
+  color: var(--bs-secondary-color, color-mix(in srgb, var(--bs-body-color, #212529) 60%, transparent));
   font-weight: 700;
   margin: 0;
   padding: 0;
-  float: none;
 }
 
 .plotcat__compare-options {
   display: inline-flex;
   background: var(--plotcat-nested-bg);
-  padding: 0.25rem;
-  border-radius: 0.5rem;
+  padding: 0.2rem;
+  border-radius: 0.375rem;
   border: 1px solid var(--plotcat-border);
   gap: 0.125rem;
 }
@@ -158,8 +158,8 @@
   padding: 0.35rem 0.75rem;
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--bs-secondary-color, #555);
-  border-radius: 0.375rem;
+  color: var(--bs-secondary-color, color-mix(in srgb, var(--bs-body-color, #212529) 65%, transparent));
+  border-radius: 0.25rem;
   cursor: pointer;
   user-select: none;
   transition: all 0.15s ease-in-out;
@@ -167,13 +167,13 @@
 
 .plotcat__compare label:hover {
   color: var(--bs-body-color, #212529);
-  background: rgba(0, 0, 0, 0.03);
+  background: color-mix(in srgb, var(--bs-body-color, #000) 8%, transparent);
 }
 
 .plotcat__compare label:has(input:checked) {
-  background: var(--plotcat-bg);
-  color: var(--plotcat-accent);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  background: var(--plotcat-accent);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .plotcat__compare label input[type="radio"] {
@@ -237,18 +237,6 @@
 
 .plotcat__slider input[type="range"]::-moz-range-thumb:hover {
   transform: scale(1.2);
-}
-
-.plotcat__actions .plotcat__button[data-plotcat-toggle] {
-  color: var(--bs-secondary-color, #6c757d);
-  background: transparent;
-  border-color: var(--plotcat-border);
-  margin-left: 0.5rem;
-}
-
-.plotcat__actions .plotcat__button[data-plotcat-toggle]:hover {
-  background: var(--plotcat-nested-bg);
-  color: var(--bs-body-color, #212529);
 }
 
 .plotcat__status {

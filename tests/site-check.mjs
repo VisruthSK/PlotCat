@@ -32,8 +32,6 @@ try {
   await slider.focus(); await slider.press('ArrowRight');
   assert.equal(await slider.inputValue(), '51');
   assert.equal(await first.evaluate(node => node.style.getPropertyValue('--plotcat-wipe')), '51%');
-  await first.locator('[data-plotcat-toggle]').click();
-  assert.equal(await first.locator('[data-plotcat-student]').evaluate(node => node.hidden), true);
 
   const light = await page.evaluate(() => ({ color: getComputedStyle(document.body).color, background: getComputedStyle(document.body).backgroundColor }));
   await page.evaluate(() => window.quartoToggleColorScheme());

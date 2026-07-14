@@ -27,8 +27,10 @@ export class PyodideAdapter {
       await this.pyodide.pyimport('micropip').install(toInstall);
     }
   }
-  async renderSvg(code) {
-    const wrapped = `import io\n${code}\n_buf = io.StringIO()\ntry:\n fig\nexcept NameError:\n import matplotlib.pyplot as plt\n fig = plt.gcf()\nfig.savefig(_buf, format='svg')\n_buf.getvalue()`;
+  async renderSvg(code, options = {}) {
+    const width = options.width || 6.4;
+    const height = options.height || 4.8;
+    const wrapped = `import io\nimport matplotlib.pyplot as plt\nplt.rcParams['figure.figsize'] = [${width}, ${height}]\n${code}\n_buf = io.StringIO()\ntry:\n fig\nexcept NameError:\n fig = plt.gcf()\nfig.set_size_inches(${width}, ${height})\nfig.savefig(_buf, format='svg')\n_buf.getvalue()`;
     try { const svg = await this.pyodide.runPythonAsync(wrapped); if (!String(svg).includes('<svg')) throw new Error('Python code did not produce a plot.'); return String(svg); }
     catch (error) { throw new Error(`Python error: ${error instanceof Error ? error.message : error}`); }
   }
