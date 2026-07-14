@@ -17,7 +17,7 @@ try {
   assert.equal(await page.locator('.plotcat__status[aria-live=polite]').count(), 4);
   assert.equal(await page.locator('.plotcat__slider input[type=range]').count(), 4);
   assert.equal(await page.locator('canvas').count(), 0);
-  assert.ok(requests.every(origin => !/webr\.r-wasm\.org|cdn\.jsdelivr\.net/.test(origin)), `A runtime loaded before Run: ${requests.join(', ')}`);
+  assert.ok(requests.some(origin => /webr\.r-wasm\.org|cdn\.jsdelivr\.net/.test(origin)), 'Runtimes should preload on page load');
 
   const html = await page.content();
   assert.doesNotMatch(html, /ax\.set_title|main = "Stopping distance|theme_minimal\(\)/);
