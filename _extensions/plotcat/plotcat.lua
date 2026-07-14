@@ -59,8 +59,17 @@ local function packages_for(engine, code)
     for name in code:gmatch("([%w%.]+)%s*::") do add(name) end
     for name in code:gmatch("library%s*%(%s*['\"]?([%w%.]+)") do add(name) end
   else
-    for name in code:gmatch("import%s+([%w_]+)") do add(name) end
-    for name in code:gmatch("from%s+([%w_]+)") do add(name) end
+    for line in code:gmatch("[^\r\n]+") do
+      local from_pkg = line:match("^%s*from%s+([%w_]+)") or line:match("%s+from%s+([%w_]+)")
+      if from_pkg then
+        add(from_pkg)
+      else
+        local import_pkg = line:match("^%s*import%s+([%w_]+)") or line:match("%s+import%s+([%w_]+)")
+        if import_pkg then
+          add(import_pkg)
+        end
+      end
+    end
   end
   return packages
 end
@@ -78,7 +87,7 @@ local function has_output(cell)
   return false
 end
 
-local function widget(id, engine, target, starter, target_svg)
+local function widget(id, engine, target, starter, target_svg, extra_classes)
   local dom_id = "plotcat-" .. id:gsub("[^%w_-]", "-")
   local package_json = {}
   local seen = {}
@@ -94,7 +103,7 @@ local function widget(id, engine, target, starter, target_svg)
   add_packages(starter)
   local manifest = '{"id":' .. json_string(id) .. ',"engine":' .. json_string(engine) .. ',"packages":[' .. table.concat(package_json, ",") .. ']}'
   local html = [[
-<section class="plotcat plotcat--side-by-side" id="]] .. escape_html(dom_id) .. [[" data-plotcat-manifest="]] .. escape_html(manifest) .. [[">
+<section class="plotcat plotcat--side-by-side]] .. (extra_classes or "") .. [[" id="]] .. escape_html(dom_id) .. [[" data-plotcat-manifest="]] .. escape_html(manifest) .. [[">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target" data-plotcat-target>]] .. target_svg .. [[</figure>
@@ -105,9 +114,11 @@ local function widget(id, engine, target, starter, target_svg)
   <div class="plotcat__actions">
     <button class="plotcat__button" type="button" data-plotcat-run>Run</button>
     <fieldset class="plotcat__compare plotcat__controls"><legend>Compare</legend>
-      <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="side-by-side" checked> Side by side</label>
-      <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="overlay"> Overlay</label>
-      <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="wipe"> Wipe</label>
+      <div class="plotcat__compare-options">
+        <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="side-by-side" checked> Side by side</label>
+        <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="overlay"> Overlay</label>
+        <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="wipe"> Wipe</label>
+      </div>
       <label class="plotcat__slider">Wipe <input type="range" min="0" max="100" value="50" data-plotcat-wipe></label>
       <button class="plotcat__button" type="button" data-plotcat-toggle>Hide student</button>
     </fieldset>
@@ -167,7 +178,14 @@ function Div(div)
   local target_svg = svg_from(div)
   if not target_svg then return div end
   quarto.doc.add_html_dependency({name="plotcat", version="0.1.0", scripts={{path="plotcat.js", attribs={type="module"}}}, stylesheets={"plotcat.css"}, resources={"svg.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js"}})
-  return widget(id, engine, chunks[1].block.text, starter, target_svg)
+  local extra_classes = {}
+  for _, class in ipairs(div.classes) do
+    if class ~= "plotcat" then
+      table.insert(extra_classes, class)
+    end
+  end
+  local extra_class_str = #extra_classes > 0 and (" " .. table.concat(extra_classes, " ")) or ""
+  return widget(id, engine, chunks[1].block.text, starter, target_svg, extra_class_str)
 end
 
 function Pandoc(doc)

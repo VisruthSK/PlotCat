@@ -40,6 +40,11 @@ try {
   await page.waitForFunction(() => document.body.classList.contains('quarto-dark'));
   const dark = await page.evaluate(() => ({ color: getComputedStyle(document.body).color, background: getComputedStyle(document.body).backgroundColor }));
   assert.notDeepEqual(light, dark);
+
+  // Verify the styling page renders correctly with custom CSS classes
+  await page.goto(`${server.origin}/styling.html`, { waitUntil: 'load' });
+  assert.equal(await page.locator('.plotcat').count(), 1);
+  assert.equal(await page.locator('.fancy-plotcat').count(), 1);
 } finally {
   await browser.close();
   await server.close();

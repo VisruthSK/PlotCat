@@ -28,18 +28,16 @@ tinyplot::tinyplot(dist ~ speed, data = cars)
 ::: {.plotcat}
 ```{r}
 library(ggplot2)
-library(palmerpenguins)
-ggplot(penguins, aes(bill_length_mm, flipper_length_mm, colour = species)) +
+ggplot(iris, aes(Sepal.Length, Petal.Length, colour = Species)) +
   geom_point(alpha = 0.7) +
-  labs(title = "Penguin bills and flippers", x = "Bill length (mm)", y = "Flipper length (mm)", colour = "Species") +
+  labs(title = "Iris sepal and petal length", x = "Sepal length", y = "Petal length", colour = "Species") +
   theme_minimal()
 ```
 
 ```{r}
 #| eval: false
 library(ggplot2)
-library(palmerpenguins)
-ggplot(penguins, aes()) + geom_point()
+ggplot(iris, aes()) + geom_point()
 ```
 :::
 

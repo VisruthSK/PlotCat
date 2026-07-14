@@ -1,0 +1,87 @@
+---
+title: Styling
+format:
+  html:
+    toc: true
+---
+
+PlotCat uses modern CSS variables for styling. You can customize the look of all exercises globally, or style individual exercises by applying a custom class.
+
+## CSS Variables
+
+PlotCat defines these variables on the `.plotcat` class. Override them in your custom stylesheet or in a `<style>` block:
+
+| Variable | Description | Default |
+|---|---|---|
+| `--plotcat-accent` | The highlight color for running status, score badges, and selected controls | `var(--bs-primary, #0d6efd)` |
+| `--plotcat-border` | The border color for the panel and inputs | `var(--bs-border-color, #dee2e6)` |
+| `--plotcat-bg` | The background color of the main container and plot wrappers | `var(--bs-body-bg, #ffffff)` |
+| `--plotcat-nested-bg` | The background color of code textareas and compare control bar | `var(--bs-tertiary-bg, #f8f9fa)` |
+
+## Example: Fancy Card Style
+
+You can define a custom class to make exercises stand out. For example, add this to a custom stylesheet or a `<style>` block:
+
+```css
+.fancy-plotcat {
+  --plotcat-accent: #8e44ad; /* Purple accent */
+  --plotcat-border: #d2b4de;
+  background: linear-gradient(135deg, #f5eef8, #ebdef0);
+  border-radius: 1rem;
+  box-shadow: 0 8px 30px rgba(142, 68, 173, 0.08);
+}
+.fancy-plotcat .plotcat__plot {
+  border-radius: 0.75rem;
+  border-color: #d2b4de;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+.fancy-plotcat .plotcat__button {
+  border-radius: 2rem;
+}
+.fancy-plotcat .plotcat__compare-options {
+  border-color: #d2b4de;
+  background: #f5eef8;
+}
+```
+
+```{#fancy-style-css =html}
+<style>
+.fancy-plotcat {
+  --plotcat-accent: #8e44ad;
+  --plotcat-border: #d2b4de;
+  background: linear-gradient(135deg, #f5eef8, #ebdef0);
+  border-radius: 1rem;
+  box-shadow: 0 8px 30px rgba(142, 68, 173, 0.08);
+}
+.fancy-plotcat .plotcat__plot {
+  border-radius: 0.75rem;
+  border-color: #d2b4de;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+.fancy-plotcat .plotcat__button {
+  border-radius: 2rem;
+}
+.fancy-plotcat .plotcat__compare-options {
+  border-color: #d2b4de;
+  background: #f5eef8;
+}
+</style>
+```
+
+Then apply the class to your exercise `Div`:
+
+````markdown
+::: {.plotcat .fancy-plotcat}
+```{r}
+plot(cars)
+```
+:::
+````
+
+### Result
+
+::: {.plotcat .fancy-plotcat}
+```{r}
+plot(cars)
+```
+:::

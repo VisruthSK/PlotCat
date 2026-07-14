@@ -1,22 +1,317 @@
-.plotcat { --plotcat-border: var(--bs-border-color, #7775); --plotcat-accent: var(--bs-primary, #1769aa); border: 1px solid var(--plotcat-border); border-radius: .5rem; margin-block: 1.5rem; padding: 1rem; color: var(--bs-body-color, inherit); background: var(--bs-body-bg, transparent); }
-.plotcat__header, .plotcat__actions, .plotcat__controls { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
-.plotcat__header { justify-content: space-between; font-weight: 600; margin-bottom: .75rem; }
-.plotcat__body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
-.plotcat__plot { min-height: 12rem; margin: 0; border: 1px solid var(--plotcat-border); overflow: hidden; background: var(--bs-body-bg, white); }
-.plotcat__plot svg { display: block; width: 100%; height: auto; }
-.plotcat__textarea { width: 100%; min-height: 11rem; margin-block: .35rem .75rem; padding: .65rem; font-family: var(--bs-font-monospace, monospace); color: inherit; background: var(--bs-tertiary-bg, transparent); border: 1px solid var(--plotcat-border); border-radius: .25rem; }
-.plotcat__button { padding: .35rem .75rem; color: inherit; background: transparent; border: 1px solid var(--plotcat-accent); border-radius: .25rem; }
-.plotcat__button:hover { background: color-mix(in srgb, var(--plotcat-accent) 12%, transparent); }
-.plotcat :focus-visible { outline: 3px solid color-mix(in srgb, var(--plotcat-accent) 55%, transparent); outline-offset: 2px; }
-.plotcat__controls { margin: 0; padding: .4rem .65rem; border: 1px solid var(--plotcat-border); }
-.plotcat__status, .plotcat__feedback { margin-top: .65rem; }
-.plotcat--running { opacity: .82; }
-.plotcat--error .plotcat__status { color: var(--bs-danger, #b02a37); }
-.plotcat--complete .plotcat__score { color: var(--bs-success, #146c43); }
-.plotcat--overlay .plotcat__body, .plotcat--wipe .plotcat__body { position: relative; display: grid; }
-.plotcat--overlay .plotcat__plot, .plotcat--wipe .plotcat__plot { grid-area: 1 / 1; }
-.plotcat--overlay .plotcat__student { opacity: .5; }
-.plotcat--wipe .plotcat__student { clip-path: inset(0 calc(100% - var(--plotcat-wipe, 50%)) 0 0); }
-.plotcat--side-by-side .plotcat__slider, .plotcat--overlay .plotcat__slider { display: none; }
-@media (max-width: 42rem) { .plotcat__body { grid-template-columns: 1fr; } }
-@media (prefers-reduced-motion: reduce) { .plotcat * { scroll-behavior: auto !important; transition: none !important; } }
+.plotcat {
+  --plotcat-border: var(--bs-border-color, #dee2e6);
+  --plotcat-accent: var(--bs-primary, #0d6efd);
+  --plotcat-accent-rgb: 13, 110, 253;
+  --plotcat-bg: var(--bs-body-bg, #ffffff);
+  --plotcat-nested-bg: var(--bs-tertiary-bg, #f8f9fa);
+  
+  border: 1px solid var(--plotcat-border);
+  border-radius: 0.75rem;
+  margin-block: 2rem;
+  padding: 1.25rem;
+  color: var(--bs-body-color, #212529);
+  background: var(--plotcat-bg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  font-family: var(--bs-body-font-family, system-ui, -apple-system, sans-serif);
+}
+
+.plotcat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--plotcat-border);
+  padding-bottom: 0.75rem;
+}
+
+.plotcat__score {
+  font-size: 0.9rem;
+  background: rgba(var(--plotcat-accent-rgb), 0.1);
+  color: var(--plotcat-accent);
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  font-weight: 700;
+}
+
+.plotcat__body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.plotcat__plot {
+  min-height: 14rem;
+  margin: 0;
+  border: 1px solid var(--plotcat-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--plotcat-bg);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plotcat__plot svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+}
+
+.plotcat__textarea {
+  width: 100%;
+  min-height: 11rem;
+  margin-block: 0.5rem 1rem;
+  padding: 0.75rem;
+  font-family: var(--bs-font-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  font-size: 0.9rem;
+  color: inherit;
+  background: var(--plotcat-nested-bg);
+  border: 1px solid var(--plotcat-border);
+  border-radius: 0.5rem;
+  resize: vertical;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.plotcat__textarea:focus {
+  border-color: var(--plotcat-accent);
+  box-shadow: 0 0 0 0.25rem rgba(var(--plotcat-accent-rgb), 0.25);
+  outline: 0;
+}
+
+.plotcat__actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--plotcat-border);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.plotcat__button {
+  padding: 0.45rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  background: var(--plotcat-accent);
+  border: 1px solid var(--plotcat-accent);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.plotcat__button:hover {
+  background: color-mix(in srgb, var(--plotcat-accent) 85%, black);
+  border-color: color-mix(in srgb, var(--plotcat-accent) 85%, black);
+}
+
+.plotcat__button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.plotcat :focus-visible {
+  outline: 3px solid rgba(var(--plotcat-accent-rgb), 0.5);
+  outline-offset: 2px;
+}
+
+/* Premium Segmented Compare Control */
+.plotcat__compare {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.35rem;
+}
+
+.plotcat__compare legend {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--bs-secondary-color, #6c757d);
+  font-weight: 700;
+  margin: 0;
+  padding: 0;
+  float: none;
+}
+
+.plotcat__compare-options {
+  display: inline-flex;
+  background: var(--plotcat-nested-bg);
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--plotcat-border);
+  gap: 0.125rem;
+}
+
+.plotcat__compare label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--bs-secondary-color, #555);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease-in-out;
+}
+
+.plotcat__compare label:hover {
+  color: var(--bs-body-color, #212529);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.plotcat__compare label:has(input:checked) {
+  background: var(--plotcat-bg);
+  color: var(--plotcat-accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.plotcat__compare label input[type="radio"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom Styled Wipe Slider */
+.plotcat__slider {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--bs-secondary-color, #6c757d);
+  padding-left: 0.5rem;
+}
+
+.plotcat__slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 6.5rem;
+  height: 0.35rem;
+  background: var(--plotcat-border);
+  border-radius: 0.25rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.plotcat__slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  background: var(--plotcat-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s ease;
+}
+
+.plotcat__slider input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.plotcat__slider input[type="range"]::-moz-range-thumb {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--plotcat-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s ease;
+}
+
+.plotcat__slider input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.plotcat__actions .plotcat__button[data-plotcat-toggle] {
+  color: var(--bs-secondary-color, #6c757d);
+  background: transparent;
+  border-color: var(--plotcat-border);
+  margin-left: 0.5rem;
+}
+
+.plotcat__actions .plotcat__button[data-plotcat-toggle]:hover {
+  background: var(--plotcat-nested-bg);
+  color: var(--bs-body-color, #212529);
+}
+
+.plotcat__status {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--bs-secondary-color, #6c757d);
+  margin-top: 0.75rem;
+}
+
+.plotcat__feedback {
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color, #6c757d);
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+.plotcat--running {
+  opacity: 0.85;
+}
+
+.plotcat--error .plotcat__status {
+  color: var(--bs-danger, #dc3545);
+}
+
+.plotcat--complete .plotcat__score {
+  background: rgba(var(--bs-success-rgb, 25, 135, 84), 0.1);
+  color: var(--bs-success, #198754);
+}
+
+/* Layout modes */
+.plotcat--overlay .plotcat__body,
+.plotcat--wipe .plotcat__body {
+  position: relative;
+  display: grid;
+}
+
+.plotcat--overlay .plotcat__plot,
+.plotcat--wipe .plotcat__plot {
+  grid-area: 1 / 1;
+}
+
+.plotcat--overlay .plotcat__student {
+  opacity: 0.5;
+}
+
+.plotcat--wipe .plotcat__student {
+  clip-path: inset(0 calc(100% - var(--plotcat-wipe, 50%)) 0 0);
+}
+
+.plotcat--side-by-side .plotcat__slider,
+.plotcat--overlay .plotcat__slider {
+  display: none;
+}
+
+@media (max-width: 48rem) {
+  .plotcat__body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plotcat * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

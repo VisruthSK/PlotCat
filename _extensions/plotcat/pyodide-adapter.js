@@ -1,14 +1,31 @@
 export class PyodideAdapter {
   constructor(load = () => import('https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.mjs')) {
     this.load = load;
+    this.installed = new Set();
   }
 
   async init(manifest) {
     const { loadPyodide } = await this.load();
     this.pyodide = await loadPyodide();
+    if (manifest && manifest.packages) {
+      await this.installPackages(manifest.packages);
+    }
+  }
+
+  async installPackages(packages) {
     const aliases = { sklearn: 'scikit-learn' };
-    const packages = (manifest.packages || []).map(name => aliases[name] || name);
-    if (packages.length) { await this.pyodide.loadPackage('micropip'); await this.pyodide.pyimport('micropip').install(packages); }
+    const toInstall = [];
+    for (const name of packages) {
+      const normalized = aliases[name] || name;
+      if (!this.installed.has(normalized)) {
+        toInstall.push(normalized);
+        this.installed.add(normalized);
+      }
+    }
+    if (toInstall.length) {
+      await this.pyodide.loadPackage('micropip');
+      await this.pyodide.pyimport('micropip').install(toInstall);
+    }
   }
   async renderSvg(code) {
     const wrapped = `import io\n${code}\n_buf = io.StringIO()\ntry:\n fig\nexcept NameError:\n import matplotlib.pyplot as plt\n fig = plt.gcf()\nfig.savefig(_buf, format='svg')\n_buf.getvalue()`;
