@@ -1,0 +1,45 @@
+---
+title: PlotCat
+---
+
+PlotCat turns a plotting chunk into an exercise. Students see the finished plot, write R or Python in the browser, and compare their SVG with the target. Their code and results stay in the browser.
+
+## Install
+
+Copy `_extensions/plotcat` into your Quarto project and add the filter to `_quarto.yml`:
+
+```yaml
+filters:
+  - plotcat
+```
+
+R exercises use WebR. Python exercises use Pyodide. Both runtimes load after a student clicks **Run**.
+
+## Write an exercise
+
+Wrap one target chunk in a `.plotcat` div. Give the div a unique `id`.
+
+````markdown
+::: {.plotcat id="cars"}
+```{r}
+plot(cars)
+```
+:::
+````
+
+Add a second chunk for starter code. Mark it `eval: false` so Quarto does not run it while rendering the page.
+
+````markdown
+::: {.plotcat id="cars-with-starter"}
+```{r}
+plot(cars, main = "Stopping distance")
+```
+
+```{r}
+#| eval: false
+plot(cars)
+```
+:::
+````
+
+The first chunk produces the target SVG during `quarto render`. PlotCat removes its source from the HTML. The optional second chunk appears in the editor but does not run during rendering.

@@ -1,0 +1,97 @@
+---
+title: Examples
+format:
+  html:
+    toc: true
+---
+
+```{r}
+#| include: false
+reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine"))
+```
+
+## R tinyplot
+
+::: {.plotcat id="cars-tinyplot"}
+```{r}
+#| fig-format: svg
+tinyplot::tinyplot(dist ~ speed, data = cars, main = "Stopping distance by speed", xlab = "Speed", ylab = "Stopping distance")
+```
+
+```{r}
+#| eval: false
+tinyplot::tinyplot(dist ~ speed, data = cars)
+```
+:::
+
+## R ggplot2
+
+::: {.plotcat id="penguins-ggplot"}
+```{r}
+#| fig-format: svg
+library(ggplot2)
+library(palmerpenguins)
+ggplot(penguins, aes(bill_length_mm, flipper_length_mm, colour = species)) +
+  geom_point(alpha = 0.7) +
+  labs(title = "Penguin bills and flippers", x = "Bill length (mm)", y = "Flipper length (mm)", colour = "Species") +
+  theme_minimal()
+```
+
+```{r}
+#| eval: false
+library(ggplot2)
+library(palmerpenguins)
+ggplot(penguins, aes()) + geom_point()
+```
+:::
+
+## Python matplotlib
+
+::: {.plotcat id="iris-matplotlib"}
+```{python}
+#| fig-format: svg
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+iris = load_iris(as_frame=True)
+df = iris.frame
+fig, ax = plt.subplots()
+ax.scatter(df["sepal length (cm)"], df["petal length (cm)"])
+ax.set_title("Iris sepal and petal length")
+ax.set_xlabel("Sepal length (cm)")
+ax.set_ylabel("Petal length (cm)")
+```
+
+```{python}
+#| eval: false
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+iris = load_iris(as_frame=True)
+df = iris.frame
+fig, ax = plt.subplots()
+ax.scatter(df["sepal length (cm)"], df["petal length (cm)"])
+```
+:::
+
+## Python plotnine
+
+::: {.plotcat id="mtcars-plotnine"}
+```{python}
+#| fig-format: svg
+from plotnine import ggplot, aes, geom_point, labs, theme_minimal
+from plotnine.data import mtcars
+plot = (
+  ggplot(mtcars, aes("wt", "mpg", color="factor(cyl)"))
+  + geom_point(size=3)
+  + labs(title="Fuel economy by weight", x="Weight", y="Miles per gallon", color="Cylinders")
+  + theme_minimal()
+)
+plot.show()
+```
+
+```{python}
+#| eval: false
+from plotnine import ggplot, aes, geom_point
+from plotnine.data import mtcars
+ggplot(mtcars, aes("wt", "mpg")) + geom_point()
+```
+:::

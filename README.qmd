@@ -1,0 +1,77 @@
+# PlotCat
+
+`plotcat` is a Quarto extension for plot recreation exercises. Authors provide a target plot and optional starter code. Students write R or Python in the browser, render a plot with WebR or Pyodide, and compare it with the target.
+
+See the [examples](examples.qmd) for exercises using tinyplot, ggplot2, Matplotlib, and plotnine.
+
+## Installation
+
+Add the extension to a Quarto project:
+
+```bash
+quarto add VisruthSK/PlotCat
+```
+
+Then enable the filter in a document or project config:
+
+```yaml
+filters:
+  - plotcat
+```
+
+## Example
+
+Write the target plot as the first executable chunk inside a `.plotcat` Div. The Div needs a unique `id`.
+
+````markdown
+::: {.plotcat id="cars-tinyplot"}
+```{r}
+tinyplot::tinyplot(
+  dist ~ speed,
+  data = cars,
+  main = "Stopping distance by speed",
+  xlab = "Speed",
+  ylab = "Stopping distance"
+)
+```
+:::
+````
+
+Add a second chunk to give students starter code. Set `eval: false` so Quarto does not run the starter while rendering the document.
+
+````markdown
+::: {.plotcat id="cars-tinyplot-starter"}
+```{r}
+tinyplot::tinyplot(
+  dist ~ speed,
+  data = cars,
+  main = "Stopping distance by speed",
+  xlab = "Speed",
+  ylab = "Stopping distance"
+)
+```
+
+```{r}
+#| eval: false
+tinyplot::tinyplot(
+  dist ~ speed,
+  data = cars
+)
+```
+:::
+````
+
+The first chunk runs during `quarto render` and becomes the target SVG. Its source code is omitted from the rendered HTML. The second chunk appears in the editor.
+
+PlotCat accepts R and Python chunks. Both chunks in an exercise must use the same language. Only `id` is supported on the `.plotcat` Div.
+
+## Development
+
+Run the unit tests and render the two-page example site:
+
+```bash
+pnpm test
+quarto render
+```
+
+PlotCat was inspired by [ggplot2 Battles](https://github.com/MikeLydeamore/ggplot2-battles).
