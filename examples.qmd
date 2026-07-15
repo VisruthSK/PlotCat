@@ -37,7 +37,7 @@ ggplot(iris, aes(Sepal.Length, Petal.Length, colour = Species)) +
 ```{r}
 #| eval: false
 library(ggplot2)
-ggplot(iris, aes()) + geom_point()
+ggplot(iris, aes(Sepal.Length, Petal.Length, colour = Species)) + geom_point()
 ```
 :::
 

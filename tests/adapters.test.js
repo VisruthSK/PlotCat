@@ -16,7 +16,9 @@ test('WebR initializes once, installs declared packages, and returns SVG bytes',
   const svg = await adapter.renderSvg('plot(cars)');
   assert.equal(calls.init, 1);
   assert.deepEqual(calls.packages, [['tinyplot'], ['ggplot2']]);
-  assert.match(calls.code, /local\(\{ svg\(/);
+  assert.match(calls.code, /new\.env\(parent = globalenv\(\)\)/);
+  assert.match(calls.code, /withVisible\(eval\(parse/);
+  assert.match(calls.code, /if \(plotcat_result\$visible\) print/);
   assert.match(calls.code, /plot\(cars\)/);
   assert.match(svg, /^<svg/);
 });
@@ -33,7 +35,7 @@ test('WebR reports runtime and invalid-output errors with language context', asy
   await assert.rejects(adapter.renderSvg('plot('), /R error: unexpected symbol/);
 });
 
-test('Pyodide installs import aliases and captures a Matplotlib SVG', async () => {
+test('Pyodide installs import aliases and captures an isolated final plot expression', async () => {
   const calls = { loaded: [], installed: [], code: '' };
   const pyodide = {
     loadPackage: async name => calls.loaded.push(name),
@@ -45,7 +47,11 @@ test('Pyodide installs import aliases and captures a Matplotlib SVG', async () =
   const svg = await adapter.renderSvg('fig, ax = plt.subplots()');
   assert.deepEqual(calls.loaded, ['micropip']);
   assert.deepEqual(calls.installed, [['matplotlib', 'scikit-learn']]);
-  assert.match(calls.code, /fig\.savefig\(_buf, format='svg'\)/);
+  assert.match(calls.code, /_plotcat_globals = \{'__builtins__': __builtins__\}/);
+  assert.match(calls.code, /isinstance\(_plotcat_tree\.body\[-1\], ast\.Expr\)/);
+  assert.match(calls.code, /type\(_plotcat_result\)\.__module__\.startswith\('plotnine'\)/);
+  assert.match(calls.code, /_plotcat_result\.draw\(\)/);
+  assert.match(calls.code, /plt\.close\('all'\)/);
   assert.match(svg, /^<svg/);
 });
 

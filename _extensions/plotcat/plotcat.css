@@ -1,9 +1,9 @@
 .plotcat {
-  --plotcat-border: var(--bs-border-color, #dee2e6);
+  --plotcat-border: color-mix(in srgb, var(--bs-body-color, #212529) 20%, var(--bs-body-bg, #ffffff));
   --plotcat-accent: var(--bs-primary, #0d6efd);
-  --plotcat-accent-rgb: 13, 110, 253;
+  --plotcat-accent-rgb: var(--bs-primary-rgb, 13, 110, 253);
   --plotcat-bg: var(--bs-body-bg, #ffffff);
-  --plotcat-nested-bg: var(--bs-tertiary-bg, #f8f9fa);
+  --plotcat-nested-bg: color-mix(in srgb, var(--bs-body-color, #212529) 6%, var(--bs-body-bg, #ffffff));
   
   border: 1px solid var(--plotcat-border);
   border-radius: 0.75rem;
@@ -13,25 +13,6 @@
   background: var(--plotcat-bg);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   font-family: var(--bs-body-font-family, system-ui, -apple-system, sans-serif);
-}
-
-/* Explicit Dark Mode Overrides */
-.quarto-dark .plotcat,
-[data-bs-theme="dark"] .plotcat,
-[data-mode="dark"] .plotcat {
-  --plotcat-border: var(--bs-border-color, #444);
-  --plotcat-bg: var(--bs-body-bg, #1e1e1e);
-  --plotcat-nested-bg: var(--bs-tertiary-bg, #2d2d2d);
-  color: var(--bs-body-color, #f8f9fa);
-}
-
-@media (prefers-color-scheme: dark) {
-  .plotcat {
-    --plotcat-border: var(--bs-border-color, #444);
-    --plotcat-bg: var(--bs-body-bg, #1e1e1e);
-    --plotcat-nested-bg: var(--bs-tertiary-bg, #2d2d2d);
-    color: var(--bs-body-color, #f8f9fa);
-  }
 }
 
 .plotcat__header {
@@ -149,44 +130,17 @@
   font-weight: 600;
 }
 .plotcat-hl-string {
-  color: #22863a;
+  color: var(--bs-success-text-emphasis, var(--bs-success, #198754));
 }
 .plotcat-hl-number {
-  color: #005cc5;
+  color: var(--bs-info-text-emphasis, var(--bs-info, #0dcaf0));
 }
 .plotcat-hl-comment {
-  color: #6a737d;
+  color: var(--bs-secondary-color, #6c757d);
   font-style: italic;
 }
 .plotcat-hl-function {
-  color: #6f42c1;
-}
-
-/* Dark mode overrides for syntax highlighting colors */
-.quarto-dark .plotcat-hl-keyword,
-[data-bs-theme="dark"] .plotcat-hl-keyword,
-[data-mode="dark"] .plotcat-hl-keyword {
-  color: #ff7b72;
-}
-.quarto-dark .plotcat-hl-string,
-[data-bs-theme="dark"] .plotcat-hl-string,
-[data-mode="dark"] .plotcat-hl-string {
-  color: #85e89d;
-}
-.quarto-dark .plotcat-hl-number,
-[data-bs-theme="dark"] .plotcat-hl-number,
-[data-mode="dark"] .plotcat-hl-number {
-  color: #79c0ff;
-}
-.quarto-dark .plotcat-hl-comment,
-[data-bs-theme="dark"] .plotcat-hl-comment,
-[data-mode="dark"] .plotcat-hl-comment {
-  color: #8b949e;
-}
-.quarto-dark .plotcat-hl-function,
-[data-bs-theme="dark"] .plotcat-hl-function,
-[data-mode="dark"] .plotcat-hl-function {
-  color: #d2a8ff;
+  color: var(--bs-code-color, #d63384);
 }
 
 .plotcat__actions {
@@ -377,6 +331,7 @@
 .plotcat--wipe .plotcat__body {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .plotcat--overlay .plotcat__plot,
