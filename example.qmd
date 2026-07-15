@@ -3,14 +3,17 @@ title: Examples
 format:
   html:
     toc: true
+    toc-depth: 3
 ---
 
 ```{r}
 #| include: false
-reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine"))
+reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine", "seaborn"))
 ```
 
-## R ggplot2
+# R
+
+## [`ggplot2` (`tidyverse`)](https://ggplot2.tidyverse.org)
 
 ::: {.plotcat}
 ```{r}
@@ -42,7 +45,7 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
 ```
 :::
 
-## R tinyplot
+## [`tinyplot`](https://grantmcdermott.com/tinyplot/)
 
 ::: {.plotcat}
 ```{r}
@@ -56,7 +59,25 @@ tinyplot::tinyplot(dist ~ speed, data = cars)
 ```
 :::
 
-## Python matplotlib
+## [`lattice`](https://lattice.r-forge.r-project.org/)
+
+::: {.plotcat}
+```{r}
+#| eval: false
+library(lattice)
+xyplot(mpg ~ wt, data = mtcars, main = "MPG vs Weight", xlab = "Weight", ylab = "MPG")
+```
+
+```{r}
+#| eval: false
+library(lattice)
+xyplot(mpg ~ wt, data = mtcars)
+```
+:::
+
+# Python
+
+## [`matplotlib`](https://matplotlib.org/)
 
 ::: {.plotcat}
 ```{python}
@@ -83,7 +104,7 @@ ax.scatter(data[:, 0], data[:, 2])
 ```
 :::
 
-## Python plotnine
+## [`plotnine`](https://plotnine.org/)
 
 ::: {.plotcat}
 ```{python}
@@ -104,5 +125,31 @@ plot.show()
 from plotnine import ggplot, aes, geom_point
 from plotnine.data import mtcars
 ggplot(mtcars, aes("wt", "mpg")) + geom_point()
+```
+:::
+
+## [`seaborn`](https://seaborn.pydata.org/)
+
+::: {.plotcat}
+```{python}
+#| eval: false
+from sklearn.datasets import load_iris
+import pandas as pd
+import seaborn as sns
+iris = load_iris()
+df = pd.DataFrame(iris.data, columns=iris.feature_names)
+df['species'] = iris.target
+sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)", hue="species")
+```
+
+```{python}
+#| eval: false
+from sklearn.datasets import load_iris
+import pandas as pd
+import seaborn as sns
+iris = load_iris()
+df = pd.DataFrame(iris.data, columns=iris.feature_names)
+df['species'] = iris.target
+sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)")
 ```
 :::

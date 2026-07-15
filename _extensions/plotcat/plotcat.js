@@ -156,7 +156,18 @@ export function mountPlotCat(root, manager = runtimeManager) {
       const svg = sanitizeSvg(await manager.run(manifest.engine, () => adapter.renderSvg(root.querySelector('textarea').value, { width, height })));
       student.replaceChildren(svgFragment(scopeSvgIds(svg, `${svgPrefix}-student`)));
       const result = compareSvg(targetSvg, svg);
-      root.querySelector('.plotcat__score').textContent = `${Math.round(result.score * 100)}%`;
+      const score = result.score;
+      let hue;
+      if (score < 0.5) {
+        hue = score * 2 * 35;
+      } else if (score < 0.8) {
+        hue = 35 + ((score - 0.5) / 0.3) * 25;
+      } else {
+        hue = 60 + ((score - 0.8) / 0.2) * 60;
+      }
+      const scoreEl = root.querySelector('.plotcat__score');
+      scoreEl.textContent = `${Math.round(score * 100)}%`;
+      scoreEl.style.setProperty('--plotcat-score-hue', Math.round(hue));
       root.querySelector('.plotcat__feedback').textContent = result.feedback.join(' ');
       status.textContent = 'Plot rendered.';
       root.classList.add('plotcat--complete');

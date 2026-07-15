@@ -19,7 +19,7 @@ test('WebR initializes once, installs declared packages, and returns SVG bytes',
   assert.match(calls.code, /new\.env\(parent = globalenv\(\)\)/);
   assert.match(calls.code, /svglite::svglite\(/);
   assert.match(calls.code, /withVisible\(eval\(parse/);
-  assert.match(calls.code, /plotcat_result\$visible && inherits\(plotcat_result\$value, "ggplot"\)/);
+  assert.match(calls.code, /plotcat_result\$visible && \(inherits\(plotcat_result\$value, "ggplot"\) \|\| inherits\(plotcat_result\$value, "trellis"\)\)/);
   assert.match(calls.code, /plot\(cars\)/);
   assert.match(svg, /^<svg/);
 });

@@ -272,8 +272,9 @@
 }
 
 .plotcat--complete .plotcat__score {
-  background: rgb(var(--bs-success-rgb, 25, 135, 84) / 10%);
-  color: var(--bs-success, #198754);
+  background: hsla(var(--plotcat-score-hue, 120), 85%, 50%, 0.1);
+  color: color-mix(in srgb, hsl(var(--plotcat-score-hue, 120), 85%, 50%) 80%, var(--bs-body-color, #212529));
+  border: 1px solid hsla(var(--plotcat-score-hue, 120), 85%, 50%, 0.2);
 }
 
 /* Layout modes */

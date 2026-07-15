@@ -20,14 +20,14 @@ async function expectRendered(widget, label) {
 
 try {
   await page.goto(`${server.origin}/example.html`, { waitUntil: 'load' });
-  await page.waitForFunction(() => Array.from(document.querySelectorAll('.plotcat__target svg')).length === 4, null, { timeout: 120000 });
-  assert.equal(await page.locator('.plotcat').count(), 4);
-  assert.equal(await page.locator('.plotcat__target svg').count(), 4);
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('.plotcat__target svg')).length === 6, null, { timeout: 120000 });
+  assert.equal(await page.locator('.plotcat').count(), 6);
+  assert.equal(await page.locator('.plotcat__target svg').count(), 6);
   assert.equal(await page.locator('.plotcat__student svg').count(), 0);
-  assert.equal(await page.locator('.plotcat__textarea').count(), 4);
-  assert.equal(await page.locator('.plotcat__status[aria-live=polite]').count(), 4);
+  assert.equal(await page.locator('.plotcat__textarea').count(), 6);
+  assert.equal(await page.locator('.plotcat__status[aria-live=polite]').count(), 6);
   assert.equal(await page.locator('[data-plotcat-wipe]').count(), 0);
-  assert.equal(await page.locator('[data-plotcat-wipe-handle]').count(), 4);
+  assert.equal(await page.locator('[data-plotcat-wipe-handle]').count(), 6);
   assert.equal(await page.locator('canvas').count(), 0);
   assert.ok(requests.some(origin => /webr\.r-wasm\.org/.test(origin)), 'WebR should preload on page load');
   assert.ok(requests.some(origin => /cdn\.jsdelivr\.net/.test(origin)), 'Pyodide should preload on page load');
@@ -37,7 +37,8 @@ try {
   assert.match(await page.locator('#plotcat-exercise-1 textarea').inputValue(), /bill_len, bill_dep/);
   assert.doesNotMatch(await page.locator('#plotcat-exercise-1 textarea').inputValue(), /palmerpenguins/);
   assert.match(await page.locator('#plotcat-exercise-2 textarea').inputValue(), /tinyplot::tinyplot/);
-  assert.match(await page.locator('#plotcat-exercise-3 textarea').inputValue(), /ax\.scatter/);
+  assert.match(await page.locator('#plotcat-exercise-3 textarea').inputValue(), /xyplot/);
+  assert.match(await page.locator('#plotcat-exercise-4 textarea').inputValue(), /ax\.scatter/);
 
   const first = page.locator('#plotcat-exercise-1');
   await first.locator('input[value=overlay]').click();
@@ -111,13 +112,13 @@ try {
 
   // Exercise the real browser runtimes, not mocks. Run the Python pair first
   // so its lazy runtime is validated independently of later R package memory.
-  const matplotlib = page.locator('#plotcat-exercise-3');
+  const matplotlib = page.locator('#plotcat-exercise-4');
   await matplotlib.locator('[data-plotcat-run]').click();
   await expectRendered(matplotlib, 'Matplotlib');
   assert.equal(await matplotlib.locator('.plotcat__student svg').count(), 1);
   const matplotlibSvg = await matplotlib.locator('.plotcat__student svg').evaluate(svg => svg.outerHTML);
 
-  const plotnine = page.locator('#plotcat-exercise-4');
+  const plotnine = page.locator('#plotcat-exercise-5');
   await plotnine.locator('[data-plotcat-run]').click();
   await expectRendered(plotnine, 'Plotnine');
   assert.equal(await plotnine.locator('.plotcat__student svg').count(), 1);
@@ -125,20 +126,18 @@ try {
   assert.notEqual(await plotnine.locator('.plotcat__student svg').evaluate(svg => svg.outerHTML), matplotlibSvg);
 
   const ggplot = first;
-  const ggplotSolution = `library(ggplot2)
-
-ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
-  geom_point(alpha = 0.75, size = 2.5, na.rm = TRUE) +
-  labs(
+  const ggplotSolution = `ggplot2::ggplot(penguins, ggplot2::aes(colour = species, x = bill_len, y = bill_dep)) +
+  ggplot2::geom_point(size = 2.5, alpha = 0.75, na.rm = TRUE) +
+  ggplot2::labs(
     title = "Penguin bill dimensions",
+    colour = "Species",
     x = "Bill length (mm)",
-    y = "Bill depth (mm)",
-    colour = "Species"
+    y = "Bill depth (mm)"
   ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    panel.grid.minor = element_blank(),
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
     legend.position = "bottom",
+    panel.grid.minor = ggplot2::element_blank(),
     plot.title.position = "plot"
   )`;
   await ggplot.locator('textarea').fill(ggplotSolution);
@@ -173,6 +172,29 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
   assert.deepEqual(tinyplotReferences.unresolved, []);
   assert.ok(tinyplotReferences.labels.some(label => /speed/i.test(label)), 'tinyplot x-axis text should render');
   assert.ok(tinyplotReferences.labels.some(label => /dist/i.test(label)), 'tinyplot y-axis text should render');
+
+  const lattice = page.locator('#plotcat-exercise-3');
+  const latticeSolution = `library(lattice)
+xyplot(mpg ~ wt, data = mtcars, main = "MPG vs Weight", xlab = "Weight", ylab = "MPG")`;
+  await lattice.locator('textarea').fill(latticeSolution);
+  await lattice.locator('[data-plotcat-run]').click();
+  await expectRendered(lattice, 'Lattice');
+  assert.equal(await lattice.locator('.plotcat__student svg').count(), 1);
+  assert.equal(await lattice.locator('.plotcat__score').textContent(), '100%');
+
+  const seaborn = page.locator('#plotcat-exercise-6');
+  const seabornSolution = `from sklearn.datasets import load_iris
+import pandas as pd
+import seaborn as sns
+iris = load_iris()
+df = pd.DataFrame(iris.data, columns=iris.feature_names)
+df['species'] = iris.target
+sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)", hue="species")`;
+  await seaborn.locator('textarea').fill(seabornSolution);
+  await seaborn.locator('[data-plotcat-run]').click();
+  await expectRendered(seaborn, 'Seaborn');
+  assert.equal(await seaborn.locator('.plotcat__student svg').count(), 1);
+  assert.equal(await seaborn.locator('.plotcat__score').textContent(), '100%');
 } finally {
   await browser.close();
   await server.close();
