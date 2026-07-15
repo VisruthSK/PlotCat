@@ -10,6 +10,39 @@ format:
 reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine"))
 ```
 
+## R ggplot2
+
+::: {.plotcat}
+```{r}
+library(ggplot2)
+library(palmerpenguins)
+
+ggplot(penguins, aes(bill_length_mm, bill_depth_mm, colour = species)) +
+  geom_point(alpha = 0.75, size = 2.5, na.rm = TRUE) +
+  labs(
+    title = "Penguin bill dimensions",
+    x = "Bill length (mm)",
+    y = "Bill depth (mm)",
+    colour = "Species"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
+    plot.title.position = "plot"
+  )
+```
+
+```{r}
+#| eval: false
+library(ggplot2)
+library(palmerpenguins)
+
+ggplot(penguins, aes(bill_length_mm, bill_depth_mm, colour = species)) +
+  geom_point(na.rm = TRUE)
+```
+:::
+
 ## R tinyplot
 
 ::: {.plotcat}
@@ -23,34 +56,16 @@ tinyplot::tinyplot(dist ~ speed, data = cars)
 ```
 :::
 
-## R ggplot2
-
-::: {.plotcat}
-```{r}
-library(ggplot2)
-ggplot(iris, aes(Sepal.Length, Petal.Length, colour = Species)) +
-  geom_point(alpha = 0.7) +
-  labs(title = "Iris sepal and petal length", x = "Sepal length", y = "Petal length", colour = "Species") +
-  theme_minimal()
-```
-
-```{r}
-#| eval: false
-library(ggplot2)
-ggplot(iris, aes(Sepal.Length, Petal.Length, colour = Species)) + geom_point()
-```
-:::
-
 ## Python matplotlib
 
 ::: {.plotcat}
 ```{python}
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
-iris = load_iris(as_frame=True)
-df = iris.frame
+iris = load_iris()
+data = iris.data
 fig, ax = plt.subplots()
-ax.scatter(df["sepal length (cm)"], df["petal length (cm)"])
+ax.scatter(data[:, 0], data[:, 2])
 ax.set_title("Iris sepal and petal length")
 ax.set_xlabel("Sepal length (cm)")
 ax.set_ylabel("Petal length (cm)")
@@ -60,10 +75,10 @@ ax.set_ylabel("Petal length (cm)")
 #| eval: false
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
-iris = load_iris(as_frame=True)
-df = iris.frame
+iris = load_iris()
+data = iris.data
 fig, ax = plt.subplots()
-ax.scatter(df["sepal length (cm)"], df["petal length (cm)"])
+ax.scatter(data[:, 0], data[:, 2])
 ```
 :::
 

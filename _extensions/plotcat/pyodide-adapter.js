@@ -14,17 +14,23 @@ export class PyodideAdapter {
 
   async installPackages(packages) {
     const aliases = { sklearn: 'scikit-learn' };
-    const toInstall = [];
+    const bundledNames = new Set(['matplotlib', 'numpy', 'pandas', 'scikit-learn', 'scipy']);
+    const bundled = [];
+    const wheels = [];
     for (const name of packages) {
       const normalized = aliases[name] || name;
       if (!this.installed.has(normalized)) {
-        toInstall.push(normalized);
-        this.installed.add(normalized);
+        (bundledNames.has(normalized) ? bundled : wheels).push(normalized);
       }
     }
-    if (toInstall.length) {
+    if (bundled.length) {
+      await this.pyodide.loadPackage(bundled);
+      bundled.forEach(name => this.installed.add(name));
+    }
+    if (wheels.length) {
       await this.pyodide.loadPackage('micropip');
-      await this.pyodide.pyimport('micropip').install(toInstall);
+      await this.pyodide.pyimport('micropip').install(wheels);
+      wheels.forEach(name => this.installed.add(name));
     }
   }
   async renderSvg(code, options = {}) {

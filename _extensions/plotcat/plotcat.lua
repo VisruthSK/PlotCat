@@ -108,6 +108,7 @@ local function widget(id, engine, target, starter, target_svg, extra_classes)
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target" data-plotcat-target>]] .. target_svg .. [[</figure>
     <figure class="plotcat__plot plotcat__student" data-plotcat-student aria-label="Your plot"></figure>
+    <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
   </div>
   <label for="]] .. escape_html(dom_id) .. [[-editor">Code</label>
   <div class="plotcat-editor-container">

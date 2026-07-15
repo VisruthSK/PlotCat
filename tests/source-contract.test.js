@@ -14,10 +14,11 @@ test('wipe uses one centered plot column and theming follows Bootstrap variables
   assert.match(css, /\.plotcat--wipe \.plotcat__body[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(css, /--plotcat-accent-rgb: var\(--bs-primary-rgb/);
   assert.match(css, /--plotcat-nested-bg: color-mix\(in srgb, var\(--bs-body-color/);
+  assert.doesNotMatch(css, /rgba\(0, 0, 0|color:\s*#fff(?:fff)?/);
   assert.doesNotMatch(css, /prefers-color-scheme|Explicit Dark Mode Overrides/);
 });
 
 test('required stable classes are present', async () => {
   const lua = await readFile(new URL('../_extensions/plotcat/plotcat.lua', import.meta.url), 'utf8');
-  for (const name of ['plotcat__header','plotcat__body','plotcat__target','plotcat__student','plotcat__plot','plotcat__editor','plotcat__textarea','plotcat__actions','plotcat__button','plotcat__status','plotcat__score','plotcat__feedback','plotcat__compare','plotcat__controls','plotcat__slider']) assert.match(lua, new RegExp(name));
+  for (const name of ['plotcat__header','plotcat__body','plotcat__target','plotcat__student','plotcat__plot','plotcat__editor','plotcat__textarea','plotcat__actions','plotcat__button','plotcat__status','plotcat__score','plotcat__feedback','plotcat__compare','plotcat__controls','plotcat__slider','plotcat__wipe-handle']) assert.match(lua, new RegExp(name));
 });

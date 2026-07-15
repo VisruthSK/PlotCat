@@ -15,7 +15,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     manager = runtimeManager;
   }
   const manifest = JSON.parse(root.dataset.plotcatManifest);
-  const adapterPromise = manager.get(manifest.engine, manifest);
+  const adapterPromise = manifest.engine === 'r' ? manager.get(manifest.engine) : Promise.resolve();
   // Prevent unhandled promise rejection warnings in the console
   adapterPromise.catch(() => {});
 
@@ -54,9 +54,52 @@ export function mountPlotCat(root, manager = runtimeManager) {
   root.querySelectorAll('input[type=radio]').forEach(input => {
     input.addEventListener('change', () => setMode(root, input.value));
   });
-  root.querySelector('[data-plotcat-wipe]').addEventListener('input', event => {
-    root.style.setProperty('--plotcat-wipe', `${event.target.value}%`);
-  });
+  const wipeRange = root.querySelector('[data-plotcat-wipe]');
+  const wipeHandle = root.querySelector('[data-plotcat-wipe-handle]');
+  const plotBody = root.querySelector('.plotcat__body');
+
+  function setWipe(value) {
+    const percent = Math.round(Math.max(0, Math.min(100, Number(value))));
+    root.style.setProperty('--plotcat-wipe', `${percent}%`);
+    wipeRange.value = String(percent);
+    if (wipeHandle) wipeHandle.setAttribute('aria-valuenow', String(percent));
+  }
+
+  wipeRange.addEventListener('input', event => setWipe(event.target.value));
+
+  if (wipeHandle && plotBody) {
+    let dragging = false;
+    const updateFromPointer = event => {
+      const bounds = plotBody.getBoundingClientRect();
+      if (bounds.width > 0) setWipe(((event.clientX - bounds.left) / bounds.width) * 100);
+    };
+    wipeHandle.addEventListener('pointerdown', event => {
+      event.preventDefault();
+      dragging = true;
+      wipeHandle.setPointerCapture(event.pointerId);
+      updateFromPointer(event);
+    });
+    wipeHandle.addEventListener('pointermove', event => {
+      if (dragging) updateFromPointer(event);
+    });
+    wipeHandle.addEventListener('pointerup', event => {
+      dragging = false;
+      wipeHandle.releasePointerCapture(event.pointerId);
+    });
+    wipeHandle.addEventListener('pointercancel', () => { dragging = false; });
+    wipeHandle.addEventListener('keydown', event => {
+      const current = Number(wipeRange.value);
+      const next = event.key === 'Home' ? 0
+        : event.key === 'End' ? 100
+        : event.key === 'ArrowLeft' || event.key === 'ArrowDown' ? current - 1
+        : event.key === 'ArrowRight' || event.key === 'ArrowUp' ? current + 1
+        : null;
+      if (next !== null) {
+        event.preventDefault();
+        setWipe(next);
+      }
+    });
+  }
 
   const overlay = root.querySelector('.plotcat-highlight-overlay');
   const textarea = root.querySelector('.plotcat__textarea');
@@ -92,7 +135,8 @@ export function mountPlotCat(root, manager = runtimeManager) {
     run.disabled = true;
     status.textContent = `Loading ${manifest.engine === 'r' ? 'WebR' : 'Pyodide'}…`;
     try {
-      const adapter = await adapterPromise;
+      await adapterPromise;
+      const adapter = await manager.get(manifest.engine, manifest);
       status.textContent = 'Running…';
       const svg = sanitizeSvg(await manager.run(manifest.engine, () => adapter.renderSvg(root.querySelector('textarea').value, { width, height })));
       student.replaceChildren(svgFragment(svg));

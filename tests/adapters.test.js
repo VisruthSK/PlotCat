@@ -43,10 +43,10 @@ test('Pyodide installs import aliases and captures an isolated final plot expres
     runPythonAsync: async code => { calls.code = code; return '<svg xmlns="http://www.w3.org/2000/svg"/>'; }
   };
   const adapter = new PyodideAdapter(async () => ({ loadPyodide: async () => pyodide }));
-  await adapter.init({ packages: ['matplotlib', 'sklearn'] });
+  await adapter.init({ packages: ['matplotlib', 'sklearn', 'plotnine'] });
   const svg = await adapter.renderSvg('fig, ax = plt.subplots()');
-  assert.deepEqual(calls.loaded, ['micropip']);
-  assert.deepEqual(calls.installed, [['matplotlib', 'scikit-learn']]);
+  assert.deepEqual(calls.loaded, [['matplotlib', 'scikit-learn'], 'micropip']);
+  assert.deepEqual(calls.installed, [['plotnine']]);
   assert.match(calls.code, /_plotcat_globals = \{'__builtins__': __builtins__\}/);
   assert.match(calls.code, /isinstance\(_plotcat_tree\.body\[-1\], ast\.Expr\)/);
   assert.match(calls.code, /type\(_plotcat_result\)\.__module__\.startswith\('plotnine'\)/);

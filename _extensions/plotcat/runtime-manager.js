@@ -8,13 +8,13 @@ export class RuntimeManager {
       this.instances.set(engine, (async () => {
         const adapter = this.factories[engine]?.();
         if (!adapter) throw new Error(`Unsupported runtime: ${engine}`);
-        await adapter.init({ packages: manifest.packages });
+        await adapter.init({ packages: [] });
         return adapter;
       })());
     }
     const adapter = await this.instances.get(engine);
-    if (manifest && manifest.packages) {
-      await adapter.installPackages(manifest.packages);
+    if (manifest?.packages?.length) {
+      await this.run(engine, () => adapter.installPackages(manifest.packages));
     }
     return adapter;
   }

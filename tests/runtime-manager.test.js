@@ -10,6 +10,19 @@ test('runtimes are lazy and reused', async () => {
   assert.equal(first, second); assert.equal(made, 1); assert.equal(initialized, 1);
 });
 
+test('package installation uses the engine queue before the caller renders', async () => {
+  const order = [];
+  const adapter = {
+    init: async manifest => order.push(`init:${manifest.packages.length}`),
+    installPackages: async packages => order.push(`install:${packages.join(',')}`)
+  };
+  const manager = new RuntimeManager({ python: () => adapter });
+  const loaded = await manager.get('python', { packages: ['plotnine'] });
+  assert.equal(loaded, adapter);
+  await manager.run('python', async () => order.push('render'));
+  assert.deepEqual(order, ['init:0', 'install:plotnine', 'render']);
+});
+
 test('runs for one engine are queued after failures', async () => {
   const manager = new RuntimeManager({}); const order = [];
   const one = manager.run('r', async () => { order.push('one'); throw new Error('bad code'); });
