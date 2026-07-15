@@ -138,7 +138,7 @@ export function compareSvg(target, student) {
   const text = bagOverlap(a.text, b.text);
   const style = bagOverlap(a.styles, b.styles);
   const frame = frameSimilarity(a, b);
-  const equivalent = counts === 1 && text === 1 && coarse >= .6 && style >= .8 && frame === 1;
+  const equivalent = counts === 1 && text === 1 && coarse >= .8 && style >= .8 && frame === 1;
   const rawScore = geometry * .5 + text * .25 + style * .15 + frame * .1;
   const score = equivalent ? 1 : Math.round(rawScore * 1e6) / 1e6;
   const feedback = [];

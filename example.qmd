@@ -14,7 +14,7 @@ reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine"))
 
 ::: {.plotcat}
 ```{r}
-#| dev: svglite
+#| eval: false
 library(ggplot2)
 
 ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
@@ -46,7 +46,7 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
 
 ::: {.plotcat}
 ```{r}
-#| dev: svglite
+#| eval: false
 tinyplot::tinyplot(dist ~ speed, data = cars, main = "Stopping distance by speed", xlab = "Speed", ylab = "Stopping distance")
 ```
 
@@ -60,6 +60,7 @@ tinyplot::tinyplot(dist ~ speed, data = cars)
 
 ::: {.plotcat}
 ```{python}
+#| eval: false
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
 iris = load_iris()
@@ -86,6 +87,7 @@ ax.scatter(data[:, 0], data[:, 2])
 
 ::: {.plotcat}
 ```{python}
+#| eval: false
 from plotnine import ggplot, aes, geom_point, labs, theme_minimal
 from plotnine.data import mtcars
 plot = (

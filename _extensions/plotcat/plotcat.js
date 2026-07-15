@@ -1,6 +1,17 @@
 import { compareSvg, sanitizeSvg, scopeSvgIds } from './svg.js';
 import { runtimeManager } from './runtime-manager.js';
 
+async function decodePattern(salt, encoded) {
+  const bytes = new TextEncoder().encode(salt);
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  const key = new Uint8Array(hash);
+  const resultBytes = new Uint8Array(encoded.length / 2);
+  for (let i = 0; i < resultBytes.length; i++) {
+    resultBytes[i] = parseInt(encoded.slice(i * 2, i * 2 + 2), 16) ^ key[i % key.length];
+  }
+  return new TextDecoder().decode(resultBytes);
+}
+
 function setMode(root, mode) {
   root.classList.remove('plotcat--side-by-side', 'plotcat--overlay', 'plotcat--wipe');
   root.classList.add(`plotcat--${mode}`);
@@ -15,7 +26,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     manager = runtimeManager;
   }
   const manifest = JSON.parse(root.dataset.plotcatManifest);
-  const adapterPromise = manager.get(manifest.engine);
+  const adapterPromise = manager.get(manifest.engine, manifest);
   // Prevent unhandled promise rejection warnings in the console
   adapterPromise.catch(() => {});
 
@@ -23,32 +34,38 @@ export function mountPlotCat(root, manager = runtimeManager) {
   const status = root.querySelector('.plotcat__status');
   const target = root.querySelector('[data-plotcat-target]');
   const student = root.querySelector('[data-plotcat-student]');
-  const targetSvgEl = target.querySelector('svg');
-  const targetSvg = sanitizeSvg(targetSvgEl.outerHTML);
-  const svgPrefix = (root.id || manifest.id || 'plotcat').replace(/[^a-zA-Z0-9_-]/g, '-');
-  target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
 
-  let width = 7;
-  let height = 7;
-  if (targetSvgEl) {
-    const viewBox = targetSvgEl.getAttribute('viewBox');
-    if (viewBox) {
-      const parts = viewBox.split(/\s+/).map(Number);
-      if (parts.length === 4) {
-        const w = parts[2] - parts[0];
-        const h = parts[3] - parts[1];
-        if (w > 0 && h > 0) {
-          width = w / 72;
-          height = h / 72;
-        }
-      }
-    } else {
-      const w = parseFloat(targetSvgEl.getAttribute('width'));
-      const h = parseFloat(targetSvgEl.getAttribute('height'));
-      if (w > 0 && h > 0) {
-        width = w / 72;
-        height = h / 72;
-      }
+  const targetCodeHex = root.dataset.plotcatTargetCode;
+  const salt = root.dataset.plotcatSalt;
+  const svgPrefix = (root.id || manifest.id || 'plotcat').replace(/[^a-zA-Z0-9_-]/g, '-');
+
+  let width = manifest.engine === 'r' ? 7 : 6.4;
+  let height = manifest.engine === 'r' ? 5 : 4.8;
+
+  let targetSvg = null;
+
+  if (targetCodeHex && salt) {
+    run.disabled = true;
+    status.textContent = `Loading ${manifest.engine === 'r' ? 'WebR' : 'Pyodide'}…`;
+    decodePattern(salt, targetCodeHex).then(async (targetCode) => {
+      const adapter = await adapterPromise;
+      const svg = sanitizeSvg(await manager.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height })));
+      targetSvg = svg;
+      target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
+      status.textContent = 'Ready.';
+      run.disabled = false;
+    }).catch(error => {
+      console.error('Failed to render target plot:', error);
+      status.textContent = 'Error rendering target: ' + (error.message || error);
+      root.classList.add('plotcat--error');
+    });
+  } else {
+    const targetSvgEl = target.querySelector('svg');
+    if (targetSvgEl) {
+      targetSvg = sanitizeSvg(targetSvgEl.outerHTML);
+      target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
+      status.textContent = 'Ready.';
+      run.disabled = false;
     }
   }
 
@@ -129,14 +146,13 @@ export function mountPlotCat(root, manager = runtimeManager) {
   }
 
   run.addEventListener('click', async () => {
+    if (!targetSvg) return;
     root.classList.remove('plotcat--error', 'plotcat--complete');
     root.classList.add('plotcat--running');
     run.disabled = true;
-    status.textContent = `Loading ${manifest.engine === 'r' ? 'WebR' : 'Pyodide'}…`;
+    status.textContent = 'Running…';
     try {
-      await adapterPromise;
       const adapter = await manager.get(manifest.engine, manifest);
-      status.textContent = 'Running…';
       const svg = sanitizeSvg(await manager.run(manifest.engine, () => adapter.renderSvg(root.querySelector('textarea').value, { width, height })));
       student.replaceChildren(svgFragment(scopeSvgIds(svg, `${svgPrefix}-student`)));
       const result = compareSvg(targetSvg, svg);

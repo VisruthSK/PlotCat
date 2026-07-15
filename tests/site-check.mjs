@@ -20,6 +20,7 @@ async function expectRendered(widget, label) {
 
 try {
   await page.goto(`${server.origin}/example.html`, { waitUntil: 'load' });
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('.plotcat__target svg')).length === 4, null, { timeout: 120000 });
   assert.equal(await page.locator('.plotcat').count(), 4);
   assert.equal(await page.locator('.plotcat__target svg').count(), 4);
   assert.equal(await page.locator('.plotcat__student svg').count(), 0);

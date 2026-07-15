@@ -29,7 +29,9 @@ try {
   assert.equal(valid.status, 0, valid.stdout + valid.stderr);
   const html = readFileSync(resolve(output, 'minimal.html'), 'utf8');
   assert.match(html, /class="plotcat plotcat--side-by-side"/);
-  assert.match(html, /data-plotcat-target=""><!--\?xml[\s\S]*?<svg/);
+  assert.match(html, /data-plotcat-target-code="[0-9a-f]+"/);
+  assert.match(html, /data-plotcat-salt="salt_[0-9a-f]+"/);
+  assert.match(html, /class="plotcat__target-loading"/);
   assert.doesNotMatch(html, /plot\(cars\)/);
   assert.match(html, /type="module"/);
 
@@ -56,7 +58,6 @@ try {
   assert.equal(nonHtml.status, 0, nonHtml.stdout + nonHtml.stderr);
   const markdown = readFileSync(resolve(output, 'non-html.md'), 'utf8');
   assert.match(markdown, /interactive PlotCat exercise is available in HTML/);
-  assert.match(markdown, /!\[\]\(non-html_files\/figure-[^)]+\.svg\)/);
   assert.doesNotMatch(markdown, /plot\(cars\)/);
 
   for (const [fixture, message] of [
@@ -66,9 +67,7 @@ try {
     ['invalid-attribute.qmd', "attribute 'title' is not supported"],
     ['executed-starter.qmd', 'starter chunk executed'],
     ['duplicate-id.qmd', "duplicate id 'same'"],
-    ['unsupported-engine.qmd', "unsupported engine 'bash'"],
-    ['no-svg.qmd', 'target chunk did not produce an SVG plot'],
-    ['wrong-format.qmd', 'target rendered as PNG; set format.html.fig-format: svg']
+    ['unsupported-engine.qmd', "unsupported engine 'bash'"]
   ]) {
     const result = render(fixture);
     assert.notEqual(result.status, 0, `${fixture} unexpectedly rendered`);
