@@ -19,11 +19,18 @@ PlotCat supports all major visualization libraries in both R and Python:
   * `tinyplot`
   * Base R `graphics` (e.g., `plot()`, `points()`, `hist()`)
   * `lattice` (trellis graphics)
+  * `plotly` (including `ggplotly()` conversions)
 * **Python (via Pyodide)**:
   * `matplotlib`
   * `seaborn`
   * `plotnine` (ggplot2 port for Python)
   * `pandas` plotting APIs
+  * `plotly` (graph objects and plotly express)
+
+## How It Works
+
+* **SVG Comparison**: Static plots (ggplot2, tinyplot, matplotlib, seaborn, etc.) are compiled to SVG strings and compared using a visual/pixel-based similarity scoring engine.
+* **Plotly Widget Comparison**: Plotly charts in both R and Python are compared directly as **structured widget objects**. This allows PlotCat to verify trace types, coordinate arrays, styling (marker size/colors, line styles), and interactive layout variables (such as margins, legends, hovermodes, and axis titles).
 
 ## Installation
 

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { WebRAdapter } from '../_extensions/plotcat/webr-adapter.js';
 import { PyodideAdapter } from '../_extensions/plotcat/pyodide-adapter.js';
+import { comparePlotly } from '../_extensions/plotcat/svg.js';
 
 test('WebR initializes once, installs declared packages, and returns SVG bytes', async () => {
   const calls = { init: 0, packages: [], code: '' };
@@ -19,7 +20,7 @@ test('WebR initializes once, installs declared packages, and returns SVG bytes',
   assert.match(calls.code, /new\.env\(parent = globalenv\(\)\)/);
   assert.match(calls.code, /svglite::svglite\(/);
   assert.match(calls.code, /withVisible\(eval\(parse/);
-  assert.match(calls.code, /plotcat_result\$visible && \(inherits\(plotcat_result\$value, "ggplot"\) \|\| inherits\(plotcat_result\$value, "trellis"\)\)/);
+  assert.match(calls.code, /inherits\(val, "ggplot"\) \|\| inherits\(val, "trellis"\)/);
   assert.match(calls.code, /plot\(cars\)/);
   assert.match(svg, /^<svg/);
 });
@@ -63,4 +64,41 @@ test('Pyodide reports Python failures and missing plots clearly', async () => {
   await assert.rejects(adapter.renderSvg('x = 1'), /Python error: Python code did not produce a plot/);
   pyodide.runPythonAsync = async () => { throw new Error('NameError: x'); };
   await assert.rejects(adapter.renderSvg('x'), /Python error: NameError: x/);
+});
+
+test('comparePlotly evaluates data, types, styling, and layout variables', () => {
+  const target = {
+    data: [{
+      type: 'scatter',
+      x: [1, 2, 3],
+      y: [4, 5, 6],
+      mode: 'markers',
+      marker: { color: 'red', size: 10 }
+    }],
+    layout: {
+      title: { text: 'My Title' },
+      xaxis: { title: { text: 'X Axis' } }
+    }
+  };
+
+  const matchResult = comparePlotly(target, target);
+  assert.equal(matchResult.score, 1.0);
+  assert.deepEqual(matchResult.feedback, ['Excellent recreation!']);
+
+  const student = {
+    data: [{
+      type: 'scatter',
+      x: [1, 2, 3],
+      y: [4, 5, 6],
+      mode: 'markers',
+      marker: { color: 'blue', size: 10 }
+    }],
+    layout: {
+      title: { text: 'Wrong Title' },
+      xaxis: { title: { text: 'X Axis' } }
+    }
+  };
+  const diffResult = comparePlotly(target, student);
+  assert.ok(diffResult.score < 1.0);
+  assert.ok(diffResult.feedback.some(f => f.includes('Layout title expected')));
 });

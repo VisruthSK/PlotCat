@@ -56,11 +56,18 @@
   justify-content: center;
 }
 
-.plotcat__plot svg {
+.plotcat__plot > svg {
   display: block;
   width: 100%;
   height: auto;
   max-height: 100%;
+}
+
+.js-plotly-plot,
+.js-plotly-plot .plot-container,
+.js-plotly-plot .svg-container {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .plotcat-editor-container {
@@ -257,10 +264,7 @@
 }
 
 .plotcat__feedback {
-  font-size: 0.85rem;
-  color: var(--bs-secondary-color, #6c757d);
-  margin-top: 0.5rem;
-  line-height: 1.4;
+  display: none !important;
 }
 
 .plotcat--running {
@@ -268,12 +272,13 @@
 }
 
 .plotcat--error .plotcat__status {
-  color: var(--bs-danger, #dc3545);
+  color: var(--bs-danger, #dc3545) !important;
+  font-weight: 600;
 }
 
 .plotcat--complete .plotcat__score {
   background: hsla(var(--plotcat-score-hue, 120), 85%, 50%, 0.1);
-  color: color-mix(in srgb, hsl(var(--plotcat-score-hue, 120), 85%, 50%) 80%, var(--bs-body-color, #212529));
+  color: hsl(var(--plotcat-score-hue, 120), 100%, 35%) !important;
   border: 1px solid hsla(var(--plotcat-score-hue, 120), 85%, 50%, 0.2);
 }
 

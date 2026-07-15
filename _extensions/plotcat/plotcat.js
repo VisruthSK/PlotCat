@@ -1,4 +1,4 @@
-import { compareSvg, sanitizeSvg, scopeSvgIds } from './svg.js';
+import { compareSvg, sanitizeSvg, scopeSvgIds, comparePlotly } from './svg.js';
 import { runtimeManager } from './runtime-manager.js';
 
 async function decodePattern(salt, encoded) {
@@ -19,6 +19,23 @@ function setMode(root, mode) {
 
 function svgFragment(svg) {
   return document.createRange().createContextualFragment(svg);
+}
+
+function getPlotlySvg(container) {
+  const svgs = container.querySelectorAll('svg.main-svg');
+  if (svgs.length === 0) return '';
+  const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  const firstSvg = svgs[0];
+  wrapper.setAttribute('width', firstSvg.getAttribute('width') || '640');
+  wrapper.setAttribute('height', firstSvg.getAttribute('height') || '480');
+  wrapper.setAttribute('viewBox', firstSvg.getAttribute('viewBox') || '0 0 640 480');
+  svgs.forEach(svg => {
+    const clone = svg.cloneNode(true);
+    clone.removeAttribute('width');
+    clone.removeAttribute('height');
+    wrapper.appendChild(clone);
+  });
+  return new XMLSerializer().serializeToString(wrapper);
 }
 
 export function mountPlotCat(root, manager = runtimeManager) {
@@ -43,15 +60,45 @@ export function mountPlotCat(root, manager = runtimeManager) {
   let height = manifest.engine === 'r' ? 5 : 4.8;
 
   let targetSvg = null;
+  let targetPlotlyPayload = null;
 
   if (targetCodeHex && salt) {
     run.disabled = true;
     status.textContent = `Loading ${manifest.engine === 'r' ? 'WebR' : 'Pyodide'}…`;
     decodePattern(salt, targetCodeHex).then(async (targetCode) => {
       const adapter = await adapterPromise;
-      const svg = sanitizeSvg(await manager.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height })));
-      targetSvg = svg;
-      target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
+
+      if (manifest.packages.includes('plotly') && !window.Plotly) {
+        status.textContent = 'Loading Plotly…';
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      status.textContent = 'Rendering target…';
+      const result = await manager.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height }));
+
+      if (result.startsWith('{"type":"plotly"')) {
+        const payload = JSON.parse(result);
+        targetPlotlyPayload = payload.data.x ? payload.data.x : payload.data;
+        target.replaceChildren();
+        target.style.height = '280px';
+        const plotlyDiv = document.createElement('div');
+        plotlyDiv.style.width = '100%';
+        plotlyDiv.style.height = '100%';
+        plotlyDiv.style.alignSelf = 'stretch';
+        plotlyDiv.style.flexGrow = '1';
+        target.appendChild(plotlyDiv);
+        await Plotly.newPlot(plotlyDiv, targetPlotlyPayload.data, targetPlotlyPayload.layout, { responsive: true, displayModeBar: false });
+      } else {
+        targetSvg = sanitizeSvg(result);
+        target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
+      }
+
       status.textContent = 'Ready.';
       run.disabled = false;
     }).catch(error => {
@@ -89,6 +136,15 @@ export function mountPlotCat(root, manager = runtimeManager) {
       const bounds = plotBody.getBoundingClientRect();
       if (bounds.width > 0) setWipe(((event.clientX - bounds.left) / bounds.width) * 100);
     };
+    wipeHandle.addEventListener('pointerdown', event => {
+      event.preventDefault();
+      dragging = true;
+      wipeHandle.setPointerCapture(event.pointerId);
+      updateFromPointer(event);
+    });
+    wipeHandle.addEventListener('pointermove', event => {
+      if (dragging) updateFromPointer(event);
+    });
     wipeHandle.addEventListener('pointerdown', event => {
       event.preventDefault();
       dragging = true;
@@ -146,17 +202,40 @@ export function mountPlotCat(root, manager = runtimeManager) {
   }
 
   run.addEventListener('click', async () => {
-    if (!targetSvg) return;
+    if (!targetSvg && !targetPlotlyPayload) return;
     root.classList.remove('plotcat--error', 'plotcat--complete');
     root.classList.add('plotcat--running');
     run.disabled = true;
     status.textContent = 'Running…';
     try {
       const adapter = await manager.get(manifest.engine, manifest);
-      const svg = sanitizeSvg(await manager.run(manifest.engine, () => adapter.renderSvg(root.querySelector('textarea').value, { width, height })));
-      student.replaceChildren(svgFragment(scopeSvgIds(svg, `${svgPrefix}-student`)));
-      const result = compareSvg(targetSvg, svg);
-      const score = result.score;
+      const result = await manager.run(manifest.engine, () => adapter.renderSvg(root.querySelector('textarea').value, { width, height }));
+
+      let score, feedback;
+      if (result.startsWith('{"type":"plotly"')) {
+        const payload = JSON.parse(result);
+        const studentPlotlyPayload = payload.data.x ? payload.data.x : payload.data;
+        student.replaceChildren();
+        student.style.height = '280px';
+        const plotlyDiv = document.createElement('div');
+        plotlyDiv.style.width = '100%';
+        plotlyDiv.style.height = '100%';
+        plotlyDiv.style.alignSelf = 'stretch';
+        plotlyDiv.style.flexGrow = '1';
+        student.appendChild(plotlyDiv);
+        await Plotly.newPlot(plotlyDiv, studentPlotlyPayload.data, studentPlotlyPayload.layout, { responsive: true, displayModeBar: false });
+
+        const compareResult = comparePlotly(targetPlotlyPayload, studentPlotlyPayload);
+        score = compareResult.score;
+        feedback = compareResult.feedback;
+      } else {
+        const svg = sanitizeSvg(result);
+        student.replaceChildren(svgFragment(scopeSvgIds(svg, `${svgPrefix}-student`)));
+        const compareResult = compareSvg(targetSvg, svg);
+        score = compareResult.score;
+        feedback = compareResult.feedback;
+      }
+
       let hue;
       if (score < 0.5) {
         hue = score * 2 * 35;
@@ -168,8 +247,8 @@ export function mountPlotCat(root, manager = runtimeManager) {
       const scoreEl = root.querySelector('.plotcat__score');
       scoreEl.textContent = `${Math.round(score * 100)}%`;
       scoreEl.style.setProperty('--plotcat-score-hue', Math.round(hue));
-      root.querySelector('.plotcat__feedback').textContent = result.feedback.join(' ');
-      status.textContent = 'Plot rendered.';
+      root.querySelector('.plotcat__feedback').textContent = feedback.join(' ');
+      status.textContent = 'Ready.';
       root.classList.add('plotcat--complete');
     } catch (error) {
       status.textContent = error instanceof Error ? error.message : String(error);

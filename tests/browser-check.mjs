@@ -86,7 +86,7 @@ try {
       enabled: !root.querySelector('[data-plotcat-run]').disabled
     };
   });
-  assert.deepEqual(successfulRun, { engine: 'r', overlay: true, wipe: '100%', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: 'Plot rendered.', complete: true, enabled: true });
+  assert.deepEqual(successfulRun, { engine: 'r', overlay: true, wipe: '100%', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: 'Ready.', complete: true, enabled: true });
 
   await load();
   const forEachRun = await page.evaluate(async () => {
@@ -113,7 +113,7 @@ try {
       complete: root.classList.contains('plotcat--complete')
     };
   });
-  assert.deepEqual(forEachRun, { engine: 'r', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: 'Plot rendered.', complete: true });
+  assert.deepEqual(forEachRun, { engine: 'r', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: 'Ready.', complete: true });
 
   await load();
   const failedRun = await page.evaluate(async () => {

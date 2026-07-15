@@ -8,12 +8,12 @@ format:
 
 ```{r}
 #| include: false
-reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine", "seaborn"))
+reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine", "seaborn", "plotly"))
 ```
 
 # R
 
-## [`ggplot2` (`tidyverse`)](https://ggplot2.tidyverse.org)
+## [`ggplot2`](https://ggplot2.tidyverse.org)
 
 ::: {.plotcat}
 ```{r}
@@ -72,6 +72,22 @@ xyplot(mpg ~ wt, data = mtcars, main = "MPG vs Weight", xlab = "Weight", ylab = 
 #| eval: false
 library(lattice)
 xyplot(mpg ~ wt, data = mtcars)
+```
+:::
+
+## [`plotly`](https://plotly.com/r/)
+
+::: {.plotcat}
+```{r}
+#| eval: false
+library(plotly)
+plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter', mode = 'markers')
+```
+
+```{r}
+#| eval: false
+library(plotly)
+plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')
 ```
 :::
 
@@ -151,5 +167,23 @@ iris = load_iris()
 df = pd.DataFrame(iris.data, columns=iris.feature_names)
 df['species'] = iris.target
 sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)")
+```
+:::
+
+## [`plotly`](https://plotly.com/python/)
+
+::: {.plotcat}
+```{python}
+#| eval: false
+import plotly.graph_objects as go
+fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6], mode='markers'))
+fig
+```
+
+```{python}
+#| eval: false
+import plotly.graph_objects as go
+fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6]))
+fig
 ```
 :::

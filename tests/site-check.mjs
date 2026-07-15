@@ -15,19 +15,19 @@ async function expectRendered(widget, label) {
   const element = await widget.elementHandle();
   await page.waitForFunction(node => node.classList.contains('plotcat--complete') || node.classList.contains('plotcat--error'), element);
   const status = await widget.locator('.plotcat__status').textContent();
-  assert.equal(status, 'Plot rendered.', `${label} failed: ${status}; failed requests: ${failedRequests.join(' | ') || 'none'}`);
+  assert.equal(status, 'Ready.', `${label} failed: ${status}; failed requests: ${failedRequests.join(' | ') || 'none'}`);
 }
 
 try {
   await page.goto(`${server.origin}/example.html`, { waitUntil: 'load' });
-  await page.waitForFunction(() => Array.from(document.querySelectorAll('.plotcat__target svg')).length === 6, null, { timeout: 120000 });
-  assert.equal(await page.locator('.plotcat').count(), 6);
-  assert.equal(await page.locator('.plotcat__target svg').count(), 6);
+  await page.waitForFunction(() => document.querySelectorAll('.plotcat__target-loading').length === 0, null, { timeout: 120000 });
+  assert.equal(await page.locator('.plotcat').count(), 8);
+  assert.equal(await page.locator('.plotcat__target-loading').count(), 0);
   assert.equal(await page.locator('.plotcat__student svg').count(), 0);
-  assert.equal(await page.locator('.plotcat__textarea').count(), 6);
-  assert.equal(await page.locator('.plotcat__status[aria-live=polite]').count(), 6);
+  assert.equal(await page.locator('.plotcat__textarea').count(), 8);
+  assert.equal(await page.locator('.plotcat__status[aria-live=polite]').count(), 8);
   assert.equal(await page.locator('[data-plotcat-wipe]').count(), 0);
-  assert.equal(await page.locator('[data-plotcat-wipe-handle]').count(), 6);
+  assert.equal(await page.locator('[data-plotcat-wipe-handle]').count(), 8);
   assert.equal(await page.locator('canvas').count(), 0);
   assert.ok(requests.some(origin => /webr\.r-wasm\.org/.test(origin)), 'WebR should preload on page load');
   assert.ok(requests.some(origin => /cdn\.jsdelivr\.net/.test(origin)), 'Pyodide should preload on page load');
@@ -38,7 +38,8 @@ try {
   assert.doesNotMatch(await page.locator('#plotcat-exercise-1 textarea').inputValue(), /palmerpenguins/);
   assert.match(await page.locator('#plotcat-exercise-2 textarea').inputValue(), /tinyplot::tinyplot/);
   assert.match(await page.locator('#plotcat-exercise-3 textarea').inputValue(), /xyplot/);
-  assert.match(await page.locator('#plotcat-exercise-4 textarea').inputValue(), /ax\.scatter/);
+  assert.match(await page.locator('#plotcat-exercise-4 textarea').inputValue(), /plot_ly/);
+  assert.match(await page.locator('#plotcat-exercise-5 textarea').inputValue(), /ax\.scatter/);
 
   const first = page.locator('#plotcat-exercise-1');
   await first.locator('input[value=overlay]').click();
@@ -112,13 +113,13 @@ try {
 
   // Exercise the real browser runtimes, not mocks. Run the Python pair first
   // so its lazy runtime is validated independently of later R package memory.
-  const matplotlib = page.locator('#plotcat-exercise-4');
+  const matplotlib = page.locator('#plotcat-exercise-5');
   await matplotlib.locator('[data-plotcat-run]').click();
   await expectRendered(matplotlib, 'Matplotlib');
   assert.equal(await matplotlib.locator('.plotcat__student svg').count(), 1);
   const matplotlibSvg = await matplotlib.locator('.plotcat__student svg').evaluate(svg => svg.outerHTML);
 
-  const plotnine = page.locator('#plotcat-exercise-5');
+  const plotnine = page.locator('#plotcat-exercise-6');
   await plotnine.locator('[data-plotcat-run]').click();
   await expectRendered(plotnine, 'Plotnine');
   assert.equal(await plotnine.locator('.plotcat__student svg').count(), 1);
@@ -182,7 +183,32 @@ xyplot(mpg ~ wt, data = mtcars, main = "MPG vs Weight", xlab = "Weight", ylab = 
   assert.equal(await lattice.locator('.plotcat__student svg').count(), 1);
   assert.equal(await lattice.locator('.plotcat__score').textContent(), '100%');
 
-  const seaborn = page.locator('#plotcat-exercise-6');
+  const rPlotly = page.locator('#plotcat-exercise-4');
+  
+  // R Plotly Red Step: submit ggplotly code against a raw plot_ly target
+  const rPlotlyIncorrect = `library(plotly)
+library(ggplot2)
+p <- ggplot(iris, aes(x = Sepal.Length, y = Petal.Length)) + geom_point()
+ggplotly(p)`;
+  await rPlotly.locator('textarea').fill(rPlotlyIncorrect);
+  await rPlotly.locator('[data-plotcat-run]').click();
+  await expectRendered(rPlotly, 'R Plotly (Incorrect - ggplotly vs plot_ly)');
+  const incorrectRScoreText = await rPlotly.locator('.plotcat__score').textContent();
+  const incorrectRScore = parseInt(incorrectRScoreText);
+  assert.ok(incorrectRScore < 100, `R Plotly ggplotly solution should score < 100% against plot_ly target, but got ${incorrectRScore}%`);
+  const rFeedback = await rPlotly.locator('.plotcat__feedback').textContent();
+  assert.ok(rFeedback.includes('expected') || rFeedback.length > 0, 'Feedback should report trace/layout mismatches');
+
+  // R Plotly Green Step: submit correct plot_ly code
+  const rPlotlySolution = `library(plotly)
+plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter', mode = 'markers')`;
+  await rPlotly.locator('textarea').fill(rPlotlySolution);
+  await rPlotly.locator('[data-plotcat-run]').click();
+  await expectRendered(rPlotly, 'R Plotly (Correct)');
+  assert.ok(await rPlotly.locator('.plotcat__student svg').count() >= 1);
+  assert.equal(await rPlotly.locator('.plotcat__score').textContent(), '100%');
+
+  const seaborn = page.locator('#plotcat-exercise-7');
   const seabornSolution = `from sklearn.datasets import load_iris
 import pandas as pd
 import seaborn as sns
@@ -195,6 +221,29 @@ sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)", hue="spec
   await expectRendered(seaborn, 'Seaborn');
   assert.equal(await seaborn.locator('.plotcat__student svg').count(), 1);
   assert.equal(await seaborn.locator('.plotcat__score').textContent(), '100%');
+
+  const pyPlotly = page.locator('#plotcat-exercise-8');
+
+  // Python Plotly Red Step: submit incorrect coordinates
+  const pyPlotlyIncorrect = `import plotly.graph_objects as go
+fig = go.Figure(data=go.Scatter(x=[1, 2, 9], y=[4, 5, 6], mode='markers'))
+fig`;
+  await pyPlotly.locator('textarea').fill(pyPlotlyIncorrect);
+  await pyPlotly.locator('[data-plotcat-run]').click();
+  await expectRendered(pyPlotly, 'Python Plotly (Incorrect)');
+  const incorrectPyScoreText = await pyPlotly.locator('.plotcat__score').textContent();
+  const incorrectPyScore = parseInt(incorrectPyScoreText);
+  assert.ok(incorrectPyScore < 100, `Python Plotly incorrect solution should score < 100%, but got ${incorrectPyScore}%`);
+
+  // Python Plotly Green Step: submit correct coordinates
+  const pyPlotlySolution = `import plotly.graph_objects as go
+fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6], mode='markers'))
+fig`;
+  await pyPlotly.locator('textarea').fill(pyPlotlySolution);
+  await pyPlotly.locator('[data-plotcat-run]').click();
+  await expectRendered(pyPlotly, 'Python Plotly (Correct)');
+  assert.ok(await pyPlotly.locator('.plotcat__student svg').count() >= 1);
+  assert.equal(await pyPlotly.locator('.plotcat__score').textContent(), '100%');
 } finally {
   await browser.close();
   await server.close();

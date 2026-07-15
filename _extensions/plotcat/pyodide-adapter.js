@@ -44,8 +44,47 @@ export class PyodideAdapter {
   async renderSvg(code, options = {}) {
     const width = options.width || 6.4;
     const height = options.height || 4.8;
-    const wrapped = `import ast\nimport io\nimport matplotlib\nmatplotlib.use('SVG')\nimport matplotlib.pyplot as plt\nplt.close('all')\n_plotcat_globals = {'__builtins__': __builtins__}\n_plotcat_tree = ast.parse(${JSON.stringify(code)})\n_plotcat_result = None\nif _plotcat_tree.body and isinstance(_plotcat_tree.body[-1], ast.Expr):\n    _plotcat_last = ast.Expression(_plotcat_tree.body.pop().value)\n    exec(compile(_plotcat_tree, '<plotcat>', 'exec'), _plotcat_globals)\n    _plotcat_result = eval(compile(_plotcat_last, '<plotcat>', 'eval'), _plotcat_globals)\nelse:\n    exec(compile(_plotcat_tree, '<plotcat>', 'exec'), _plotcat_globals)\nif _plotcat_result is None:\n    _plotcat_result = next((value for value in reversed(tuple(_plotcat_globals.values())) if type(value).__module__.startswith('plotnine') and hasattr(value, 'draw')), None)\nif hasattr(_plotcat_result, 'savefig'):\n    _plotcat_figure = _plotcat_result\nelif type(_plotcat_result).__module__.startswith('plotnine') and hasattr(_plotcat_result, 'draw'):\n    _plotcat_figure = _plotcat_result.draw()\nelse:\n    _plotcat_figure = plt.gcf()\n_plotcat_figure.set_size_inches(${width}, ${height})\n_plotcat_buffer = io.StringIO()\n_plotcat_figure.savefig(_plotcat_buffer, format='svg')\n_plotcat_svg = _plotcat_buffer.getvalue()\nplt.close('all')\n_plotcat_svg`;
-    try { const svg = await this.pyodide.runPythonAsync(wrapped); if (!String(svg).includes('<svg')) throw new Error('Python code did not produce a plot.'); return String(svg); }
-    catch (error) { throw new Error(`Python error: ${error instanceof Error ? error.message : error}`); }
+    const wrapped = `import ast
+import io
+import matplotlib
+matplotlib.use('SVG')
+import matplotlib.pyplot as plt
+plt.close('all')
+_plotcat_globals = {'__builtins__': __builtins__}
+_plotcat_tree = ast.parse(${JSON.stringify(code)})
+_plotcat_result = None
+if _plotcat_tree.body and isinstance(_plotcat_tree.body[-1], ast.Expr):
+    _plotcat_last = ast.Expression(_plotcat_tree.body.pop().value)
+    exec(compile(_plotcat_tree, '<plotcat>', 'exec'), _plotcat_globals)
+    _plotcat_result = eval(compile(_plotcat_last, '<plotcat>', 'eval'), _plotcat_globals)
+else:
+    exec(compile(_plotcat_tree, '<plotcat>', 'exec'), _plotcat_globals)
+if _plotcat_result is None:
+    _plotcat_result = next((value for value in reversed(tuple(_plotcat_globals.values())) if type(value).__module__.startswith('plotnine') and hasattr(value, 'draw')), None)
+
+if _plotcat_result is not None and type(_plotcat_result).__module__.startswith('plotly') and hasattr(_plotcat_result, 'to_json'):
+    _plotcat_out = '{"type":"plotly","data":' + _plotcat_result.to_json() + '}'
+else:
+    if hasattr(_plotcat_result, 'savefig'):
+        _plotcat_figure = _plotcat_result
+    elif type(_plotcat_result).__module__.startswith('plotnine') and hasattr(_plotcat_result, 'draw'):
+        _plotcat_figure = _plotcat_result.draw()
+    else:
+        _plotcat_figure = plt.gcf()
+    _plotcat_figure.set_size_inches(${width}, ${height})
+    _plotcat_buffer = io.StringIO()
+    _plotcat_figure.savefig(_plotcat_buffer, format='svg')
+    _plotcat_out = _plotcat_buffer.getvalue()
+    plt.close('all')
+_plotcat_out`;
+    try {
+      const result = await this.pyodide.runPythonAsync(wrapped);
+      if (!String(result).includes('<svg') && !String(result).startsWith('{"type":"plotly"')) {
+        throw new Error('Python code did not produce a plot.');
+      }
+      return String(result);
+    } catch (error) {
+      throw new Error(`Python error: ${error instanceof Error ? error.message : error}`);
+    }
   }
 }

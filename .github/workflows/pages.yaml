@@ -30,9 +30,16 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: Install R packages
-        run: |
-          Rscript -e "install.packages(c('reticulate', 'ggplot2', 'lattice', 'svglite', 'palmerpenguins'))"
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::reticulate
+            any::ggplot2
+            any::lattice
+            any::svglite
+            any::palmerpenguins
+            any::plotly
+            any::htmlwidgets
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -42,7 +49,7 @@ jobs:
       - name: Install Python packages
         run: |
           python -m pip install --upgrade pip
-          pip install matplotlib scikit-learn plotnine seaborn pandas
+          pip install matplotlib scikit-learn plotnine seaborn pandas plotly
 
       - name: Render site
         run: quarto render
