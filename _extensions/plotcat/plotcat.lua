@@ -123,7 +123,6 @@ local function widget(id, engine, target, starter, target_svg, extra_classes)
         <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="overlay"> Overlay</label>
         <label><input type="radio" name="]] .. escape_html(dom_id) .. [[-mode" value="wipe"> Wipe</label>
       </div>
-      <label class="plotcat__slider">Wipe <input type="range" min="0" max="100" value="50" data-plotcat-wipe></label>
     </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite">Ready.</div>

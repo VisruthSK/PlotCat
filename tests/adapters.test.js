@@ -15,10 +15,11 @@ test('WebR initializes once, installs declared packages, and returns SVG bytes',
   await adapter.init({ packages: ['tinyplot', 'ggplot2'] });
   const svg = await adapter.renderSvg('plot(cars)');
   assert.equal(calls.init, 1);
-  assert.deepEqual(calls.packages, [['tinyplot'], ['ggplot2']]);
+  assert.deepEqual(calls.packages, [['svglite'], ['tinyplot'], ['ggplot2']]);
   assert.match(calls.code, /new\.env\(parent = globalenv\(\)\)/);
+  assert.match(calls.code, /svglite::svglite\(/);
   assert.match(calls.code, /withVisible\(eval\(parse/);
-  assert.match(calls.code, /if \(plotcat_result\$visible\) print/);
+  assert.match(calls.code, /plotcat_result\$visible && inherits\(plotcat_result\$value, "ggplot"\)/);
   assert.match(calls.code, /plot\(cars\)/);
   assert.match(svg, /^<svg/);
 });
@@ -27,6 +28,7 @@ test('WebR reports runtime and invalid-output errors with language context', asy
   class BrokenWebR {
     FS = { readFile: async () => new TextEncoder().encode('not svg') };
     async init() {}
+    async installPackages() {}
     async evalRVoid() {}
   }
   const adapter = new WebRAdapter(async () => ({ WebR: BrokenWebR })); await adapter.init({ packages: [] });

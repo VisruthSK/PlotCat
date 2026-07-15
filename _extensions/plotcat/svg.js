@@ -21,6 +21,25 @@ export function sanitizeSvg(source) {
   return new XMLSerializer().serializeToString(doc.documentElement);
 }
 
+export function scopeSvgIds(source, prefix) {
+  const doc = new DOMParser().parseFromString(sanitizeSvg(source), 'image/svg+xml');
+  const ids = new Map();
+  doc.querySelectorAll('[id]').forEach(node => {
+    const original = node.id;
+    const scoped = `${prefix}-${original}`;
+    ids.set(original, scoped);
+    node.id = scoped;
+  });
+  doc.querySelectorAll('*').forEach(node => {
+    [...node.attributes].forEach(attribute => {
+      attribute.value = attribute.value
+        .replace(/url\(#([^)]+)\)/g, (match, id) => `url(#${ids.get(id) || id})`)
+        .replace(/^#(.+)$/, (match, id) => `#${ids.get(id) || id}`);
+    });
+  });
+  return new XMLSerializer().serializeToString(doc.documentElement);
+}
+
 export function normalizeSvg(source) {
   const doc = new DOMParser().parseFromString(sanitizeSvg(source), 'image/svg+xml');
   const ids = new Map();
@@ -80,13 +99,48 @@ function setOverlap(a, b) {
   return union.size ? [...left].filter(value => right.has(value)).length / union.size : 1;
 }
 
+function bagOverlap(a, b) {
+  const counts = values => values.reduce((map, value) => map.set(value, (map.get(value) || 0) + 1), new Map());
+  const left = counts(a), right = counts(b);
+  const keys = new Set([...left.keys(), ...right.keys()]);
+  let shared = 0, total = 0;
+  for (const key of keys) {
+    shared += Math.min(left.get(key) || 0, right.get(key) || 0);
+    total += Math.max(left.get(key) || 0, right.get(key) || 0);
+  }
+  return total ? shared / total : 1;
+}
+
+function coarseGeometry(features) {
+  const viewBox = features.viewBox.split(/\s+/).map(Number);
+  const scale = viewBox.length === 4 && Math.max(viewBox[2], viewBox[3]) > 0 ? Math.max(viewBox[2], viewBox[3]) : 100;
+  return features.geometry.map(value => value.replace(/-?\d*\.?\d+(?:e[-+]?\d+)?/gi, number => {
+    const normalized = Math.round((Number(number) / scale) * 100) / 100;
+    return String(Object.is(normalized, -0) ? 0 : normalized);
+  }));
+}
+
+function frameSimilarity(a, b) {
+  const aspect = features => {
+    const values = features.viewBox.split(/\s+/).map(Number);
+    return values.length === 4 && values[3] > 0 ? values[2] / values[3] : null;
+  };
+  const left = aspect(a), right = aspect(b);
+  if (left === null || right === null) return a.dimensions.join('|') === b.dimensions.join('|') ? 1 : 0;
+  return Math.abs(left - right) / Math.max(left, right) <= 0.01 ? 1 : 0;
+}
+
 export function compareSvg(target, student) {
   const a = extractFeatures(target), b = extractFeatures(student);
-  const geometry = countSimilarity(a.counts, b.counts) * .5 + setOverlap(a.geometry, b.geometry) * .5;
-  const text = setOverlap(a.text, b.text) * .7 + setOverlap(a.textPlacement, b.textPlacement) * .3;
-  const style = setOverlap(a.styles, b.styles);
-  const frame = (a.viewBox === b.viewBox ? .7 : 0) + (a.dimensions.join('|') === b.dimensions.join('|') ? .3 : 0);
-  const score = Math.round((geometry * .45 + text * .25 + style * .2 + frame * .1) * 1e6) / 1e6;
+  const counts = countSimilarity(a.counts, b.counts);
+  const coarse = bagOverlap(coarseGeometry(a), coarseGeometry(b));
+  const geometry = counts * .4 + coarse * .6;
+  const text = bagOverlap(a.text, b.text);
+  const style = bagOverlap(a.styles, b.styles);
+  const frame = frameSimilarity(a, b);
+  const equivalent = counts === 1 && text === 1 && coarse >= .8 && style >= .8 && frame === 1;
+  const rawScore = geometry * .5 + text * .25 + style * .15 + frame * .1;
+  const score = equivalent ? 1 : Math.round(rawScore * 1e6) / 1e6;
   const feedback = [];
-  return { score, categories: { geometry, text, style, frame }, feedback };
+  return { score, categories: { geometry, text, style, frame, counts, coarseGeometry: coarse }, feedback };
 }

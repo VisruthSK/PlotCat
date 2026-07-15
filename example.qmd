@@ -15,9 +15,8 @@ reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine"))
 ::: {.plotcat}
 ```{r}
 library(ggplot2)
-library(palmerpenguins)
 
-ggplot(penguins, aes(bill_length_mm, bill_depth_mm, colour = species)) +
+ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
   geom_point(alpha = 0.75, size = 2.5, na.rm = TRUE) +
   labs(
     title = "Penguin bill dimensions",
@@ -36,9 +35,8 @@ ggplot(penguins, aes(bill_length_mm, bill_depth_mm, colour = species)) +
 ```{r}
 #| eval: false
 library(ggplot2)
-library(palmerpenguins)
 
-ggplot(penguins, aes(bill_length_mm, bill_depth_mm, colour = species)) +
+ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
   geom_point(na.rm = TRUE)
 ```
 :::

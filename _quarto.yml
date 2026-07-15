@@ -2,8 +2,7 @@ project:
   type: website
   render:
     - index.qmd
-    - examples.qmd
-    - styling.qmd
+    - example.qmd
 
 website:
   title: PlotCat
@@ -11,10 +10,8 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: examples.qmd
-        text: Examples
-      - href: styling.qmd
-        text: Styling
+      - href: example.qmd
+        text: Example
 
 format:
   html:

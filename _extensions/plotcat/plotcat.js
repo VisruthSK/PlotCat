@@ -1,4 +1,4 @@
-import { compareSvg, sanitizeSvg } from './svg.js';
+import { compareSvg, sanitizeSvg, scopeSvgIds } from './svg.js';
 import { runtimeManager } from './runtime-manager.js';
 
 function setMode(root, mode) {
@@ -15,7 +15,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     manager = runtimeManager;
   }
   const manifest = JSON.parse(root.dataset.plotcatManifest);
-  const adapterPromise = manifest.engine === 'r' ? manager.get(manifest.engine) : Promise.resolve();
+  const adapterPromise = manager.get(manifest.engine);
   // Prevent unhandled promise rejection warnings in the console
   adapterPromise.catch(() => {});
 
@@ -25,7 +25,8 @@ export function mountPlotCat(root, manager = runtimeManager) {
   const student = root.querySelector('[data-plotcat-student]');
   const targetSvgEl = target.querySelector('svg');
   const targetSvg = sanitizeSvg(targetSvgEl.outerHTML);
-  target.replaceChildren(svgFragment(targetSvg));
+  const svgPrefix = (root.id || manifest.id || 'plotcat').replace(/[^a-zA-Z0-9_-]/g, '-');
+  target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
 
   let width = 7;
   let height = 7;
@@ -54,18 +55,16 @@ export function mountPlotCat(root, manager = runtimeManager) {
   root.querySelectorAll('input[type=radio]').forEach(input => {
     input.addEventListener('change', () => setMode(root, input.value));
   });
-  const wipeRange = root.querySelector('[data-plotcat-wipe]');
   const wipeHandle = root.querySelector('[data-plotcat-wipe-handle]');
   const plotBody = root.querySelector('.plotcat__body');
+  let wipeValue = 50;
 
   function setWipe(value) {
     const percent = Math.round(Math.max(0, Math.min(100, Number(value))));
+    wipeValue = percent;
     root.style.setProperty('--plotcat-wipe', `${percent}%`);
-    wipeRange.value = String(percent);
     if (wipeHandle) wipeHandle.setAttribute('aria-valuenow', String(percent));
   }
-
-  wipeRange.addEventListener('input', event => setWipe(event.target.value));
 
   if (wipeHandle && plotBody) {
     let dragging = false;
@@ -88,7 +87,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     });
     wipeHandle.addEventListener('pointercancel', () => { dragging = false; });
     wipeHandle.addEventListener('keydown', event => {
-      const current = Number(wipeRange.value);
+      const current = wipeValue;
       const next = event.key === 'Home' ? 0
         : event.key === 'End' ? 100
         : event.key === 'ArrowLeft' || event.key === 'ArrowDown' ? current - 1
@@ -139,7 +138,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
       const adapter = await manager.get(manifest.engine, manifest);
       status.textContent = 'Running…';
       const svg = sanitizeSvg(await manager.run(manifest.engine, () => adapter.renderSvg(root.querySelector('textarea').value, { width, height })));
-      student.replaceChildren(svgFragment(svg));
+      student.replaceChildren(svgFragment(scopeSvgIds(svg, `${svgPrefix}-student`)));
       const result = compareSvg(targetSvg, svg);
       root.querySelector('.plotcat__score').textContent = `${Math.round(result.score * 100)}%`;
       root.querySelector('.plotcat__feedback').textContent = result.feedback.join(' ');

@@ -3,11 +3,13 @@
 <head><meta charset="utf-8"><title>PlotCat browser fixture</title></head>
 <body>
 <section class="plotcat plotcat--side-by-side">
-  <figure data-plotcat-target><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg></figure>
-  <figure data-plotcat-student></figure>
+  <div class="plotcat__body">
+    <figure data-plotcat-target><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg></figure>
+    <figure data-plotcat-student></figure>
+    <button type="button" data-plotcat-wipe-handle aria-valuenow="50"></button>
+  </div>
   <textarea>plot(1)</textarea><button data-plotcat-run>Run</button>
   <fieldset><input type="radio" value="side-by-side" checked><input type="radio" value="overlay"><input type="radio" value="wipe"></fieldset>
-  <input type="range" data-plotcat-wipe value="50">
   <div class="plotcat__status"></div><output class="plotcat__score"></output><div class="plotcat__feedback"></div>
 </section>
 <script type="module">

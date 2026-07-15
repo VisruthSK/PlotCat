@@ -19,20 +19,22 @@ async function expectRendered(widget, label) {
 }
 
 try {
-  await page.goto(`${server.origin}/examples.html`, { waitUntil: 'load' });
+  await page.goto(`${server.origin}/example.html`, { waitUntil: 'load' });
   assert.equal(await page.locator('.plotcat').count(), 4);
   assert.equal(await page.locator('.plotcat__target svg').count(), 4);
   assert.equal(await page.locator('.plotcat__student svg').count(), 0);
   assert.equal(await page.locator('.plotcat__textarea').count(), 4);
   assert.equal(await page.locator('.plotcat__status[aria-live=polite]').count(), 4);
-  assert.equal(await page.locator('.plotcat__slider input[type=range]').count(), 4);
+  assert.equal(await page.locator('[data-plotcat-wipe]').count(), 0);
+  assert.equal(await page.locator('[data-plotcat-wipe-handle]').count(), 4);
   assert.equal(await page.locator('canvas').count(), 0);
   assert.ok(requests.some(origin => /webr\.r-wasm\.org/.test(origin)), 'WebR should preload on page load');
-  assert.ok(!requests.some(origin => /cdn\.jsdelivr\.net/.test(origin)), 'Pyodide should stay lazy until a Python cell runs');
+  assert.ok(requests.some(origin => /cdn\.jsdelivr\.net/.test(origin)), 'Pyodide should preload on page load');
 
   const html = await page.content();
   assert.doesNotMatch(html, /ax\.set_title|main = "Stopping distance|theme_minimal\(\)/);
-  assert.match(await page.locator('#plotcat-exercise-1 textarea').inputValue(), /bill_length_mm, bill_depth_mm/);
+  assert.match(await page.locator('#plotcat-exercise-1 textarea').inputValue(), /bill_len, bill_dep/);
+  assert.doesNotMatch(await page.locator('#plotcat-exercise-1 textarea').inputValue(), /palmerpenguins/);
   assert.match(await page.locator('#plotcat-exercise-2 textarea').inputValue(), /tinyplot::tinyplot/);
   assert.match(await page.locator('#plotcat-exercise-3 textarea').inputValue(), /ax\.scatter/);
 
@@ -40,12 +42,10 @@ try {
   await first.locator('input[value=overlay]').click();
   assert.ok(await first.evaluate(node => node.classList.contains('plotcat--overlay')));
   await first.locator('input[value=wipe]').click();
-  const slider = first.locator('[data-plotcat-wipe]');
-  await slider.focus(); await slider.press('ArrowRight');
-  assert.equal(await slider.inputValue(), '51');
-  assert.equal(await first.evaluate(node => node.style.getPropertyValue('--plotcat-wipe')), '51%');
   const wipeHandle = first.locator('[data-plotcat-wipe-handle]');
+  await wipeHandle.focus(); await wipeHandle.press('ArrowRight');
   assert.equal(await wipeHandle.getAttribute('aria-valuenow'), '51');
+  assert.equal(await first.evaluate(node => node.style.getPropertyValue('--plotcat-wipe')), '51%');
   const bodyBox = await first.locator('.plotcat__body').boundingBox();
   const handleBox = await wipeHandle.boundingBox();
   assert.ok(bodyBox && handleBox);
@@ -53,7 +53,6 @@ try {
   await page.mouse.down();
   await page.mouse.move(bodyBox.x + bodyBox.width * 0.67, bodyBox.y + bodyBox.height / 2);
   await page.mouse.up();
-  assert.equal(await slider.inputValue(), '67');
   assert.equal(await wipeHandle.getAttribute('aria-valuenow'), '67');
   assert.equal(await first.evaluate(node => node.style.getPropertyValue('--plotcat-wipe')), '67%');
 
@@ -125,10 +124,32 @@ try {
   assert.notEqual(await plotnine.locator('.plotcat__student svg').evaluate(svg => svg.outerHTML), matplotlibSvg);
 
   const ggplot = first;
+  const ggplotSolution = `library(ggplot2)
+
+ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
+  geom_point(alpha = 0.75, size = 2.5, na.rm = TRUE) +
+  labs(
+    title = "Penguin bill dimensions",
+    x = "Bill length (mm)",
+    y = "Bill depth (mm)",
+    colour = "Species"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
+    plot.title.position = "plot"
+  )`;
+  await ggplot.locator('textarea').fill(ggplotSolution);
   await ggplot.locator('[data-plotcat-run]').click();
   await expectRendered(ggplot, 'ggplot2');
   assert.equal(await ggplot.locator('.plotcat__student svg').count(), 1);
-  assert.ok(await ggplot.locator('.plotcat__student svg path').count() > 10);
+  assert.ok(await ggplot.locator('.plotcat__student svg').locator('path, circle').count() > 10);
+  const ggplotComparison = await ggplot.evaluate(async node => {
+    const { compareSvg } = await import('./site_libs/quarto-contrib/plotcat-0.1.0/svg.js');
+    return compareSvg(node.querySelector('.plotcat__target svg').outerHTML, node.querySelector('.plotcat__student svg').outerHTML);
+  });
+  assert.equal(await ggplot.locator('.plotcat__score').textContent(), '100%', JSON.stringify(ggplotComparison));
   const ggplotSvg = await ggplot.locator('.plotcat__student svg').evaluate(svg => svg.outerHTML);
 
   const tinyplot = page.locator('#plotcat-exercise-2');
@@ -136,11 +157,21 @@ try {
   await expectRendered(tinyplot, 'tinyplot');
   assert.equal(await tinyplot.locator('.plotcat__student svg').count(), 1);
   assert.notEqual(await tinyplot.locator('.plotcat__student svg').evaluate(svg => svg.outerHTML), ggplotSvg);
-
-  // Verify the styling page renders correctly with custom CSS classes
-  await page.goto(`${server.origin}/styling.html`, { waitUntil: 'load' });
-  assert.equal(await page.locator('.plotcat').count(), 1);
-  assert.equal(await page.locator('.fancy-plotcat').count(), 1);
+  const tinyplotReferences = await tinyplot.evaluate(node => {
+    const target = node.querySelector('.plotcat__target svg');
+    const student = node.querySelector('.plotcat__student svg');
+    const targetIds = new Set([...target.querySelectorAll('[id]')].map(element => element.id));
+    const studentIds = new Set([...student.querySelectorAll('[id]')].map(element => element.id));
+    const overlap = [...studentIds].filter(id => targetIds.has(id));
+    const uses = [...student.querySelectorAll('use[href^="#"]')];
+    const unresolved = uses.filter(use => !student.querySelector(`#${CSS.escape(use.getAttribute('href').slice(1))}`));
+    const labels = [...student.querySelectorAll('text')].map(text => text.textContent.trim()).filter(Boolean);
+    return { overlap, useCount: uses.length, unresolved: unresolved.map(use => use.getAttribute('href')), labels };
+  });
+  assert.deepEqual(tinyplotReferences.overlap, []);
+  assert.deepEqual(tinyplotReferences.unresolved, []);
+  assert.ok(tinyplotReferences.labels.some(label => /speed/i.test(label)), 'tinyplot x-axis text should render');
+  assert.ok(tinyplotReferences.labels.some(label => /dist/i.test(label)), 'tinyplot y-axis text should render');
 } finally {
   await browser.close();
   await server.close();

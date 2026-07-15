@@ -20,5 +20,6 @@ test('wipe uses one centered plot column and theming follows Bootstrap variables
 
 test('required stable classes are present', async () => {
   const lua = await readFile(new URL('../_extensions/plotcat/plotcat.lua', import.meta.url), 'utf8');
-  for (const name of ['plotcat__header','plotcat__body','plotcat__target','plotcat__student','plotcat__plot','plotcat__editor','plotcat__textarea','plotcat__actions','plotcat__button','plotcat__status','plotcat__score','plotcat__feedback','plotcat__compare','plotcat__controls','plotcat__slider','plotcat__wipe-handle']) assert.match(lua, new RegExp(name));
+  for (const name of ['plotcat__header','plotcat__body','plotcat__target','plotcat__student','plotcat__plot','plotcat__editor','plotcat__textarea','plotcat__actions','plotcat__button','plotcat__status','plotcat__score','plotcat__feedback','plotcat__compare','plotcat__controls','plotcat__wipe-handle']) assert.match(lua, new RegExp(name));
+  assert.doesNotMatch(lua, /plotcat__slider|data-plotcat-wipe=/);
 });
