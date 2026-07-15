@@ -14,6 +14,7 @@ reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine"))
 
 ::: {.plotcat}
 ```{r}
+#| dev: svglite
 library(ggplot2)
 
 ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
@@ -45,6 +46,7 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
 
 ::: {.plotcat}
 ```{r}
+#| dev: svglite
 tinyplot::tinyplot(dist ~ speed, data = cars, main = "Stopping distance by speed", xlab = "Speed", ylab = "Stopping distance")
 ```
 
