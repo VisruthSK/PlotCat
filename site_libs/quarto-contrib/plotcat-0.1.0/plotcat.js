@@ -1,6 +1,46 @@
 import { compareSvg, sanitizeSvg, scopeSvgIds, comparePlotly } from './svg.js';
 import { runtimeManager } from './runtime-manager.js';
 
+let codeMirrorPromise = null;
+function loadCodeMirror() {
+  if (codeMirrorPromise) return codeMirrorPromise;
+  codeMirrorPromise = (async () => {
+    if (window.CodeMirror) return;
+
+    const styles = [
+      'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css',
+      'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css'
+    ];
+    for (const href of styles) {
+      if (!document.querySelector(`link[href="${href}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+      }
+    }
+
+    const loadScript = url => new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${url}"]`)) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = url;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/r/r.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/anyword-hint.min.js');
+  })();
+  return codeMirrorPromise;
+}
+
 async function decodePattern(salt, encoded) {
   const bytes = new TextEncoder().encode(salt);
   const hash = await crypto.subtle.digest("SHA-256", bytes);
@@ -23,19 +63,21 @@ function svgFragment(svg) {
 
 function getPlotlySvg(container) {
   const svgs = container.querySelectorAll('svg.main-svg');
-  if (svgs.length === 0) return '';
-  const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  const firstSvg = svgs[0];
-  wrapper.setAttribute('width', firstSvg.getAttribute('width') || '640');
-  wrapper.setAttribute('height', firstSvg.getAttribute('height') || '480');
-  wrapper.setAttribute('viewBox', firstSvg.getAttribute('viewBox') || '0 0 640 480');
-  svgs.forEach(svg => {
-    const clone = svg.cloneNode(true);
-    clone.removeAttribute('width');
-    clone.removeAttribute('height');
-    wrapper.appendChild(clone);
-  });
-  return new XMLSerializer().serializeToString(wrapper);
+  if (svgs.length > 0) {
+    const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    wrapper.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    wrapper.setAttribute('viewBox', `0 0 ${container.clientWidth} ${container.clientHeight}`);
+    wrapper.setAttribute('width', '100%');
+    wrapper.setAttribute('height', '100%');
+    svgs.forEach(svg => {
+      const clone = svg.cloneNode(true);
+      clone.removeAttribute('width');
+      clone.removeAttribute('height');
+      wrapper.appendChild(clone);
+    });
+    return new XMLSerializer().serializeToString(wrapper);
+  }
+  return null;
 }
 
 export function mountPlotCat(root, manager = runtimeManager) {
@@ -43,6 +85,45 @@ export function mountPlotCat(root, manager = runtimeManager) {
     manager = runtimeManager;
   }
   const manifest = JSON.parse(root.dataset.plotcatManifest);
+  const textarea = root.querySelector('.plotcat__textarea');
+  const overlay = root.querySelector('.plotcat-highlight-overlay');
+  if (textarea) {
+    loadCodeMirror().then(() => {
+      if (overlay) overlay.style.display = 'none';
+      const editor = CodeMirror.fromTextArea(textarea, {
+        lineNumbers: true,
+        mode: manifest.engine === 'r' ? 'text/x-rsrc' : 'python',
+        theme: 'default',
+        indentUnit: 4,
+        tabSize: 4,
+        lineWrapping: true,
+        extraKeys: {
+          "Tab": (cm) => {
+            if (cm.somethingSelected()) {
+              cm.indentSelection("add");
+            } else {
+              cm.replaceSelection("    ", "end");
+            }
+          },
+          "Ctrl-Space": "autocomplete"
+        }
+      });
+      editor.on("inputRead", (cm, change) => {
+        if (change.text[0].match(/[a-zA-Z_0-9\.]/)) {
+          cm.showHint({ completeSingle: false });
+        }
+      });
+      editor.on('change', () => {
+        textarea.value = editor.getValue();
+        textarea.dispatchEvent(new Event('input'));
+      });
+      textarea.addEventListener('input', () => {
+        if (editor.getValue() !== textarea.value) {
+          editor.setValue(textarea.value);
+        }
+      });
+    });
+  }
   const adapterPromise = manager.get(manifest.engine, manifest);
   // Prevent unhandled promise rejection warnings in the console
   adapterPromise.catch(() => {});
@@ -99,7 +180,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
         target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
       }
 
-      status.textContent = 'Ready.';
+      status.textContent = '';
       run.disabled = false;
     }).catch(error => {
       console.error('Failed to render target plot:', error);
@@ -111,7 +192,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     if (targetSvgEl) {
       targetSvg = sanitizeSvg(targetSvgEl.outerHTML);
       target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
-      status.textContent = 'Ready.';
+      status.textContent = '';
       run.disabled = false;
     }
   }
@@ -173,8 +254,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     });
   }
 
-  const overlay = root.querySelector('.plotcat-highlight-overlay');
-  const textarea = root.querySelector('.plotcat__textarea');
+
 
   function updateHighlight() {
     if (overlay && textarea) {
@@ -248,7 +328,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
       scoreEl.textContent = `${Math.round(score * 100)}%`;
       scoreEl.style.setProperty('--plotcat-score-hue', Math.round(hue));
       root.querySelector('.plotcat__feedback').textContent = feedback.join(' ');
-      status.textContent = 'Ready.';
+      status.textContent = '';
       root.classList.add('plotcat--complete');
     } catch (error) {
       status.textContent = error instanceof Error ? error.message : String(error);

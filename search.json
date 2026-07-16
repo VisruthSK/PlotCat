@@ -4,63 +4,63 @@
     "href": "example.html",
     "title": "Examples",
     "section": "",
-    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(ggplot2)\n\nggplot(penguins, aes(bill_len, bill_dep, colour = species)) +\n  geom_point(na.rm = TRUE)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready.\n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    tinyplot::tinyplot(dist ~ speed, data = cars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready.\n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(lattice)\nxyplot(mpg ~ wt, data = mtcars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready.\n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(plotly)\nplot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready."
+    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(ggplot2)\n\nggplot(penguins, aes(bill_len, bill_dep, colour = species)) +\n  geom_point(na.rm = TRUE)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  \n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    tinyplot::tinyplot(dist ~ speed, data = cars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  \n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(lattice)\nxyplot(mpg ~ wt, data = mtcars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  \n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(plotly)\nplot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
   },
   {
     "objectID": "example.html#ggplot2",
     "href": "example.html#ggplot2",
     "title": "Examples",
     "section": "",
-    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(ggplot2)\n\nggplot(penguins, aes(bill_len, bill_dep, colour = species)) +\n  geom_point(na.rm = TRUE)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready."
+    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(ggplot2)\n\nggplot(penguins, aes(bill_len, bill_dep, colour = species)) +\n  geom_point(na.rm = TRUE)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
   },
   {
     "objectID": "example.html#tinyplot",
     "href": "example.html#tinyplot",
     "title": "Examples",
     "section": "",
-    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    tinyplot::tinyplot(dist ~ speed, data = cars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready."
+    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    tinyplot::tinyplot(dist ~ speed, data = cars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
   },
   {
     "objectID": "example.html#lattice",
     "href": "example.html#lattice",
     "title": "Examples",
     "section": "",
-    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(lattice)\nxyplot(mpg ~ wt, data = mtcars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready."
+    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(lattice)\nxyplot(mpg ~ wt, data = mtcars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
   },
   {
     "objectID": "example.html#plotly",
     "href": "example.html#plotly",
     "title": "Examples",
     "section": "",
-    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(plotly)\nplot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready."
+    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(plotly)\nplot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
   },
   {
     "objectID": "example.html#matplotlib",
     "href": "example.html#matplotlib",
     "title": "Examples",
     "section": "matplotlib",
-    "text": "matplotlib\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    import matplotlib.pyplot as plt\nfrom sklearn.datasets import load_iris\niris = load_iris()\ndata = iris.data\nfig, ax = plt.subplots()\nax.scatter(data[:, 0], data[:, 2])\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready."
+    "text": "matplotlib\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    import matplotlib.pyplot as plt\nfrom sklearn.datasets import load_iris\niris = load_iris()\ndata = iris.data\nfig, ax = plt.subplots()\nax.scatter(data[:, 0], data[:, 2])\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
   },
   {
     "objectID": "example.html#plotnine",
     "href": "example.html#plotnine",
     "title": "Examples",
     "section": "plotnine",
-    "text": "plotnine\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    from plotnine import ggplot, aes, geom_point\nfrom plotnine.data import mtcars\nggplot(mtcars, aes(\"wt\", \"mpg\")) + geom_point()\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready."
+    "text": "plotnine\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    from plotnine import ggplot, aes, geom_point\nfrom plotnine.data import mtcars\nggplot(mtcars, aes(\"wt\", \"mpg\")) + geom_point()\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
   },
   {
     "objectID": "example.html#seaborn",
     "href": "example.html#seaborn",
     "title": "Examples",
     "section": "seaborn",
-    "text": "seaborn\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    from sklearn.datasets import load_iris\nimport pandas as pd\nimport seaborn as sns\niris = load_iris()\ndf = pd.DataFrame(iris.data, columns=iris.feature_names)\ndf['species'] = iris.target\nsns.scatterplot(data=df, x=\"sepal length (cm)\", y=\"petal length (cm)\")\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready."
+    "text": "seaborn\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    from sklearn.datasets import load_iris\nimport pandas as pd\nimport seaborn as sns\niris = load_iris()\ndf = pd.DataFrame(iris.data, columns=iris.feature_names)\ndf['species'] = iris.target\nsns.scatterplot(data=df, x=\"sepal length (cm)\", y=\"petal length (cm)\")\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
   },
   {
     "objectID": "example.html#plotly-1",
     "href": "example.html#plotly-1",
     "title": "Examples",
     "section": "plotly",
-    "text": "plotly\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    import plotly.graph_objects as go\nfig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6]))\nfig\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  Ready."
+    "text": "plotly\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    import plotly.graph_objects as go\nfig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6]))\nfig\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
   },
   {
     "objectID": "index.html",

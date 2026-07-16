@@ -261,19 +261,39 @@
   font-weight: 500;
   color: var(--bs-secondary-color, #6c757d);
   margin-top: 0.75rem;
+  display: none;
 }
 
 .plotcat__feedback {
-  display: none !important;
-}
-
-.plotcat--running {
-  opacity: 0.85;
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color, #6c757d);
+  margin-top: 0.5rem;
+  line-height: 1.4;
+  display: none;
 }
 
 .plotcat--error .plotcat__status {
+  display: block !important;
   color: var(--bs-danger, #dc3545) !important;
   font-weight: 600;
+}
+
+.CodeMirror {
+  height: 100% !important;
+  font-family: var(--bs-font-monospace, monospace);
+  font-size: 0.9rem;
+}
+
+textarea.plotcat__textarea {
+  display: block !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
 }
 
 .plotcat--complete .plotcat__score {
