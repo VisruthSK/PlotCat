@@ -8,11 +8,14 @@ end
 
 local function engine_of(block)
   local engine = block.classes[1]
-  if engine ~= "r" and engine ~= "python" then
-    fail("unsupported engine '" .. (engine or "") .. "'; use r or python")
+  if engine == "webr" or engine == "r" then
+    return "r"
+  elseif engine == "pyodide" or engine == "python" then
+    return "python"
+  else
+    fail("unsupported engine '" .. (engine or "") .. "'; use webr, pyodide, r, or python")
     return nil
   end
-  return engine
 end
 
 local function escape_html(value)
@@ -234,7 +237,7 @@ local function widget(id, engine, target, starter, extra_classes)
       </div>
     </div>
   </div>
-  <div class="plotcat__status" role="status" aria-live="polite">Ready.</div>
+  <div class="plotcat__status" role="status" aria-live="polite"></div>
   <div class="plotcat__feedback"></div>
 </section>]]
   return pandoc.RawBlock("html", html)
@@ -272,6 +275,16 @@ function Div(div)
           produced_output = has_output(cell)
         })
       end
+    elseif cell.t == "CodeBlock" then
+      local engine = nil
+      for _, class in ipairs(cell.classes) do
+        if class ~= "cell-code" and class ~= "sourceCode" then engine = engine or class end
+      end
+      table.insert(chunks, {
+        block = cell,
+        cell = pandoc.Div({cell}),
+        produced_output = false
+      })
     end
   end
   if #chunks == 0 then fail("'" .. id .. "' needs one target chunk"); return div end

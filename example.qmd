@@ -16,7 +16,7 @@ reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine", "seaborn", "p
 ## [`ggplot2`](https://ggplot2.tidyverse.org)
 
 ::: {.plotcat}
-```{r}
+```{webr}
 #| eval: false
 library(ggplot2)
 
@@ -36,7 +36,7 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
   )
 ```
 
-```{r}
+```{webr}
 #| eval: false
 library(ggplot2)
 
@@ -48,12 +48,12 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
 ## [`tinyplot`](https://grantmcdermott.com/tinyplot/)
 
 ::: {.plotcat}
-```{r}
+```{webr}
 #| eval: false
 tinyplot::tinyplot(dist ~ speed, data = cars, main = "Stopping distance by speed", xlab = "Speed", ylab = "Stopping distance")
 ```
 
-```{r}
+```{webr}
 #| eval: false
 tinyplot::tinyplot(dist ~ speed, data = cars)
 ```
@@ -62,13 +62,13 @@ tinyplot::tinyplot(dist ~ speed, data = cars)
 ## [`lattice`](https://lattice.r-forge.r-project.org/)
 
 ::: {.plotcat}
-```{r}
+```{webr}
 #| eval: false
 library(lattice)
 xyplot(mpg ~ wt, data = mtcars, main = "MPG vs Weight", xlab = "Weight", ylab = "MPG")
 ```
 
-```{r}
+```{webr}
 #| eval: false
 library(lattice)
 xyplot(mpg ~ wt, data = mtcars)
@@ -78,13 +78,13 @@ xyplot(mpg ~ wt, data = mtcars)
 ## [`plotly`](https://plotly.com/r/)
 
 ::: {.plotcat}
-```{r}
+```{webr}
 #| eval: false
 library(plotly)
 plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter', mode = 'markers')
 ```
 
-```{r}
+```{webr}
 #| eval: false
 library(plotly)
 plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')
@@ -96,7 +96,7 @@ plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')
 ## [`matplotlib`](https://matplotlib.org/)
 
 ::: {.plotcat}
-```{python}
+```{pyodide}
 #| eval: false
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
@@ -109,7 +109,7 @@ ax.set_xlabel("Sepal length (cm)")
 ax.set_ylabel("Petal length (cm)")
 ```
 
-```{python}
+```{pyodide}
 #| eval: false
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
@@ -123,7 +123,7 @@ ax.scatter(data[:, 0], data[:, 2])
 ## [`plotnine`](https://plotnine.org/)
 
 ::: {.plotcat}
-```{python}
+```{pyodide}
 #| eval: false
 from plotnine import ggplot, aes, geom_point, labs, theme_minimal
 from plotnine.data import mtcars
@@ -136,7 +136,7 @@ plot = (
 plot.show()
 ```
 
-```{python}
+```{pyodide}
 #| eval: false
 from plotnine import ggplot, aes, geom_point
 from plotnine.data import mtcars
@@ -147,7 +147,7 @@ ggplot(mtcars, aes("wt", "mpg")) + geom_point()
 ## [`seaborn`](https://seaborn.pydata.org/)
 
 ::: {.plotcat}
-```{python}
+```{pyodide}
 #| eval: false
 from sklearn.datasets import load_iris
 import pandas as pd
@@ -158,7 +158,7 @@ df['species'] = iris.target
 sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)", hue="species")
 ```
 
-```{python}
+```{pyodide}
 #| eval: false
 from sklearn.datasets import load_iris
 import pandas as pd
@@ -173,14 +173,14 @@ sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)")
 ## [`plotly`](https://plotly.com/python/)
 
 ::: {.plotcat}
-```{python}
+```{pyodide}
 #| eval: false
 import plotly.graph_objects as go
 fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6], mode='markers'))
 fig
 ```
 
-```{python}
+```{pyodide}
 #| eval: false
 import plotly.graph_objects as go
 fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6]))
