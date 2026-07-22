@@ -71,6 +71,15 @@ The first chunk becomes the browser-rendered target, and its source is omitted f
 
 PlotCat accepts R and Python chunks. Both chunks in an exercise must use the same language.
 
+## Limitations
+
+- **Font and text styling**: SVG comparison checks text content, but ignores font families, font sizes, font weights, and text positioning.
+- **Coarse geometry matching**: Coordinates are rounded to ~1% relative precision and matched as unordered marks. Minor position shifts or point jittering may still yield high scores.
+- **No code inspection**: PlotCat evaluates rendered plot output (SVG or Plotly JSON), not R or Python code structure. It cannot check for specific function calls or idioms.
+- **Plotly support**: Plotly exercises only support side-by-side comparison and evaluate a subset of trace data, mark attributes, and titles.
+- **Runtime sandbox**: WebR and Pyodide run in the browser without local file access or arbitrary network requests. Required packages must be available in WebAssembly.
+
 ## Design Inspiration
 
 PlotCat was inspired by [ggplot2 Battles](https://github.com/MikeLydeamore/ggplot2-battles).
+
