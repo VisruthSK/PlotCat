@@ -21,18 +21,17 @@ reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine", "seaborn", "p
 library(ggplot2)
 
 ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
-  geom_point(alpha = 0.75, size = 2.5, na.rm = TRUE) +
+  geom_point(size = 2, na.rm = TRUE) +
   labs(
     title = "Penguin bill dimensions",
     x = "Bill length (mm)",
     y = "Bill depth (mm)",
     colour = "Species"
   ) +
-  theme_minimal(base_size = 12) +
+  theme_minimal() +
   theme(
     panel.grid.minor = element_blank(),
-    legend.position = "bottom",
-    plot.title.position = "plot"
+    legend.position = "bottom"
   )
 ```
 
@@ -187,3 +186,4 @@ fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6]))
 fig
 ```
 :::
+
