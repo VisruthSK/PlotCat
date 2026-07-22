@@ -13,7 +13,6 @@ export class PyodideAdapter {
   }
 
   async installPackages(packages) {
-    console.log("Pyodide: installing packages", packages);
     const aliases = { sklearn: 'scikit-learn' };
     const bundledNames = new Set(['matplotlib', 'numpy', 'pandas', 'scikit-learn', 'scipy']);
     const bundled = [];
@@ -25,20 +24,16 @@ export class PyodideAdapter {
       }
     }
     if (bundled.length) {
-      console.log("Pyodide: loading bundled packages", bundled);
       await this.pyodide.loadPackage(bundled);
       bundled.forEach(name => this.installed.add(name));
-      console.log("Pyodide: loaded bundled packages successfully");
       if (bundled.includes('matplotlib')) {
         await this.pyodide.runPythonAsync("import matplotlib; matplotlib.use('SVG')");
       }
     }
     if (wheels.length) {
-      console.log("Pyodide: loading wheels", wheels);
       await this.pyodide.loadPackage('micropip');
       await this.pyodide.pyimport('micropip').install(wheels);
       wheels.forEach(name => this.installed.add(name));
-      console.log("Pyodide: loaded wheels successfully");
     }
   }
   async renderSvg(code, options = {}) {
