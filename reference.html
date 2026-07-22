@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>PlotCat</title>
+<title>Reference – PlotCat</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -297,7 +297,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="./index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -305,7 +305,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Example</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./reference.html"> 
+    <a class="nav-link active" href="./reference.html" aria-current="page"> 
 <span class="menu-text">Reference</span></a>
   </li>  
 </ul>
@@ -326,47 +326,61 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#plotcat" id="toc-plotcat" class="nav-link active" data-scroll-target="#plotcat">PlotCat</a>
+  <li><a href="#document-setup" id="toc-document-setup" class="nav-link active" data-scroll-target="#document-setup">Document Setup</a></li>
+  <li><a href="#exercise-markup" id="toc-exercise-markup" class="nav-link" data-scroll-target="#exercise-markup">Exercise Markup</a>
   <ul class="collapse">
-  <li><a href="#requirements" id="toc-requirements" class="nav-link" data-scroll-target="#requirements">Requirements</a></li>
-  <li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation">Installation</a></li>
-  <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example">Example</a></li>
-  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
-  <li><a href="#design-inspiration" id="toc-design-inspiration" class="nav-link" data-scroll-target="#design-inspiration">Design Inspiration</a></li>
+  <li><a href="#markup-rules" id="toc-markup-rules" class="nav-link" data-scroll-target="#markup-rules">Markup Rules</a></li>
+  </ul></li>
+  <li><a href="#css-variables" id="toc-css-variables" class="nav-link" data-scroll-target="#css-variables">CSS Variables</a>
+  <ul class="collapse">
+  <li><a href="#bootstrap-variable-integration" id="toc-bootstrap-variable-integration" class="nav-link" data-scroll-target="#bootstrap-variable-integration">Bootstrap Variable Integration</a></li>
+  </ul></li>
+  <li><a href="#custom-styling-examples" id="toc-custom-styling-examples" class="nav-link" data-scroll-target="#custom-styling-examples">Custom Styling Examples</a>
+  <ul class="collapse">
+  <li><a href="#theme-accent-override" id="toc-theme-accent-override" class="nav-link" data-scroll-target="#theme-accent-override">Theme Accent Override</a></li>
+  <li><a href="#scoped-container-styling" id="toc-scoped-container-styling" class="nav-link" data-scroll-target="#scoped-container-styling">Scoped Container Styling</a></li>
   </ul></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/VisruthSK/plotcat/blob/main/index.qmd" target="_blank" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/VisruthSK/plotcat/issues/new" target="_blank" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/VisruthSK/plotcat/blob/main/reference.qmd" target="_blank" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/VisruthSK/plotcat/issues/new" target="_blank" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Reference</h1>
+</div>
 
 
 
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
 
 
-<section id="plotcat" class="level1">
-<h1>PlotCat</h1>
-<p><code>plotcat</code> is a Quarto extension for plot-recreation exercises. Authors provide a target plot and optional starter code. Students write R or Python in the browser, render their plot with WebR or Pyodide, and compare it with the target.</p>
-<p>PlotCat compares SVG structure and plot text for static plots. It also supports a focused comparison of Plotly traces and layout. Plotly exercises support side-by-side comparison only; overlay and wipe apply to SVG plots. The target source is removed from the rendered HTML, but this is not a security boundary: do not put secrets in an exercise.</p>
-<section id="requirements" class="level2">
-<h2 class="anchored" data-anchor-id="requirements">Requirements</h2>
-<p>PlotCat publishes interactive HTML only. Its browser runtimes need network access on first use and package availability in WebR or Pyodide. The included examples cover base R, <code>ggplot2</code>, <code>tinyplot</code>, <code>lattice</code>, <code>matplotlib</code>, <code>plotnine</code>, <code>seaborn</code>, and Plotly.</p>
-</section>
-<section id="installation" class="level2">
-<h2 class="anchored" data-anchor-id="installation">Installation</h2>
-<p>Add Quarto Live, then PlotCat:</p>
+</header>
+
+
+<p>Configuration options, chunk markup syntax, and CSS theme variables for the <code>plotcat</code> extension.</p>
+<section id="document-setup" class="level2">
+<h2 class="anchored" data-anchor-id="document-setup">Document Setup</h2>
+<p>Install Quarto Live and PlotCat in the project:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> add r-wasm/quarto-live</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> add VisruthSK/PlotCat</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Then enable the filter in a document or project config:</p>
+<p>Use Quarto Live’s HTML format and enable PlotCat:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span><span class="at"> live-html</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">filters</span><span class="kw">:</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> plotcat</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>live-html</code> provides the native WebR and Pyodide editors. Set <code>#| eval: false</code> on each PlotCat chunk so Quarto leaves it for the browser runtime.</p>
 </section>
-<section id="example" class="level2">
-<h2 class="anchored" data-anchor-id="example">Example</h2>
-<p>Write the target plot as the first chunk inside a <code>.plotcat</code> Div. Set <code>#| eval: false</code>: PlotCat renders both the target and a student’s submission in the browser. This must be set on each PlotCat chunk because Quarto decides whether to execute it before PlotCat’s filter runs.</p>
+<section id="exercise-markup" class="level2">
+<h2 class="anchored" data-anchor-id="exercise-markup">Exercise Markup</h2>
+<p>Write the target plot as the first chunk inside a <code>.plotcat</code> Div. Set <code>#| eval: false</code>: PlotCat renders both the target and a student’s submission in the browser.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat}</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
@@ -400,23 +414,102 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The first chunk becomes the browser-rendered target, and its source is omitted from the rendered HTML. The second chunk appears in the editor.</p>
-<p>PlotCat accepts R and Python chunks. Both chunks in an exercise must use the same language.</p>
-<p>Use either <code>{r}</code> or <code>{webr}</code> for R, and either <code>{python}</code> or <code>{pyodide}</code> for Python. PlotCat turns the student editor into Quarto Live’s native <code>webr</code> or <code>pyodide</code> cell.</p>
-</section>
-<section id="limitations" class="level2">
-<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<section id="markup-rules" class="level3">
+<h3 class="anchored" data-anchor-id="markup-rules">Markup Rules</h3>
 <ul>
-<li><strong>Font and text styling</strong>: SVG comparison checks text content, but ignores font families, font sizes, font weights, and text positioning.</li>
-<li><strong>Coarse geometry matching</strong>: Coordinates are rounded to ~1% relative precision and matched as unordered marks. Minor position shifts or point jittering may still yield high scores.</li>
-<li><strong>No code inspection</strong>: PlotCat evaluates rendered plot output (SVG or Plotly JSON), not R or Python code structure. It cannot check for specific function calls or idioms.</li>
-<li><strong>Plotly support</strong>: Plotly exercises only support side-by-side comparison and evaluate a subset of trace data, mark attributes, and titles.</li>
-<li><strong>Runtime sandbox</strong>: WebR and Pyodide run in the browser WebAssembly sandbox, so code cannot access files on the local filesystem (e.g., <code>read.csv("C:/data.csv")</code>). However, remote data files can be fetched directly using standard functions like <code>read.csv("https://...")</code> in R or <code>pd.read_csv("https://...")</code> in Python. Required packages must be available in WebAssembly.</li>
+<li>Set <code>#| eval: false</code> on both chunks. PlotCat executes R and Python code in the browser rather than during document rendering.</li>
+<li>The first chunk defines the target plot. PlotCat renders it in WebR or Pyodide and encrypts the target code in the HTML.</li>
+<li>The second chunk populates the student code editor. If omitted, the editor starts blank.</li>
+<li>Both chunks in an exercise must use the same language. Use <code>{r}</code> or <code>{webr}</code> for R, and <code>{python}</code> or <code>{pyodide}</code> for Python. PlotCat normalizes the student editor to Quarto Live’s native <code>webr</code> or <code>pyodide</code> cell.</li>
+<li>Assign custom exercise IDs on the container div: <code>::: {.plotcat #scatter-exercise}</code>. If omitted, PlotCat auto-generates IDs (<code>exercise-1</code>, <code>exercise-2</code>).</li>
 </ul>
 </section>
-<section id="design-inspiration" class="level2">
-<h2 class="anchored" data-anchor-id="design-inspiration">Design Inspiration</h2>
-<p>PlotCat was inspired by <a href="https://github.com/MikeLydeamore/ggplot2-battles">ggplot2 Battles</a>, brought to my attention by <a href="https://www.emilyarobinson.com/">Emily Robinson</a>.</p>
+</section>
+<section id="css-variables" class="level2">
+<h2 class="anchored" data-anchor-id="css-variables">CSS Variables</h2>
+<p>PlotCat exposes CSS custom properties on <code>.plotcat</code> containers. Override these variables globally in your stylesheet or locally on specific containers.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable</th>
+<th style="text-align: left;">Default Value</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>--plotcat-border</code></td>
+<td style="text-align: left;"><code>color-mix(in srgb, var(--bs-body-color, #212529) 20%, var(--bs-body-bg, #ffffff))</code></td>
+<td style="text-align: left;">Outer border color for the exercise card and internal divider lines.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>--plotcat-accent</code></td>
+<td style="text-align: left;"><code>var(--bs-primary, #0d6efd)</code></td>
+<td style="text-align: left;">Primary brand color used for action buttons, focus highlights, score badges, active mode toggles, and the wipe slider handle.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>--plotcat-accent-rgb</code></td>
+<td style="text-align: left;"><code>var(--bs-primary-rgb, 13, 110, 253)</code></td>
+<td style="text-align: left;">Space-separated RGB values of <code>--plotcat-accent</code>, used for focus ring and badge background opacity channels.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>--plotcat-bg</code></td>
+<td style="text-align: left;"><code>var(--bs-body-bg, #ffffff)</code></td>
+<td style="text-align: left;">Card background color and target/student plot container background.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>--plotcat-nested-bg</code></td>
+<td style="text-align: left;"><code>color-mix(in srgb, var(--bs-body-color, #212529) 6%, var(--bs-body-bg, #ffffff))</code></td>
+<td style="text-align: left;">Surface color for the code editor surface and the comparison control bar.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>--plotcat-shadow-color</code></td>
+<td style="text-align: left;"><code>rgb(var(--bs-emphasis-color-rgb, 0, 0, 0))</code></td>
+<td style="text-align: left;">Base shadow color used for card drop shadows and handle depth.</td>
+</tr>
+</tbody>
+</table>
+<section id="bootstrap-variable-integration" class="level3">
+<h3 class="anchored" data-anchor-id="bootstrap-variable-integration">Bootstrap Variable Integration</h3>
+<p>PlotCat automatically inherits global colors from Quarto Bootstrap themes:</p>
+<ul>
+<li><code>--bs-body-color</code>: Primary body text color applied to text, labels, and editor code.</li>
+<li><code>--bs-body-bg</code>: Background color used as the baseline for card and plot surfaces.</li>
+<li><code>--bs-primary</code>: Main theme brand color mapped to <code>--plotcat-accent</code>.</li>
+<li><code>--bs-primary-rgb</code>: RGB tuple mapped to <code>--plotcat-accent-rgb</code>.</li>
+<li><code>--bs-font-monospace</code>: Font stack used inside the code editor block.</li>
+<li><code>--bs-body-font-family</code>: Font stack used for headers, labels, and buttons.</li>
+<li><code>--bs-secondary-color</code>: Text color for muted comparison labels and status messages.</li>
+<li><code>--bs-danger</code>: Text color applied when code execution returns an error.</li>
+</ul>
+</section>
+</section>
+<section id="custom-styling-examples" class="level2">
+<h2 class="anchored" data-anchor-id="custom-styling-examples">Custom Styling Examples</h2>
+<section id="theme-accent-override" class="level3">
+<h3 class="anchored" data-anchor-id="theme-accent-override">Theme Accent Override</h3>
+<p>Change PlotCat accent color globally in a custom CSS file:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode css code-with-copy"><code class="sourceCode css"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.plotcat</span> {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-accent</span><span class="ch">:</span> <span class="cn">#059669</span><span class="op">;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-accent-rgb</span><span class="ch">:</span> <span class="dv">5</span><span class="op">,</span> <span class="dv">150</span><span class="op">,</span> <span class="dv">105</span><span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="scoped-container-styling" class="level3">
+<h3 class="anchored" data-anchor-id="scoped-container-styling">Scoped Container Styling</h3>
+<p>Adjust code editor height or card layout for specific exercise blocks:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode css code-with-copy"><code class="sourceCode css"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#scatter-exercise</span> <span class="fu">.plotcat__editor</span> {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">height</span><span class="ch">:</span> <span class="dv">16</span><span class="dt">rem</span><span class="op">;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">.plotcat.custom-card</span> {</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-bg</span><span class="ch">:</span> <span class="cn">#f8fafc</span><span class="op">;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-border</span><span class="ch">:</span> <span class="cn">#cbd5e1</span><span class="op">;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 <script type="ojs-module-contents">
@@ -866,4 +959,4 @@ window._ojs.runtime.interpretFromScriptTags();
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/VisruthSK/plotcat/blob/main/index.qmd" target="_blank" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/VisruthSK/plotcat/issues/new" target="_blank" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/VisruthSK/plotcat/blob/main/reference.qmd" target="_blank" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/VisruthSK/plotcat/issues/new" target="_blank" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

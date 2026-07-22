@@ -1,73 +1,45 @@
 [
   {
-    "objectID": "example.html",
-    "href": "example.html",
-    "title": "Examples",
+    "objectID": "reference.html",
+    "href": "reference.html",
+    "title": "Reference",
     "section": "",
-    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(ggplot2)\n\nggplot(penguins, aes(bill_len, bill_dep, colour = species)) +\n  geom_point(na.rm = TRUE)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  \n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    tinyplot::tinyplot(dist ~ speed, data = cars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  \n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(lattice)\nxyplot(mpg ~ wt, data = mtcars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  \n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(plotly)\nplot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+    "text": "Configuration options, chunk markup syntax, and CSS theme variables for the plotcat extension."
   },
   {
-    "objectID": "example.html#ggplot2",
-    "href": "example.html#ggplot2",
-    "title": "Examples",
-    "section": "",
-    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(ggplot2)\n\nggplot(penguins, aes(bill_len, bill_dep, colour = species)) +\n  geom_point(na.rm = TRUE)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+    "objectID": "reference.html#document-setup",
+    "href": "reference.html#document-setup",
+    "title": "Reference",
+    "section": "Document Setup",
+    "text": "Document Setup\nInstall Quarto Live and PlotCat in the project:\nquarto add r-wasm/quarto-live\nquarto add VisruthSK/PlotCat\nUse Quarto Live’s HTML format and enable PlotCat:\nformat: live-html\n\nfilters:\n  - plotcat"
   },
   {
-    "objectID": "example.html#tinyplot",
-    "href": "example.html#tinyplot",
-    "title": "Examples",
-    "section": "",
-    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    tinyplot::tinyplot(dist ~ speed, data = cars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+    "objectID": "reference.html#exercise-markup",
+    "href": "reference.html#exercise-markup",
+    "title": "Reference",
+    "section": "Exercise Markup",
+    "text": "Exercise Markup\nWrite the target plot as the first chunk inside a .plotcat Div. Set #| eval: false: PlotCat renders both the target and a student’s submission in the browser.\n::: {.plotcat}\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars,\n  main = \"Stopping distance by speed\",\n  xlab = \"Speed\",\n  ylab = \"Stopping distance\"\n)\n```\n:::\nAdd a second chunk to give students starter code. Also set #| eval: false on the starter chunk.\n::: {.plotcat}\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars,\n  main = \"Stopping distance by speed\",\n  xlab = \"Speed\",\n  ylab = \"Stopping distance\"\n)\n```\n\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars\n)\n```\n:::\n\nMarkup Rules\n\nSet #| eval: false on both chunks. PlotCat executes R and Python code in the browser rather than during document rendering.\nThe first chunk defines the target plot. PlotCat renders it in WebR or Pyodide and encrypts the target code in the HTML.\nThe second chunk populates the student code editor. If omitted, the editor starts blank.\nBoth chunks in an exercise must use the same language. Use {r} or {webr} for R, and {python} or {pyodide} for Python. PlotCat normalizes the student editor to Quarto Live’s native webr or pyodide cell.\nAssign custom exercise IDs on the container div: ::: {.plotcat #scatter-exercise}. If omitted, PlotCat auto-generates IDs (exercise-1, exercise-2)."
   },
   {
-    "objectID": "example.html#lattice",
-    "href": "example.html#lattice",
-    "title": "Examples",
-    "section": "",
-    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(lattice)\nxyplot(mpg ~ wt, data = mtcars)\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+    "objectID": "reference.html#css-variables",
+    "href": "reference.html#css-variables",
+    "title": "Reference",
+    "section": "CSS Variables",
+    "text": "CSS Variables\nPlotCat exposes CSS custom properties on .plotcat containers. Override these variables globally in your stylesheet or locally on specific containers.\n\n\n\n\n\n\n\n\nVariable\nDefault Value\nDescription\n\n\n\n\n--plotcat-border\ncolor-mix(in srgb, var(--bs-body-color, #212529) 20%, var(--bs-body-bg, #ffffff))\nOuter border color for the exercise card and internal divider lines.\n\n\n--plotcat-accent\nvar(--bs-primary, #0d6efd)\nPrimary brand color used for action buttons, focus highlights, score badges, active mode toggles, and the wipe slider handle.\n\n\n--plotcat-accent-rgb\nvar(--bs-primary-rgb, 13, 110, 253)\nSpace-separated RGB values of --plotcat-accent, used for focus ring and badge background opacity channels.\n\n\n--plotcat-bg\nvar(--bs-body-bg, #ffffff)\nCard background color and target/student plot container background.\n\n\n--plotcat-nested-bg\ncolor-mix(in srgb, var(--bs-body-color, #212529) 6%, var(--bs-body-bg, #ffffff))\nSurface color for the code editor surface and the comparison control bar.\n\n\n--plotcat-shadow-color\nrgb(var(--bs-emphasis-color-rgb, 0, 0, 0))\nBase shadow color used for card drop shadows and handle depth.\n\n\n\n\nBootstrap Variable Integration\nPlotCat automatically inherits global colors from Quarto Bootstrap themes:\n\n--bs-body-color: Primary body text color applied to text, labels, and editor code.\n--bs-body-bg: Background color used as the baseline for card and plot surfaces.\n--bs-primary: Main theme brand color mapped to --plotcat-accent.\n--bs-primary-rgb: RGB tuple mapped to --plotcat-accent-rgb.\n--bs-font-monospace: Font stack used inside the code editor block.\n--bs-body-font-family: Font stack used for headers, labels, and buttons.\n--bs-secondary-color: Text color for muted comparison labels and status messages.\n--bs-danger: Text color applied when code execution returns an error."
   },
   {
-    "objectID": "example.html#plotly",
-    "href": "example.html#plotly",
-    "title": "Examples",
-    "section": "",
-    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    library(plotly)\nplot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
-  },
-  {
-    "objectID": "example.html#matplotlib",
-    "href": "example.html#matplotlib",
-    "title": "Examples",
-    "section": "matplotlib",
-    "text": "matplotlib\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    import matplotlib.pyplot as plt\nfrom sklearn.datasets import load_iris\niris = load_iris()\ndata = iris.data\nfig, ax = plt.subplots()\nax.scatter(data[:, 0], data[:, 2])\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
-  },
-  {
-    "objectID": "example.html#plotnine",
-    "href": "example.html#plotnine",
-    "title": "Examples",
-    "section": "plotnine",
-    "text": "plotnine\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    from plotnine import ggplot, aes, geom_point\nfrom plotnine.data import mtcars\nggplot(mtcars, aes(\"wt\", \"mpg\")) + geom_point()\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
-  },
-  {
-    "objectID": "example.html#seaborn",
-    "href": "example.html#seaborn",
-    "title": "Examples",
-    "section": "seaborn",
-    "text": "seaborn\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    from sklearn.datasets import load_iris\nimport pandas as pd\nimport seaborn as sns\niris = load_iris()\ndf = pd.DataFrame(iris.data, columns=iris.feature_names)\ndf['species'] = iris.target\nsns.scatterplot(data=df, x=\"sepal length (cm)\", y=\"petal length (cm)\")\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
-  },
-  {
-    "objectID": "example.html#plotly-1",
-    "href": "example.html#plotly-1",
-    "title": "Examples",
-    "section": "plotly",
-    "text": "plotly\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n    \n    import plotly.graph_objects as go\nfig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6]))\nfig\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+    "objectID": "reference.html#custom-styling-examples",
+    "href": "reference.html#custom-styling-examples",
+    "title": "Reference",
+    "section": "Custom Styling Examples",
+    "text": "Custom Styling Examples\n\nTheme Accent Override\nChange PlotCat accent color globally in a custom CSS file:\n.plotcat {\n  --plotcat-accent: #059669;\n  --plotcat-accent-rgb: 5, 150, 105;\n}\n\n\nScoped Container Styling\nAdjust code editor height or card layout for specific exercise blocks:\n#scatter-exercise .plotcat__editor {\n  height: 16rem;\n}\n\n.plotcat.custom-card {\n  --plotcat-bg: #f8fafc;\n  --plotcat-border: #cbd5e1;\n}"
   },
   {
     "objectID": "index.html",
     "href": "index.html",
     "title": "PlotCat",
     "section": "",
-    "text": "plotcat is a Quarto extension for plot-recreation exercises. Authors provide a target plot and optional starter code. Students write R or Python in the browser, render their plot with WebR or Pyodide, and compare it with the target.\nPlotCat compares SVG structure and plot text for static plots. It also supports a focused comparison of Plotly traces and layout. Plotly exercises support side-by-side comparison only; overlay and wipe apply to SVG plots. The target source is removed from the rendered HTML, but this is not a security boundary: do not put secrets in an exercise.\n\n\nPlotCat publishes interactive HTML only. Its browser runtimes need network access on first use and package availability in WebR or Pyodide. The included examples cover base R, ggplot2, tinyplot, lattice, matplotlib, plotnine, seaborn, and Plotly.\n\n\n\nAdd the extension to a Quarto project:\nquarto add VisruthSK/PlotCat\nThen enable the filter in a document or project config:\nfilters:\n  - plotcat\n\n\n\nWrite the target plot as the first chunk inside a .plotcat Div. Set #| eval: false: PlotCat renders both the target and a student’s submission in the browser. This must be set on each PlotCat chunk because Quarto decides whether to execute it before PlotCat’s filter runs.\n::: {.plotcat}\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars,\n  main = \"Stopping distance by speed\",\n  xlab = \"Speed\",\n  ylab = \"Stopping distance\"\n)\n```\n:::\nAdd a second chunk to give students starter code. Also set #| eval: false on the starter chunk.\n::: {.plotcat}\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars,\n  main = \"Stopping distance by speed\",\n  xlab = \"Speed\",\n  ylab = \"Stopping distance\"\n)\n```\n\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars\n)\n```\n:::\nThe first chunk becomes the browser-rendered target, and its source is omitted from the rendered HTML. The second chunk appears in the editor.\nPlotCat accepts R and Python chunks. Both chunks in an exercise must use the same language.\n\n\n\n\nFont and text styling: SVG comparison checks text content, but ignores font families, font sizes, font weights, and text positioning.\nCoarse geometry matching: Coordinates are rounded to ~1% relative precision and matched as unordered marks. Minor position shifts or point jittering may still yield high scores.\nNo code inspection: PlotCat evaluates rendered plot output (SVG or Plotly JSON), not R or Python code structure. It cannot check for specific function calls or idioms.\nPlotly support: Plotly exercises only support side-by-side comparison and evaluate a subset of trace data, mark attributes, and titles.\nRuntime sandbox: WebR and Pyodide run in the browser WebAssembly sandbox, so code cannot access files on the local filesystem (e.g., read.csv(\"C:/data.csv\")). However, remote data files can be fetched directly using standard functions like read.csv(\"https://...\") in R or pd.read_csv(\"https://...\") in Python. Required packages must be available in WebAssembly.\n\n\n\n\nPlotCat was inspired by ggplot2 Battles, brought to my attention by Emily Robinson."
+    "text": "plotcat is a Quarto extension for plot-recreation exercises. Authors provide a target plot and optional starter code. Students write R or Python in the browser, render their plot with WebR or Pyodide, and compare it with the target.\nPlotCat compares SVG structure and plot text for static plots. It also supports a focused comparison of Plotly traces and layout. Plotly exercises support side-by-side comparison only; overlay and wipe apply to SVG plots. The target source is removed from the rendered HTML, but this is not a security boundary: do not put secrets in an exercise.\n\n\nPlotCat publishes interactive HTML only. Its browser runtimes need network access on first use and package availability in WebR or Pyodide. The included examples cover base R, ggplot2, tinyplot, lattice, matplotlib, plotnine, seaborn, and Plotly.\n\n\n\nAdd Quarto Live, then PlotCat:\nquarto add r-wasm/quarto-live\nquarto add VisruthSK/PlotCat\nThen enable the filter in a document or project config:\nformat: live-html\n\nfilters:\n  - plotcat\nlive-html provides the native WebR and Pyodide editors. Set #| eval: false on each PlotCat chunk so Quarto leaves it for the browser runtime.\n\n\n\nWrite the target plot as the first chunk inside a .plotcat Div. Set #| eval: false: PlotCat renders both the target and a student’s submission in the browser. This must be set on each PlotCat chunk because Quarto decides whether to execute it before PlotCat’s filter runs.\n::: {.plotcat}\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars,\n  main = \"Stopping distance by speed\",\n  xlab = \"Speed\",\n  ylab = \"Stopping distance\"\n)\n```\n:::\nAdd a second chunk to give students starter code. Also set #| eval: false on the starter chunk.\n::: {.plotcat}\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars,\n  main = \"Stopping distance by speed\",\n  xlab = \"Speed\",\n  ylab = \"Stopping distance\"\n)\n```\n\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars\n)\n```\n:::\nThe first chunk becomes the browser-rendered target, and its source is omitted from the rendered HTML. The second chunk appears in the editor.\nPlotCat accepts R and Python chunks. Both chunks in an exercise must use the same language.\nUse either {r} or {webr} for R, and either {python} or {pyodide} for Python. PlotCat turns the student editor into Quarto Live’s native webr or pyodide cell.\n\n\n\n\nFont and text styling: SVG comparison checks text content, but ignores font families, font sizes, font weights, and text positioning.\nCoarse geometry matching: Coordinates are rounded to ~1% relative precision and matched as unordered marks. Minor position shifts or point jittering may still yield high scores.\nNo code inspection: PlotCat evaluates rendered plot output (SVG or Plotly JSON), not R or Python code structure. It cannot check for specific function calls or idioms.\nPlotly support: Plotly exercises only support side-by-side comparison and evaluate a subset of trace data, mark attributes, and titles.\nRuntime sandbox: WebR and Pyodide run in the browser WebAssembly sandbox, so code cannot access files on the local filesystem (e.g., read.csv(\"C:/data.csv\")). However, remote data files can be fetched directly using standard functions like read.csv(\"https://...\") in R or pd.read_csv(\"https://...\") in Python. Required packages must be available in WebAssembly.\n\n\n\n\nPlotCat was inspired by ggplot2 Battles, brought to my attention by Emily Robinson."
   },
   {
     "objectID": "index.html#requirements",
@@ -81,14 +53,14 @@
     "href": "index.html#installation",
     "title": "PlotCat",
     "section": "",
-    "text": "Add the extension to a Quarto project:\nquarto add VisruthSK/PlotCat\nThen enable the filter in a document or project config:\nfilters:\n  - plotcat"
+    "text": "Add Quarto Live, then PlotCat:\nquarto add r-wasm/quarto-live\nquarto add VisruthSK/PlotCat\nThen enable the filter in a document or project config:\nformat: live-html\n\nfilters:\n  - plotcat\nlive-html provides the native WebR and Pyodide editors. Set #| eval: false on each PlotCat chunk so Quarto leaves it for the browser runtime."
   },
   {
     "objectID": "index.html#example",
     "href": "index.html#example",
     "title": "PlotCat",
     "section": "",
-    "text": "Write the target plot as the first chunk inside a .plotcat Div. Set #| eval: false: PlotCat renders both the target and a student’s submission in the browser. This must be set on each PlotCat chunk because Quarto decides whether to execute it before PlotCat’s filter runs.\n::: {.plotcat}\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars,\n  main = \"Stopping distance by speed\",\n  xlab = \"Speed\",\n  ylab = \"Stopping distance\"\n)\n```\n:::\nAdd a second chunk to give students starter code. Also set #| eval: false on the starter chunk.\n::: {.plotcat}\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars,\n  main = \"Stopping distance by speed\",\n  xlab = \"Speed\",\n  ylab = \"Stopping distance\"\n)\n```\n\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars\n)\n```\n:::\nThe first chunk becomes the browser-rendered target, and its source is omitted from the rendered HTML. The second chunk appears in the editor.\nPlotCat accepts R and Python chunks. Both chunks in an exercise must use the same language."
+    "text": "Write the target plot as the first chunk inside a .plotcat Div. Set #| eval: false: PlotCat renders both the target and a student’s submission in the browser. This must be set on each PlotCat chunk because Quarto decides whether to execute it before PlotCat’s filter runs.\n::: {.plotcat}\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars,\n  main = \"Stopping distance by speed\",\n  xlab = \"Speed\",\n  ylab = \"Stopping distance\"\n)\n```\n:::\nAdd a second chunk to give students starter code. Also set #| eval: false on the starter chunk.\n::: {.plotcat}\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars,\n  main = \"Stopping distance by speed\",\n  xlab = \"Speed\",\n  ylab = \"Stopping distance\"\n)\n```\n\n```{r}\n#| eval: false\ntinyplot::tinyplot(\n  dist ~ speed,\n  data = cars\n)\n```\n:::\nThe first chunk becomes the browser-rendered target, and its source is omitted from the rendered HTML. The second chunk appears in the editor.\nPlotCat accepts R and Python chunks. Both chunks in an exercise must use the same language.\nUse either {r} or {webr} for R, and either {python} or {pyodide} for Python. PlotCat turns the student editor into Quarto Live’s native webr or pyodide cell."
   },
   {
     "objectID": "index.html#limitations",
@@ -103,5 +75,68 @@
     "title": "PlotCat",
     "section": "",
     "text": "PlotCat was inspired by ggplot2 Battles, brought to my attention by Emily Robinson."
+  },
+  {
+    "objectID": "example.html",
+    "href": "example.html",
+    "title": "Examples",
+    "section": "",
+    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  \n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  \n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe\n      \n    \n  \n  \n  \n\n\n\n\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+  },
+  {
+    "objectID": "example.html#ggplot2",
+    "href": "example.html#ggplot2",
+    "title": "Examples",
+    "section": "",
+    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+  },
+  {
+    "objectID": "example.html#tinyplot",
+    "href": "example.html#tinyplot",
+    "title": "Examples",
+    "section": "",
+    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+  },
+  {
+    "objectID": "example.html#lattice",
+    "href": "example.html#lattice",
+    "title": "Examples",
+    "section": "",
+    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+  },
+  {
+    "objectID": "example.html#plotly",
+    "href": "example.html#plotly",
+    "title": "Examples",
+    "section": "",
+    "text": "Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+  },
+  {
+    "objectID": "example.html#matplotlib",
+    "href": "example.html#matplotlib",
+    "title": "Examples",
+    "section": "matplotlib",
+    "text": "matplotlib\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+  },
+  {
+    "objectID": "example.html#plotnine",
+    "href": "example.html#plotnine",
+    "title": "Examples",
+    "section": "plotnine",
+    "text": "plotnine\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+  },
+  {
+    "objectID": "example.html#seaborn",
+    "href": "example.html#seaborn",
+    "title": "Examples",
+    "section": "seaborn",
+    "text": "seaborn\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
+  },
+  {
+    "objectID": "example.html#plotly-1",
+    "href": "example.html#plotly-1",
+    "title": "Examples",
+    "section": "plotly",
+    "text": "plotly\n\n  Recreate this plot\n  \n    Loading plot…\n    \n    \n  \n  Code\n  \n\n\n\n\n\n\n\n  \n  \n    Run\n    Compare\n      \n         Side by side\n         Overlay\n         Wipe"
   }
 ]
