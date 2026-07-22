@@ -57,6 +57,15 @@ function setMode(root, mode) {
   root.classList.add(`plotcat--${mode}`);
 }
 
+function limitPlotlyToSideBySide(root) {
+  root.querySelector('input[value="side-by-side"]').checked = true;
+  root.querySelectorAll('input[value="overlay"], input[value="wipe"]').forEach(input => {
+    input.disabled = true;
+    input.closest('label').title = 'Overlay and wipe are unavailable for Plotly charts.';
+  });
+  setMode(root, 'side-by-side');
+}
+
 function svgFragment(svg) {
   return document.createRange().createContextualFragment(svg);
 }
@@ -166,6 +175,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
       if (result.startsWith('{"type":"plotly"')) {
         const payload = JSON.parse(result);
         targetPlotlyPayload = payload.data.x ? payload.data.x : payload.data;
+        limitPlotlyToSideBySide(root);
         target.replaceChildren();
         target.style.height = '280px';
         const plotlyDiv = document.createElement('div');
