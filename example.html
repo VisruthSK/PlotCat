@@ -270,6 +270,7 @@ ul.task-list li input[type="checkbox"] {
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
+    <a href="https://github.com/VisruthSK/plotcat" title="" class="quarto-navigation-tool px-1" aria-label="PlotCat source code" target="_blank"><i class="bi bi-github"></i></a>
   <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
@@ -299,7 +300,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#plotly-1" id="toc-plotly-1" class="nav-link" data-scroll-target="#plotly-1"><code>plotly</code></a></li>
   </ul></li>
   </ul>
-</nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/VisruthSK/plotcat/blob/main/example.qmd" target="_blank" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/VisruthSK/plotcat/issues/new" target="_blank" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -328,7 +329,7 @@ ul.task-list li input[type="checkbox"] {
 <h1>R</h1>
 <section id="ggplot2" class="level2">
 <h2 class="anchored" data-anchor-id="ggplot2"><a href="https://ggplot2.tidyverse.org"><code>ggplot2</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-1" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-1&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;ggplot2&quot;]}" data-plotcat-target-code="087efcad0e20d14e9e59a62b025aaa586292ed6a692551f964ec5a45b9600ea7173bbebe0a2180049052ba18014bf65d48fae36175165ae83cb01f48b17908bc1637a3ff1c22cd05905ba56e440eb37b48b8ed68762461fd23f5515ff6740bb90c76bee24f628651cc12f6340454fd5155b8b8232c651ee32db24d46fe28479d3642dbf64f79a246d952b7251e06925148b8aa79703d52e86ca11f098e7009ae117ef0ff0d3bc40ad95abf2a0840eb1807f6f92f35431ead6cbc470be335458b0d7bf2ff0337c6018d56f66f0043b1534492aa2d396947ad71bc1d69b7790be90072eeab0772800b9417f46b670eb85148fbe561763c4cad71bc1d78ae7004a00164bcd54f728146d234f6671946fd1c0dc7e764772053ec20b45d4aad7038ba0d6dfbff52729954d01efd4d4d0eec190df5ef2513691ead6cec5e45bb7949ae167efaf1023bc6098b1eeb670842fd1c0df6fe527b255fe327b41607d43547e9447bfbb80a3ccc488951a52e1947f71f48a5aa2f7b264af923f11d07d43547e94467f2b01b7cdc0f8d52b3691d41eb181cf1e56339741eaf3cf0505ffc1f47e94d" data-plotcat-salt="salt_e7164c184f8fbf8e9f1200ca">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-1" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-1&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;ggplot2&quot;]}" data-plotcat-target-code="fe1d2069ae6da6edbd6010867c9ceb8710a0c1704bd461bc37e33ce924f6355de158627aaa6cf7a7b36b0cb57f8db7823ac8cf7b57e76aad6fbf79e42cef3346e0547f3bbc6fbaa6b36213c33ac8f2a43a8ac17254d551b870fa37f36be23043fa156226ef2ff1f2ef2b40997a92bc8e278a94390e942ea67ebd2bea63be7c67c0210732ef34d5e5fa6b018860c0d38e3a8a866352cc62ad3fae79a513e63254e71d2c3bad76b3a9fa6309877686aac775c4d53517b22ee83fb321a77ea37e71fb182e3ba37ab1a2ae6f40c27e85f08c36a086371b9877e822b37bc52aef3013f611326fa73ff7a8b72e42c619c8f98e3ac9c97b54cd7ce822b37bd433e63f5af7076011ef3ff6e5f10d40ca6780bcc37ff5cb7e55d163a973bb3be630e60340fb0e273bf23feef7f3274be033c8adc67fc7c33f31982ee83fe338e926ef7254e01d2635a276b1aaa8275dca7684bcc37fc4d24859d46fa674bb70ab49a37c13b218277caa71bbebaa6813836781b6c03a97863559d77abc70fe7bab49a37c13b2042e74bb31abacae6b05c46387aac76ec3c9791b852eea6fff36f361897c13bb" data-plotcat-salt="salt_6187f119fb9738cd0e7f3bc2">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
@@ -359,7 +360,7 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
 </section>
 <section id="tinyplot" class="level2">
 <h2 class="anchored" data-anchor-id="tinyplot"><a href="https://grantmcdermott.com/tinyplot/"><code>tinyplot</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-2" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-2&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;tinyplot&quot;]}" data-plotcat-target-code="ba1f4bbb2daea03bb9e8dffe67e96dc3eb1d2daf0696fa24b96d778d7a106af1ee1244b63ce2f26fe0b3d9e425b070ceed0725f64fc7dd70a83d749471122eb9a70551a333a1aa6fe1ab8be479f578cba64525b30384ec24fa6d26ae6f106bb9ec5a05bb31a3ad6fbef289c47dff6ddfed0762eb0b8cfd70a62367983d5c" data-plotcat-salt="salt_68614c706ccc560629c850df">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-2" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-2&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;tinyplot&quot;]}" data-plotcat-target-code="a799c9fea5a4f08f62d8be2fc6090f0d148e6b869e19d29d3f3299e4f81a5154f394c6f3b4e8a2db3b83b83584501200129463dfd748f5c92e629afdf318151cba83d3e6bbabfadb3a9bea35d8151a0559d6639a9b0bc49d7c32c8c7ed1a501cf1dc87feb9a9fddb65c2e815dc1f0f11129424c29303d5c9207c89f1bf56" data-plotcat-salt="salt_e06f8d556dea080c6d792276">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
@@ -387,7 +388,7 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
 </section>
 <section id="lattice" class="level2">
 <h2 class="anchored" data-anchor-id="lattice"><a href="https://lattice.r-forge.r-project.org/"><code>lattice</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-3" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-3&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;lattice&quot;]}" data-plotcat-target-code="c3d06c805d93de804b137fbcbbb45695d6f66c4f19d0d7ad940b3eb7ea20c6bb83996a9348808795071f7fabb3a54090fce374561b9f9ea5db3609d0b476c2eff8dc679554958584070a67a9b0f70e9cfed9705612d7d7a7d55b20fbf56291f28f9b43a27bc38e" data-plotcat-salt="salt_cbdd2842b58ee342daa8659f">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-3" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-3&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;lattice&quot;]}" data-plotcat-target-code="203c1e50abcfdff5c008963569bf5cc7e226e830c7dcbd5c65d6ca30a1910b4f60751843bedc86e08c04962261ae4ac2c833f029c593f4542aebfd57ffc70f1b1b301545a2c984f18c118e2062fc04ceca09f429ccdbbd562486d47cbed35c066c7731728d9f8f" data-plotcat-salt="salt_6a044aea3ad3b14c7cfe362b">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
@@ -416,7 +417,7 @@ xyplot(mpg ~ wt, data = mtcars)</textarea>
 </section>
 <section id="plotly" class="level2">
 <h2 class="anchored" data-anchor-id="plotly"><a href="https://plotly.com/r/"><code>plotly</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-4" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-4&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;plotly&quot;]}" data-plotcat-target-code="7949c4346a9b8864dd9f307bddbbbecca2f075d2c492fdb2e9e4adc462bffd046749d56a2b91d1718d8d0c6ac1a3fbe89ef974c1ef96a8baf4a5e4853cd2b819744c880a6e879638c5df7f7bc8b2f2e6efbc3dd5f89ff0eee8f7fe8962efb20970009b662c84903ec6962d7c96eb" data-plotcat-salt="salt_417a8d88bb6db8f3a83ae990">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-4" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-4&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;plotly&quot;]}" data-plotcat-target-code="9704480fe89972c0d59f2d6cb47e8f76cdd4dc8d7178e2120f46a4c1128b214989045951a9932bd5858d117da866ca52f1dddd9e5a7cb71a1207ed804ce664549a010431ec856c9ccddf626ca177c35c8098948a4d75ef4e0e55f78c12db6e449e4d175dae866a9ace96306bff2e" data-plotcat-salt="salt_3a76b546fd80f1e3b4d1c866">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
@@ -448,7 +449,7 @@ plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')</te
 <h1>Python</h1>
 <section id="matplotlib" class="level2">
 <h2 class="anchored" data-anchor-id="matplotlib"><a href="https://matplotlib.org/"><code>matplotlib</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-5" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-5&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;matplotlib&quot;,&quot;sklearn&quot;]}" data-plotcat-target-code="78dff0d70f38563838537d0eb462518846ffc36709b8fadaa27be7976a88355a77c0efd55d3f1d393c467f0cf5725c9545a2d66a0af4fcc3f275e6c33a882e3175ede9ca143f7c3c2b4e7e42e636518e45b5ec770bbde686ab10f0d66e85616d31dbf2d10e6212342d460704b27111c145a9932359a4f9daac69e1d56a882e24629aa9b21c3458263a467916be64158545a5d24543f8b59edf36b4d37b90200b2b9ea08a20657c3421097e07af49498850bdd6365b9de7c7f13ae7d26a852d7070dce4980d29023435076107b571498906f8b97f01fae6cbf645ecdb7b86243c3990d3dd0d2d1a7535426305af7e1dc947bc9a3c50def4d6ac69f1c3459d2d3173d7ec905f1c1321384b2d0ebe785a954cf19b7d14fdb787" data-plotcat-salt="salt_b93c2e7663f73a3067d886d9">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-5" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-5&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;matplotlib&quot;,&quot;sklearn&quot;]}" data-plotcat-target-code="18bb2206cc765ad3b1f2665b64cbde94dd651709b8f5e4a57f0ff168199bfe7d17a43d049e7111d2b5e7645925dbd389de380204bbb9e2bc2f01f03c499be51615893b1bd77170d7a2ef6517369fde92de2f3819baf0f8f97664e6291d96aa4a51bf2000cd2c1edfa4e71c5162d89eddde33474de8e9e7a5711df72a199be50302fe7b63df7a54cdb3e762436ecd9a99de3f062bf2b5abe10242a22c0883eb2c4bfa725be32b70dfa8a865527fe0c694cb270258ead0f9b82c4ef12d1996e65710b83649ce670edfbca67a5265d8c6959d626d11b0b7f8b42b31fa240895ef1b59f4010cce63169ebce378507fd792d5dc264e52e193eaa9711de73c368ee61613b33e419c521fcab1ea365b6ed1d589d76b4f13a5b0a9f8" data-plotcat-salt="salt_3a6b7d12b669355fab54a849">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
@@ -481,7 +482,7 @@ ax.scatter(data[:, 0], data[:, 2])</textarea>
 </section>
 <section id="plotnine" class="level2">
 <h2 class="anchored" data-anchor-id="plotnine"><a href="https://plotnine.org/"><code>plotnine</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-6" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-6&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;plotnine&quot;]}" data-plotcat-target-code="d1db3638d5f2d38ce5b1911e77c650c8dfc23c1cb5ff6004fbef5766191a5e9f9b893e309aefe093feb696043ec655c4cdde6248e1f06219f2df4e235712568ddba33f279aef9f93fdb08c1e7b885c8bcbcc3a09b5f16a04f8f2576a540f588dc5da532599edcbc3acffd07a32c65ec2dfc1211cbdf57317f6f25066191a5e9f9f8b2e21d7ae9fc1fcaf9f523ec65acac3c23c55b7fe6617e3ef51625a0257c59580705fd5a294c3f6ba971d4d9656ccc1d9661bfce26249a4a9296a19501b80d6cb2a7d81ebcb8ff4e2da3667835585cace2106faf57e54f5f9033d5c125c84c38b75758dbf9db4f4b69f1866c41585d6906c25fcf46207b7f04638191c5a80dbc63777d9a2dc8cfdb08a4d30a540c9c6c32a0de7eb255d9da00361190f5389dacc06389cecd68ef0b3d05918cf33d5c3c23a46e6f06803bfa9" data-plotcat-salt="salt_2170441ef6e0c02ca8ce110b">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-6" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-6&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;plotnine&quot;]}" data-plotcat-target-code="49b84524939dc1ea4549b491920454465b186bb7712bd985a1f1dc411e0627aa03ea4d2cdc80f2f55e4eb38bdb04514a490435e32524db98a8c1c504500e2fb843c04c3bdc808df55d48a9919e4a58054f166da27125d385a2ecdc4d531321b85db92039df82d9a50c07f5f5d7045a4c5b1b76b77921ca96acecdb411e0627aa07e85d3d91c18da75c57badddb045e4447186bfe732adf96b9f1da455d1e2ef00de3034393cd86a55642b292a8545242450331b03836dbc8feb7a24d1e4c62b54ea85961c784d9e9541affb98241510b4e1476ad3e21c7d5afe7881a5b0e25b15be80669cbd08fd2544eba978306110b524a3b8e3820db86edeecd1f1e0023b543a5446b9fcdceea5d48afc2d567444742197da6233f9cdcc7be88461e132abc42af7524da83c4e8504bf5d6fd0d375b47186ded2224d182e5b7" data-plotcat-salt="salt_21f8088d109995b470204e7a">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
@@ -511,7 +512,7 @@ ggplot(mtcars, aes("wt", "mpg")) + geom_point()</textarea>
 </section>
 <section id="seaborn" class="level2">
 <h2 class="anchored" data-anchor-id="seaborn"><a href="https://seaborn.pydata.org/"><code>seaborn</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-7" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-7&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;sklearn&quot;,&quot;pandas&quot;,&quot;seaborn&quot;]}" data-plotcat-target-code="bacfa693039a3a086fce8f6ca9a7ada9d2744c659be81bf9cb7a7667f4f054f3b8e2a08c4a9a5b0d67df9270f3e3bcbcdd634862c8a901b4cb710e7ab9ec54e0a89dba9b428b3e16648f9c71a7b0a2aeb96e5b789be84fb4d77a65778bf549fbaf95e0f4478f71592adf992cc3a2b8bcf575487c8de01be6d2662a77b5e85abefcdea69256843f1737c68f6bf4edaab8d2735c638d971cf5d670773adef85dc9fbceb99b408034172df2dd3fa7aabeb4c0295d709aaf17e0b1666a60faef58f3a8c9ac8c53853e1022cb9c76e6fea8bb9f27512ccabb17e4da79247fb1f25ce6b49de19d4ec073482ad6c020f7a6b8bcdf27457486af06fc9b3d677efdbe17b2b4c8acc3019a210169c69871a5ea" data-plotcat-salt="salt_f57f147135aa22dc143989ad">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-7" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-7&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;sklearn&quot;,&quot;pandas&quot;,&quot;seaborn&quot;]}" data-plotcat-target-code="740d23ff5f2a208275de71694275c03ab1904aab454c06c682cdb27ae3fe8b68762025e0162a41877dcf6c751831d12fbe874eac160d1c8b82c6ca67aee28b7b665f3ff71e3b249c7e9f62744c62cf3dda8a5db6454c528b9ecda16a9cfb9660615765981b3f6bd330cf67292870d52f96914eb2534406d99bd1ee6aa2e68525321c23fe0a34259d2dd6716e1f3fc72bb1975aad533301ca9fc7b327c9f68252350c3cf71c302e9d37e2233a4c78d327a3cd5bbe440b0adff8d1ae7dede18768660b29e00f35249a38db62730d2cc528fcc357e2141f0adb93cee062a6fc837d7a5f64f1127069c230c63e251c74d52fbcc343ba580b1bc3d28aa363eab0c8297a0a29af5d2a3b8b73d666744e38" data-plotcat-salt="salt_17c67a12247196efff21ea70">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
@@ -545,7 +546,7 @@ sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)")</textarea
 </section>
 <section id="plotly-1" class="level2">
 <h2 class="anchored" data-anchor-id="plotly-1"><a href="https://plotly.com/python/"><code>plotly</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-8" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-8&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;plotly&quot;]}" data-plotcat-target-code="fe862b3454317655e8f4cf1b4302e407c4ee39a4e11ce33ec4c043244a73a7b4f8e13d3241656b05e3f49531534bf607c0b6359afa1fb43cc89a63674a74f3b6e5c323667d747a05b6b79b446700a30c98c565d7ae4ba57b91e91c24466fe3b6aacc363a542e3357f7bc925e304aea12" data-plotcat-salt="salt_ba8bb9dcf8877f72ee0b3d12">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-8" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-8&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;plotly&quot;]}" data-plotcat-target-code="f16a19a0e4cf3ecb6320c3284a5191424d97a9dd8324153632d756b5fb55bdeaf70d0fa6f19b239b682099025a18834249cfa5e3982742343e8d76f6fb52e9e8ea2f11f2cd8a329b3d6397776e53d64911bcf5aecc73537367fe09b5f749f9e8a52004aee4d07bc97c689e6d39199f57" data-plotcat-salt="salt_9b0cd70ab65e3b3c7d9b6092">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
@@ -996,4 +997,4 @@ fig</textarea>
 
 
 
-</body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/VisruthSK/plotcat/blob/main/example.qmd" target="_blank" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/VisruthSK/plotcat/issues/new" target="_blank" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
