@@ -20,6 +20,14 @@ async function expectRendered(widget, label) {
   assert.equal(status, '', `${label} failed: ${status}; failed requests: ${failedRequests.join(' | ') || 'none'}`);
 }
 
+async function fillEditor(widget, code) {
+  const content = widget.locator('.cm-content');
+  await content.focus();
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+A' : 'Control+A');
+  await page.keyboard.press('Backspace');
+  await content.fill(code);
+}
+
 try {
   await page.goto(`${server.origin}/example.html`, { waitUntil: 'load' });
   try {
@@ -150,7 +158,7 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
     panel.grid.minor = element_blank(),
     legend.position = "bottom"
   )`;
-  await ggplot.locator('.cm-content').fill(ggplotSolution);
+  await fillEditor(ggplot, ggplotSolution);
   await ggplot.locator('[data-plotcat-run]').click();
   await expectRendered(ggplot, 'ggplot2');
   assert.equal(await ggplot.locator('.plotcat__student svg').count(), 1);
@@ -186,7 +194,7 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
   const lattice = page.locator('#plotcat-exercise-3');
   const latticeSolution = `library(lattice)
 xyplot(mpg ~ wt, data = mtcars, main = "MPG vs Weight", xlab = "Weight", ylab = "MPG")`;
-  await lattice.locator('.cm-content').fill(latticeSolution);
+  await fillEditor(lattice, latticeSolution);
   await lattice.locator('[data-plotcat-run]').click();
   await expectRendered(lattice, 'Lattice');
   assert.equal(await lattice.locator('.plotcat__student svg').count(), 1);
@@ -199,7 +207,7 @@ xyplot(mpg ~ wt, data = mtcars, main = "MPG vs Weight", xlab = "Weight", ylab = 
 library(ggplot2)
 p <- ggplot(iris, aes(x = Sepal.Length, y = Petal.Length)) + geom_point()
 ggplotly(p)`;
-  await rPlotly.locator('.cm-content').fill(rPlotlyIncorrect);
+  await fillEditor(rPlotly, rPlotlyIncorrect);
   await rPlotly.locator('[data-plotcat-run]').click();
   await expectRendered(rPlotly, 'R Plotly (Incorrect - ggplotly vs plot_ly)');
   const incorrectRScoreText = await rPlotly.locator('.plotcat__score').textContent();
@@ -211,7 +219,7 @@ ggplotly(p)`;
   // R Plotly Green Step: submit correct plot_ly code
   const rPlotlySolution = `library(plotly)
 plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter', mode = 'markers')`;
-  await rPlotly.locator('.cm-content').fill(rPlotlySolution);
+  await fillEditor(rPlotly, rPlotlySolution);
   await rPlotly.locator('[data-plotcat-run]').click();
   await expectRendered(rPlotly, 'R Plotly (Correct)');
   assert.ok(await rPlotly.locator('.plotcat__student svg').count() >= 1);
@@ -225,7 +233,7 @@ iris = load_iris()
 df = pd.DataFrame(iris.data, columns=iris.feature_names)
 df['species'] = iris.target
 sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)", hue="species")`;
-  await seaborn.locator('.cm-content').fill(seabornSolution);
+  await fillEditor(seaborn, seabornSolution);
   await seaborn.locator('[data-plotcat-run]').click();
   await expectRendered(seaborn, 'Seaborn');
   assert.equal(await seaborn.locator('.plotcat__student svg').count(), 1);
@@ -237,7 +245,7 @@ sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)", hue="spec
   const pyPlotlyIncorrect = `import plotly.graph_objects as go
 fig = go.Figure(data=go.Scatter(x=[1, 2, 9], y=[4, 5, 6], mode='markers'))
 fig`;
-  await pyPlotly.locator('.cm-content').fill(pyPlotlyIncorrect);
+  await fillEditor(pyPlotly, pyPlotlyIncorrect);
   await pyPlotly.locator('[data-plotcat-run]').click();
   await expectRendered(pyPlotly, 'Python Plotly (Incorrect)');
   const incorrectPyScoreText = await pyPlotly.locator('.plotcat__score').textContent();
@@ -248,7 +256,7 @@ fig`;
   const pyPlotlySolution = `import plotly.graph_objects as go
 fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6], mode='markers'))
 fig`;
-  await pyPlotly.locator('.cm-content').fill(pyPlotlySolution);
+  await fillEditor(pyPlotly, pyPlotlySolution);
   await pyPlotly.locator('[data-plotcat-run]').click();
   await expectRendered(pyPlotly, 'Python Plotly (Correct)');
   assert.ok(await pyPlotly.locator('.plotcat__student svg').count() >= 1);
