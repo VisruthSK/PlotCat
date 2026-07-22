@@ -164,7 +164,9 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
   assert.equal(await ggplot.locator('.plotcat__student svg').count(), 1);
   assert.ok(await ggplot.locator('.plotcat__student svg').locator('path, circle').count() > 10);
   const ggplotComparison = await ggplot.evaluate(async node => {
-    const { compareSvg } = await import('./site_libs/quarto-contrib/plotcat-0.1.0/svg.js');
+    const script = document.querySelector('script[src*="plotcat.js"]');
+    const svgUrl = script ? script.src.replace('plotcat.js', 'svg.js') : './site_libs/quarto-contrib/plotcat-0.2.0/svg.js';
+    const { compareSvg } = await import(svgUrl);
     return compareSvg(node.querySelector('.plotcat__target svg').outerHTML, node.querySelector('.plotcat__student svg').outerHTML);
   });
   assert.equal(await ggplot.locator('.plotcat__score').textContent(), '100%', JSON.stringify(ggplotComparison));
