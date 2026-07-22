@@ -305,7 +305,7 @@ function Div(div)
     local target = chunks[1].cell:walk({CodeBlock = function() return {} end})
     return pandoc.Div({target, pandoc.Para("The interactive PlotCat exercise is available in HTML.")}, pandoc.Attr(id, {"plotcat"}))
   end
-  quarto.doc.add_html_dependency({name="plotcat", version="0.1.0", scripts={{path="plotcat.js", attribs={type="module"}}}, stylesheets={"plotcat.css"}, resources={"svg.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js"}})
+  quarto.doc.add_html_dependency({name="plotcat", version="0.2.0", scripts={{path="plotcat.js", attribs={type="module"}}}, stylesheets={"plotcat.css"}, resources={"svg.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js"}})
   local extra_classes = {}
   for _, class in ipairs(div.classes) do
     if class ~= "plotcat" then
