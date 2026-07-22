@@ -103,11 +103,15 @@ the same language.
 - **Plotly support**: Plotly exercises only support side-by-side
   comparison and evaluate a subset of trace data, mark attributes, and
   titles.
-- **Runtime sandbox**: WebR and Pyodide run in the browser without local
-  file access or arbitrary network requests. Required packages must be
+- **Runtime sandbox**: WebR and Pyodide run in the browser WebAssembly
+  sandbox, so code cannot access files on the local filesystem (e.g.,
+  `read.csv("C:/data.csv")`). However, remote data files can be fetched
+  directly using standard functions like `read.csv("https://...")` in R
+  or `pd.read_csv("https://...")` in Python. Required packages must be
   available in WebAssembly.
 
 ## Design Inspiration
 
 PlotCat was inspired by [ggplot2
-Battles](https://github.com/MikeLydeamore/ggplot2-battles).
+Battles](https://github.com/MikeLydeamore/ggplot2-battles), brought to
+my attention by [Emily Robinson](https://www.emilyarobinson.com/).
