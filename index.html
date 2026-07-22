@@ -398,12 +398,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong>Coarse geometry matching</strong>: Coordinates are rounded to ~1% relative precision and matched as unordered marks. Minor position shifts or point jittering may still yield high scores.</li>
 <li><strong>No code inspection</strong>: PlotCat evaluates rendered plot output (SVG or Plotly JSON), not R or Python code structure. It cannot check for specific function calls or idioms.</li>
 <li><strong>Plotly support</strong>: Plotly exercises only support side-by-side comparison and evaluate a subset of trace data, mark attributes, and titles.</li>
-<li><strong>Runtime sandbox</strong>: WebR and Pyodide run in the browser without local file access or arbitrary network requests. Required packages must be available in WebAssembly.</li>
+<li><strong>Runtime sandbox</strong>: WebR and Pyodide run in the browser WebAssembly sandbox, so code cannot access files on the local filesystem (e.g., <code>read.csv("C:/data.csv")</code>). However, remote data files can be fetched directly using standard functions like <code>read.csv("https://...")</code> in R or <code>pd.read_csv("https://...")</code> in Python. Required packages must be available in WebAssembly.</li>
 </ul>
 </section>
 <section id="design-inspiration" class="level2">
 <h2 class="anchored" data-anchor-id="design-inspiration">Design Inspiration</h2>
-<p>PlotCat was inspired by <a href="https://github.com/MikeLydeamore/ggplot2-battles">ggplot2 Battles</a>.</p>
+<p>PlotCat was inspired by <a href="https://github.com/MikeLydeamore/ggplot2-battles">ggplot2 Battles</a>, brought to my attention by <a href="https://www.emilyarobinson.com/">Emily Robinson</a>.</p>
 
 
 </section>
