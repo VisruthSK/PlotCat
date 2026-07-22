@@ -1,0 +1,105 @@
+---
+title: Reference
+format:
+  html:
+    toc: true
+    toc-depth: 3
+---
+
+Configuration options, chunk markup syntax, and CSS theme variables for the `plotcat` extension.
+
+## Document Setup
+
+Enable the filter in your document header or project `_quarto.yml`:
+
+```yaml
+filters:
+  - plotcat
+```
+
+PlotCat requires interactive HTML output. It runs R code via WebR and Python code via Pyodide.
+
+## Exercise Markup
+
+Wrap plot recreation exercises in a `::: {.plotcat}` container div. Each exercise requires a target code chunk and an optional starter code chunk.
+
+````markdown
+::: {.plotcat}
+```{r}
+#| eval: false
+ggplot2::ggplot(cars, ggplot2::aes(speed, dist)) +
+  ggplot2::geom_point() +
+  ggplot2::labs(title = "Stopping distance")
+```
+
+```{r}
+#| eval: false
+ggplot2::ggplot(cars, ggplot2::aes(speed, dist)) +
+  ggplot2::geom_point()
+```
+:::
+````
+
+### Markup Rules
+
+- Set `#| eval: false` on both chunks. PlotCat executes R and Python code in the browser rather than during document rendering.
+- The first chunk defines the target plot. PlotCat renders it in WebR or Pyodide and encrypts the target code in the HTML.
+- The second chunk populates the student code editor. If omitted, the editor starts blank.
+- Both chunks in an exercise must use the same language (`r`/`webr` or `python`/`pyodide`).
+- Assign custom exercise IDs on the container div: `::: {.plotcat #scatter-exercise}`. If omitted, PlotCat auto-generates IDs (`exercise-1`, `exercise-2`).
+
+## CSS Variables
+
+PlotCat exposes CSS custom properties on `.plotcat` containers. Override these variables globally in your stylesheet or locally on specific containers.
+
+| Variable | Default Value | Description |
+| :--- | :--- | :--- |
+| `--plotcat-border` | `color-mix(in srgb, var(--bs-body-color, #212529) 20%, var(--bs-body-bg, #ffffff))` | Outer border color for the exercise card and internal divider lines. |
+| `--plotcat-accent` | `var(--bs-primary, #0d6efd)` | Primary brand color used for action buttons, focus highlights, score badges, active mode toggles, and the wipe slider handle. |
+| `--plotcat-accent-rgb` | `var(--bs-primary-rgb, 13, 110, 253)` | Space-separated RGB values of `--plotcat-accent`, used for focus ring and badge background opacity channels. |
+| `--plotcat-bg` | `var(--bs-body-bg, #ffffff)` | Card background color and target/student plot container background. |
+| `--plotcat-nested-bg` | `color-mix(in srgb, var(--bs-body-color, #212529) 6%, var(--bs-body-bg, #ffffff))` | Surface color for the code editor textarea and the comparison control bar. |
+| `--plotcat-shadow-color` | `rgb(var(--bs-emphasis-color-rgb, 0, 0, 0))` | Base shadow color used for card drop shadows and handle depth. |
+| `--plotcat-wipe` | `50%` | Position percentage of the wipe comparison slider handle (managed dynamically by user dragging). |
+| `--plotcat-score-hue` | `120` | Dynamic HSL hue angle (0 to 120) set automatically after plot comparison to color the score pill. |
+
+### Bootstrap Variable Integration
+
+PlotCat automatically inherits global colors from Quarto Bootstrap themes:
+
+- `--bs-body-color`: Primary body text color applied to text, labels, and editor code.
+- `--bs-body-bg`: Background color used as the baseline for card and plot surfaces.
+- `--bs-primary`: Main theme brand color mapped to `--plotcat-accent`.
+- `--bs-primary-rgb`: RGB tuple mapped to `--plotcat-accent-rgb`.
+- `--bs-font-monospace`: Font stack used inside the code editor `<textarea>`.
+- `--bs-body-font-family`: Font stack used for headers, labels, and buttons.
+- `--bs-secondary-color`: Text color for muted comparison labels and status messages.
+- `--bs-danger`: Text color applied when code execution returns an error.
+
+## Custom Styling Examples
+
+### Theme Accent Override
+
+Change PlotCat accent color globally in a custom CSS file:
+
+```css
+.plotcat {
+  --plotcat-accent: #059669;
+  --plotcat-accent-rgb: 5, 150, 105;
+}
+```
+
+### Scoped Container Styling
+
+Adjust code editor height or card layout for specific exercise blocks:
+
+```css
+#scatter-exercise .plotcat__textarea {
+  height: 16rem;
+}
+
+.plotcat.custom-card {
+  --plotcat-bg: #f8fafc;
+  --plotcat-border: #cbd5e1;
+}
+```

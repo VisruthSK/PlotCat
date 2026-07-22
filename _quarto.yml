@@ -3,6 +3,7 @@ project:
   render:
     - index.qmd
     - example.qmd
+    - reference.qmd
 
 website:
   title: PlotCat
@@ -12,6 +13,8 @@ website:
         text: Home
       - href: example.qmd
         text: Example
+      - href: reference.qmd
+        text: Reference
     tools:
       - icon: github
         href: https://github.com/VisruthSK/plotcat
