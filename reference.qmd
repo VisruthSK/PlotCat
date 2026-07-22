@@ -1,41 +1,73 @@
 ---
 title: Reference
 format:
-  html:
+  live-html:
     toc: true
     toc-depth: 3
+filters:
+  - plotcat
 ---
 
 Configuration options, chunk markup syntax, and CSS theme variables for the `plotcat` extension.
 
 ## Document Setup
 
-Enable the filter in your document header or project `_quarto.yml`:
+Install Quarto Live and PlotCat in the project:
+
+```bash
+quarto add r-wasm/quarto-live
+quarto add VisruthSK/PlotCat
+```
+
+Use Quarto Live's HTML format and enable PlotCat:
 
 ```yaml
+format: live-html
+
 filters:
   - plotcat
 ```
 
-PlotCat requires interactive HTML output. It runs R code via WebR and Python code via Pyodide.
-
 ## Exercise Markup
 
-Wrap plot recreation exercises in a `::: {.plotcat}` container div. Each exercise requires a target code chunk and an optional starter code chunk.
+Write the target plot as the first chunk inside a `.plotcat` Div. Set `#| eval: false`: PlotCat renders both the target and a student's submission in the browser.
 
 ````markdown
 ::: {.plotcat}
-```{r}
+```{{r}}
 #| eval: false
-ggplot2::ggplot(cars, ggplot2::aes(speed, dist)) +
-  ggplot2::geom_point() +
-  ggplot2::labs(title = "Stopping distance")
+tinyplot::tinyplot(
+  dist ~ speed,
+  data = cars,
+  main = "Stopping distance by speed",
+  xlab = "Speed",
+  ylab = "Stopping distance"
+)
+```
+:::
+````
+
+Add a second chunk to give students starter code. Also set `#| eval: false` on the starter chunk.
+
+````markdown
+::: {.plotcat}
+```{{r}}
+#| eval: false
+tinyplot::tinyplot(
+  dist ~ speed,
+  data = cars,
+  main = "Stopping distance by speed",
+  xlab = "Speed",
+  ylab = "Stopping distance"
+)
 ```
 
-```{r}
+```{{r}}
 #| eval: false
-ggplot2::ggplot(cars, ggplot2::aes(speed, dist)) +
-  ggplot2::geom_point()
+tinyplot::tinyplot(
+  dist ~ speed,
+  data = cars
+)
 ```
 :::
 ````
@@ -45,7 +77,7 @@ ggplot2::ggplot(cars, ggplot2::aes(speed, dist)) +
 - Set `#| eval: false` on both chunks. PlotCat executes R and Python code in the browser rather than during document rendering.
 - The first chunk defines the target plot. PlotCat renders it in WebR or Pyodide and encrypts the target code in the HTML.
 - The second chunk populates the student code editor. If omitted, the editor starts blank.
-- Both chunks in an exercise must use the same language (`r`/`webr` or `python`/`pyodide`).
+- Both chunks in an exercise must use the same language. Use `{r}` or `{webr}` for R, and `{python}` or `{pyodide}` for Python. PlotCat normalizes the student editor to Quarto Live's native `webr` or `pyodide` cell.
 - Assign custom exercise IDs on the container div: `::: {.plotcat #scatter-exercise}`. If omitted, PlotCat auto-generates IDs (`exercise-1`, `exercise-2`).
 
 ## CSS Variables
@@ -58,10 +90,8 @@ PlotCat exposes CSS custom properties on `.plotcat` containers. Override these v
 | `--plotcat-accent` | `var(--bs-primary, #0d6efd)` | Primary brand color used for action buttons, focus highlights, score badges, active mode toggles, and the wipe slider handle. |
 | `--plotcat-accent-rgb` | `var(--bs-primary-rgb, 13, 110, 253)` | Space-separated RGB values of `--plotcat-accent`, used for focus ring and badge background opacity channels. |
 | `--plotcat-bg` | `var(--bs-body-bg, #ffffff)` | Card background color and target/student plot container background. |
-| `--plotcat-nested-bg` | `color-mix(in srgb, var(--bs-body-color, #212529) 6%, var(--bs-body-bg, #ffffff))` | Surface color for the code editor textarea and the comparison control bar. |
+| `--plotcat-nested-bg` | `color-mix(in srgb, var(--bs-body-color, #212529) 6%, var(--bs-body-bg, #ffffff))` | Surface color for the code editor surface and the comparison control bar. |
 | `--plotcat-shadow-color` | `rgb(var(--bs-emphasis-color-rgb, 0, 0, 0))` | Base shadow color used for card drop shadows and handle depth. |
-| `--plotcat-wipe` | `50%` | Position percentage of the wipe comparison slider handle (managed dynamically by user dragging). |
-| `--plotcat-score-hue` | `120` | Dynamic HSL hue angle (0 to 120) set automatically after plot comparison to color the score pill. |
 
 ### Bootstrap Variable Integration
 
@@ -71,7 +101,7 @@ PlotCat automatically inherits global colors from Quarto Bootstrap themes:
 - `--bs-body-bg`: Background color used as the baseline for card and plot surfaces.
 - `--bs-primary`: Main theme brand color mapped to `--plotcat-accent`.
 - `--bs-primary-rgb`: RGB tuple mapped to `--plotcat-accent-rgb`.
-- `--bs-font-monospace`: Font stack used inside the code editor `<textarea>`.
+- `--bs-font-monospace`: Font stack used inside the code editor block.
 - `--bs-body-font-family`: Font stack used for headers, labels, and buttons.
 - `--bs-secondary-color`: Text color for muted comparison labels and status messages.
 - `--bs-danger`: Text color applied when code execution returns an error.
@@ -94,7 +124,7 @@ Change PlotCat accent color globally in a custom CSS file:
 Adjust code editor height or card layout for specific exercise blocks:
 
 ```css
-#scatter-exercise .plotcat__textarea {
+#scatter-exercise .plotcat__editor {
   height: 16rem;
 }
 

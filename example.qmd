@@ -1,15 +1,12 @@
 ---
 title: Examples
 format:
-  html:
+  live-html:
     toc: true
     toc-depth: 3
+filters:
+  - plotcat
 ---
-
-```{r}
-#| include: false
-reticulate::py_require(c("matplotlib", "scikit-learn", "plotnine", "seaborn", "plotly"))
-```
 
 # R
 
@@ -186,4 +183,3 @@ fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6]))
 fig
 ```
 :::
-

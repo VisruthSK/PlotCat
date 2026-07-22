@@ -10,18 +10,23 @@ PlotCat publishes interactive HTML only. Its browser runtimes need network acces
 
 ## Installation
 
-Add the extension to a Quarto project:
+Add Quarto Live, then PlotCat:
 
 ```bash
+quarto add r-wasm/quarto-live
 quarto add VisruthSK/PlotCat
 ```
 
 Then enable the filter in a document or project config:
 
 ```yaml
+format: live-html
+
 filters:
   - plotcat
 ```
+
+`live-html` provides the native WebR and Pyodide editors. Set `#| eval: false` on each PlotCat chunk so Quarto leaves it for the browser runtime.
 
 ## Example
 
@@ -71,6 +76,8 @@ The first chunk becomes the browser-rendered target, and its source is omitted f
 
 PlotCat accepts R and Python chunks. Both chunks in an exercise must use the same language.
 
+Use either `{r}` or `{webr}` for R, and either `{python}` or `{pyodide}` for Python. PlotCat turns the student editor into Quarto Live's native `webr` or `pyodide` cell.
+
 ## Limitations
 
 - **Font and text styling**: SVG comparison checks text content, but ignores font families, font sizes, font weights, and text positioning.
@@ -82,4 +89,3 @@ PlotCat accepts R and Python chunks. Both chunks in an exercise must use the sam
 ## Design Inspiration
 
 PlotCat was inspired by [ggplot2 Battles](https://github.com/MikeLydeamore/ggplot2-battles), brought to my attention by [Emily Robinson](https://www.emilyarobinson.com/).
-

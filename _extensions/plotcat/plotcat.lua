@@ -7,7 +7,7 @@ local function fail(message)
 end
 
 local function engine_of(block)
-  local engine = block.classes[1]
+  local engine = (block.classes[1] or ""):gsub("^{", ""):gsub("}$", "")
   if engine == "webr" or engine == "r" then
     return "r"
   elseif engine == "pyodide" or engine == "python" then
@@ -214,7 +214,8 @@ local function widget(id, engine, target, starter, extra_classes)
   local salt = opaque("salt")
   local target_code_encrypted = encode_pattern(salt, target)
 
-  local html = [[
+  local live_engine = engine == "r" and "webr" or "pyodide"
+  local html_before = [[
 <section class="plotcat plotcat--side-by-side]] .. (extra_classes or "") .. [[" id="]] .. escape_html(dom_id) .. [[" data-plotcat-manifest="]] .. escape_html(manifest) .. [[" data-plotcat-target-code="]] .. escape_html(target_code_encrypted) .. [[" data-plotcat-salt="]] .. escape_html(salt) .. [[">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
@@ -223,10 +224,10 @@ local function widget(id, engine, target, starter, extra_classes)
     <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
   </div>
   <label for="]] .. escape_html(dom_id) .. [[-editor">Code</label>
-  <div class="plotcat-editor-container">
-    <div class="plotcat-highlight-overlay" aria-hidden="true"></div>
-    <textarea class="plotcat__editor plotcat__textarea" id="]] .. escape_html(dom_id) .. [[-editor" spellcheck="false">]] .. escape_html(starter) .. [[</textarea>
-  </div>
+  <div class="plotcat-editor-container"><div class="plotcat__editor" id="]] .. escape_html(dom_id) .. [[-editor">
+]]
+  local html_after = [[
+  </div></div>
   <div class="plotcat__actions">
     <button class="plotcat__button" type="button" data-plotcat-run>Run</button>
     <div class="plotcat__compare plotcat__controls"><span class="plotcat__compare-label">Compare</span>
@@ -240,7 +241,12 @@ local function widget(id, engine, target, starter, extra_classes)
   <div class="plotcat__status" role="status" aria-live="polite"></div>
   <div class="plotcat__feedback"></div>
 </section>]]
-  return pandoc.RawBlock("html", html)
+  local cell_options = "#| completion: true\n#| output: false\n#| runbutton: false\n"
+  return {
+    pandoc.RawBlock("html", html_before),
+    pandoc.CodeBlock(cell_options .. starter, pandoc.Attr("", {live_engine})),
+    pandoc.RawBlock("html", html_after)
+  }
 end
 
 function Div(div)
@@ -314,3 +320,7 @@ function Pandoc(doc)
   if #validation_errors > 0 then assert(false, table.concat(validation_errors, "\n")) end
   return doc
 end
+
+return {
+  { Div = Div, Pandoc = Pandoc }
+}

@@ -45,7 +45,8 @@ try {
   const twoHtml = readFileSync(resolve(output, 'two-chunks.html'), 'utf8');
   assert.match(twoHtml, /id="plotcat-two-r"/);
   assert.match(twoHtml, /&quot;packages&quot;:\[&quot;ggplot2&quot;\]/);
-  assert.match(twoHtml, /<textarea[^>]*>library\(ggplot2\)\r?\nplot\(cars\)<\/textarea>/);
+  assert.match(twoHtml, /class="webr/);
+  assert.doesNotMatch(twoHtml, /cdnjs\.cloudflare\.com\/ajax\/libs\/codemirror/);
   assert.doesNotMatch(twoHtml, /main = "Target title"/);
 
   const multiple = render('multiple.qmd');

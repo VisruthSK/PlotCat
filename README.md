@@ -22,18 +22,25 @@ The included examples cover base R, `ggplot2`, `tinyplot`, `lattice`,
 
 ## Installation
 
-Add the extension to a Quarto project:
+Add Quarto Live, then PlotCat:
 
 ``` bash
+quarto add r-wasm/quarto-live
 quarto add VisruthSK/PlotCat
 ```
 
 Then enable the filter in a document or project config:
 
 ``` yaml
+format: live-html
+
 filters:
   - plotcat
 ```
+
+`live-html` provides the native WebR and Pyodide editors. Set
+`#| eval: false` on each PlotCat chunk so Quarto leaves it for the
+browser runtime.
 
 ## Example
 
@@ -89,6 +96,10 @@ omitted from the rendered HTML. The second chunk appears in the editor.
 
 PlotCat accepts R and Python chunks. Both chunks in an exercise must use
 the same language.
+
+Use either `{r}` or `{webr}` for R, and either `{python}` or `{pyodide}`
+for Python. PlotCat turns the student editor into Quarto Live’s native
+`webr` or `pyodide` cell.
 
 ## Limitations
 

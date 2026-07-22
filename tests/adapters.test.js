@@ -7,7 +7,7 @@ import { comparePlotly } from '../_extensions/plotcat/svg.js';
 test('WebR initializes once, installs declared packages, and returns SVG bytes', async () => {
   const calls = { init: 0, packages: [], code: '' };
   class WebR {
-    FS = { readFile: async () => new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"/>') };
+    FS = { readFile: async () => new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>') };
     async init() { calls.init++; }
     async installPackages(packages) { calls.packages.push(packages); }
     async evalRVoid(code) { calls.code = code; }
@@ -20,20 +20,21 @@ test('WebR initializes once, installs declared packages, and returns SVG bytes',
   assert.match(calls.code, /new\.env\(parent = globalenv\(\)\)/);
   assert.match(calls.code, /svglite::svglite\(/);
   assert.match(calls.code, /withVisible\(eval\(parse/);
-  assert.match(calls.code, /inherits\(val, "ggplot"\) \|\| inherits\(val, "trellis"\)/);
+  assert.match(calls.code, /sink\(/);
+  assert.match(calls.code, /print\(val\)/);
   assert.match(calls.code, /plot\(cars\)/);
   assert.match(svg, /^<svg/);
 });
 
 test('WebR reports runtime and invalid-output errors with language context', async () => {
   class BrokenWebR {
-    FS = { readFile: async () => new TextEncoder().encode('not svg') };
+    FS = { readFile: async path => new TextEncoder().encode(path.endsWith('.txt') ? '[1] 2\n' : '<svg xmlns="http://www.w3.org/2000/svg"/>') };
     async init() {}
     async installPackages() {}
     async evalRVoid() {}
   }
   const adapter = new WebRAdapter(async () => ({ WebR: BrokenWebR })); await adapter.init({ packages: [] });
-  await assert.rejects(adapter.renderSvg('1 + 1'), /R error: R code did not produce a plot/);
+  await assert.rejects(adapter.renderSvg('1 + 1'), error => error.message === 'R code did not produce a plot.' && error.output === '[1] 2\n');
   adapter.webR.evalRVoid = async () => { throw new Error('unexpected symbol'); };
   await assert.rejects(adapter.renderSvg('plot('), /R error: unexpected symbol/);
 });
