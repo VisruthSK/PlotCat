@@ -23,3 +23,9 @@ test('required stable classes are present', async () => {
   for (const name of ['plotcat__header','plotcat__body','plotcat__target','plotcat__student','plotcat__plot','plotcat__editor','plotcat__textarea','plotcat__actions','plotcat__button','plotcat__status','plotcat__score','plotcat__feedback','plotcat__compare','plotcat__controls','plotcat__wipe-handle']) assert.match(lua, new RegExp(name));
   assert.doesNotMatch(lua, /plotcat__slider|data-plotcat-wipe=/);
 });
+
+test('the wipe handle has one pointer listener for each pointer action', async () => {
+  const ui = await readFile(new URL('../_extensions/plotcat/plotcat.js', import.meta.url), 'utf8');
+  assert.equal((ui.match(/wipeHandle\.addEventListener\('pointerdown'/g) || []).length, 1);
+  assert.equal((ui.match(/wipeHandle\.addEventListener\('pointermove'/g) || []).length, 1);
+});

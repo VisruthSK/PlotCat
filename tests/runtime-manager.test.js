@@ -23,6 +23,21 @@ test('package installation uses the engine queue before the caller renders', asy
   assert.deepEqual(order, ['init:0', 'install:plotnine', 'render']);
 });
 
+test('packages are installed once per runtime, including concurrent requests', async () => {
+  const installs = [];
+  const adapter = {
+    init: async () => {},
+    installPackages: async packages => installs.push(packages)
+  };
+  const manager = new RuntimeManager({ python: () => adapter });
+  await Promise.all([
+    manager.get('python', { packages: ['matplotlib', 'plotnine'] }),
+    manager.get('python', { packages: ['plotnine', 'seaborn'] })
+  ]);
+  await manager.get('python', { packages: ['seaborn', 'matplotlib'] });
+  assert.deepEqual(installs, [['matplotlib', 'plotnine'], ['seaborn']]);
+});
+
 test('runs for one engine are queued after failures', async () => {
   const manager = new RuntimeManager({}); const order = [];
   const one = manager.run('r', async () => { order.push('one'); throw new Error('bad code'); });

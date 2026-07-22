@@ -226,15 +226,6 @@ export function mountPlotCat(root, manager = runtimeManager) {
     wipeHandle.addEventListener('pointermove', event => {
       if (dragging) updateFromPointer(event);
     });
-    wipeHandle.addEventListener('pointerdown', event => {
-      event.preventDefault();
-      dragging = true;
-      wipeHandle.setPointerCapture(event.pointerId);
-      updateFromPointer(event);
-    });
-    wipeHandle.addEventListener('pointermove', event => {
-      if (dragging) updateFromPointer(event);
-    });
     wipeHandle.addEventListener('pointerup', event => {
       dragging = false;
       wipeHandle.releasePointerCapture(event.pointerId);
