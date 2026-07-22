@@ -60,8 +60,10 @@ test('Pyodide installs import aliases and captures an isolated final plot expres
 });
 
 test('Pyodide reports Python failures and missing plots clearly', async () => {
-  const pyodide = { loadPackage: async () => {}, pyimport: () => ({ install: async () => {} }), runPythonAsync: async () => 'not svg' };
+  const pyodide = { loadPackage: async () => {}, pyimport: () => ({ install: async () => {} }), runPythonAsync: async () => '{"type": "no-plot", "output": "hello\\n"}' };
   const adapter = new PyodideAdapter(async () => ({ loadPyodide: async () => pyodide })); await adapter.init({ packages: [] });
+  await assert.rejects(adapter.renderSvg('print("hello")'), error => error.message === 'Python code did not produce a plot.' && error.output === 'hello\n');
+  pyodide.runPythonAsync = async () => 'not svg';
   await assert.rejects(adapter.renderSvg('x = 1'), /Python error: Python code did not produce a plot/);
   pyodide.runPythonAsync = async () => { throw new Error('NameError: x'); };
   await assert.rejects(adapter.renderSvg('x'), /Python error: NameError: x/);
