@@ -256,6 +256,15 @@
   padding: 0;
 }
 
+.plotcat__compare label:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.plotcat__compare label:has(input:disabled) input[type="radio"] {
+  cursor: not-allowed;
+}
+
 .plotcat__status {
   font-size: 0.9rem;
   font-weight: 500;

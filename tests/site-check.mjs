@@ -251,6 +251,12 @@ fig`;
   await expectRendered(pyPlotly, 'Python Plotly (Correct)');
   assert.ok(await pyPlotly.locator('.plotcat__student svg').count() >= 1);
   assert.equal(await pyPlotly.locator('.plotcat__score').textContent(), '100%');
+
+  for (const [label, widget] of [['R Plotly', rPlotly], ['Python Plotly', pyPlotly]]) {
+    assert.equal(await widget.locator('input[value=overlay]').isDisabled(), true, `${label} should disable overlay`);
+    assert.equal(await widget.locator('input[value=wipe]').isDisabled(), true, `${label} should disable wipe`);
+    assert.equal(await widget.evaluate(node => node.classList.contains('plotcat--side-by-side')), true, `${label} should use side-by-side comparison`);
+  }
 } finally {
   await browser.close();
   await server.close();

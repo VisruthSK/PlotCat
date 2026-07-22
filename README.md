@@ -8,9 +8,10 @@ Python in the browser, render their plot with WebR or Pyodide, and
 compare it with the target.
 
 PlotCat compares SVG structure and plot text for static plots. It also
-supports a focused comparison of Plotly traces and layout. The target
-source is removed from the rendered HTML, but this is not a security
-boundary: do not put secrets in an exercise.
+supports a focused comparison of Plotly traces and layout. Plotly
+exercises support side-by-side comparison only; overlay and wipe apply
+to SVG plots. The target source is removed from the rendered HTML, but
+this is not a security boundary: do not put secrets in an exercise.
 
 ## Requirements
 
@@ -38,7 +39,9 @@ filters:
 
 Write the target plot as the first chunk inside a `.plotcat` Div. Set
 `#| eval: false`: PlotCat renders both the target and a student’s
-submission in the browser.
+submission in the browser. This must be set on each PlotCat chunk
+because Quarto decides whether to execute it before PlotCat’s filter
+runs.
 
 ```` markdown
 ::: {.plotcat}
