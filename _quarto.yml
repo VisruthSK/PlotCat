@@ -12,6 +12,14 @@ website:
         text: Home
       - href: example.qmd
         text: Example
+    tools:
+      - icon: github
+        href: https://github.com/VisruthSK/plotcat
+        aria-label: PlotCat source code
+        target: _blank
+  repo-url: https://github.com/VisruthSK/plotcat
+  repo-actions: [source, issue]
+  repo-link-target: _blank
 
 format:
   html:
@@ -26,5 +34,4 @@ filters:
 
 execute:
   freeze: auto
-
 
