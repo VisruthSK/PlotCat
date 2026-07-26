@@ -18,6 +18,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "lts/*"
+          cache: pnpm
       
       - uses: quarto-dev/quarto-actions/setup@v2
         env:
@@ -37,7 +46,6 @@ jobs:
             any::ggplot2
             any::lattice
             any::svglite
-            any::palmerpenguins
             any::plotly
             any::htmlwidgets
 

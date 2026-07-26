@@ -46,7 +46,6 @@ jobs:
             any::ggplot2
             any::lattice
             any::svglite
-            any::palmerpenguins
             any::plotly
             any::htmlwidgets
 
