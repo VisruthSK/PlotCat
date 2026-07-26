@@ -302,8 +302,19 @@ function Div(div)
   local starter = #chunks == 2 and clean_starter(chunks[2].block.text) or ""
 
   if not quarto.doc.is_format("html") then
-    local target = chunks[1].cell:walk({CodeBlock = function() return {} end})
-    return pandoc.Div({target, pandoc.Para("The interactive PlotCat exercise is available in HTML.")}, pandoc.Attr(id, {"plotcat"}))
+    local target = chunks[1].cell:walk({
+      CodeBlock = function()
+        return {}
+      end
+    })
+
+    return pandoc.Div(
+      {
+        target,
+        pandoc.Para("The interactive PlotCat exercise is available in HTML.")
+      },
+      pandoc.Attr(id, {"plotcat"})
+    )
   end
   quarto.doc.add_html_dependency({name="plotcat", version="0.2.0", scripts={{path="plotcat.js", attribs={type="module"}}}, stylesheets={"plotcat.css"}, resources={"svg.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js"}})
   local extra_classes = {}

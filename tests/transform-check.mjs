@@ -4,14 +4,14 @@ import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const output = resolve('.test-output');
-rmSync(output, { recursive: true, force: true });
+try { rmSync(output, { recursive: true, force: true }); } catch {}
 
 function render(file) {
   let source = readFileSync(resolve('tests/fixtures', file), 'utf8')
     .replace('../../_extensions/plotcat/plotcat.lua', 'plotcat');
   if (file !== 'wrong-format.qmd') {
     source = source
-      .replace('format: html', 'format:\n  html:\n    fig-format: svg')
+      .replace('format: html', 'format:\n  live-html:\n    fig-format: svg')
       .replace('format: gfm', 'format:\n  gfm:\n    fig-format: svg');
   }
   writeFileSync(resolve(output, file), source);
@@ -25,6 +25,7 @@ function render(file) {
 try {
   mkdirSync(output, { recursive: true });
   cpSync(resolve('_extensions'), resolve(output, '_extensions'), { recursive: true });
+  cpSync(resolve('website/_extensions/r-wasm'), resolve(output, '_extensions/r-wasm'), { recursive: true });
   const valid = render('minimal.qmd');
   assert.equal(valid.status, 0, valid.stdout + valid.stderr);
   const html = readFileSync(resolve(output, 'minimal.html'), 'utf8');
@@ -45,7 +46,7 @@ try {
   const twoHtml = readFileSync(resolve(output, 'two-chunks.html'), 'utf8');
   assert.match(twoHtml, /id="plotcat-two-r"/);
   assert.match(twoHtml, /&quot;packages&quot;:\[&quot;ggplot2&quot;\]/);
-  assert.match(twoHtml, /class="webr/);
+  assert.match(twoHtml, /id="webr-/);
   assert.doesNotMatch(twoHtml, /cdnjs\.cloudflare\.com\/ajax\/libs\/codemirror/);
   assert.doesNotMatch(twoHtml, /main = "Target title"/);
 
