@@ -4,8 +4,6 @@ format:
   live-html:
     toc: true
     toc-depth: 3
-filters:
-  - plotcat
 ---
 
 Configuration options, chunk markup syntax, and CSS theme variables for the `plotcat` extension.

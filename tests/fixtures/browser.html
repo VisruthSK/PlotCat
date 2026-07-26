@@ -8,7 +8,11 @@
     <figure data-plotcat-student></figure>
     <button type="button" data-plotcat-wipe-handle aria-valuenow="50"></button>
   </div>
-  <textarea>plot(1)</textarea><button data-plotcat-run>Run</button>
+  <div class="plotcat__editor">
+    <div class="cm-editor">
+      <div class="cm-content">plot(1)</div>
+    </div>
+  </div><button data-plotcat-run>Run</button>
   <fieldset><input type="radio" value="side-by-side" checked><input type="radio" value="overlay"><input type="radio" value="wipe"></fieldset>
   <div class="plotcat__status"></div><output class="plotcat__score"></output><div class="plotcat__feedback"></div>
 </section>

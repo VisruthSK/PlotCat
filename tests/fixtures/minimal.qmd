@@ -1,6 +1,6 @@
 ---
 title: Minimal
-format: html
+format: live-html
 filters:
   - ../../_extensions/plotcat/plotcat.lua
 ---

@@ -52,16 +52,16 @@ jobs:
           pip install matplotlib scikit-learn plotnine seaborn pandas plotly
 
       - name: Render site
-        run: quarto render
+        run: pnpm build
 
       - name: Prepare Pages metadata
         run: |
-          touch _site/.nojekyll
+          touch website/_site/.nojekyll
 
       - name: Deploy to gh-pages
         uses: JamesIves/github-pages-deploy-action@v4.8.0
         with:
           branch: gh-pages
-          folder: _site
+          folder: website/_site
           clean: true
           clean-exclude: CNAME
