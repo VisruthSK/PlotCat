@@ -40,7 +40,7 @@ local DEFAULT_WEIGHTS = {
   plotly = {trace = 0.3, data = 0.4, style = 0.2, layout = 0.1}
 }
 
-local DIM_ATTRS = {["plotcat-width"] = true, ["plotcat-height"] = true}
+local DIM_ATTRS = {["plotcat-width"] = true, ["plotcat-height"] = true, ["plotcat-heading"] = true}
 
 local function merge_dimensions(attrs, yaml)
   local dims = {}
@@ -98,7 +98,7 @@ local function has_output(cell)
   return false
 end
 
-local function widget(id, engine, target, starter, extra_classes, weights_json, dimensions)
+local function widget(id, engine, target, starter, extra_classes, weights_json, dimensions, heading)
   local dom_id = "plotcat-" .. id:gsub("[^%w_-]", "-")
   local manifest = quarto.json.encode({
     id = id,
@@ -110,9 +110,10 @@ local function widget(id, engine, target, starter, extra_classes, weights_json, 
   local encoded_weights = quarto.base64.encode(weights_json)
 
   local live_engine = engine == "r" and "webr" or "pyodide"
+  local heading_text = escape_html(heading or "Recreate this plot")
   local html_before = [[
 <section class="plotcat plotcat--side-by-side]] .. escape_html(extra_classes or "") .. [[" id="]] .. escape_html(dom_id) .. [[" data-plotcat-manifest="]] .. escape_html(manifest) .. [[" data-plotcat-target-code="]] .. escape_html(encoded_target) .. [[" data-plotcat-weights="]] .. escape_html(encoded_weights) .. [[">
-  <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
+  <header class="plotcat__header"><span>]] .. heading_text .. [[</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target" data-plotcat-target><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
     <figure class="plotcat__plot plotcat__student" data-plotcat-student aria-label="Your plot"></figure>
@@ -212,7 +213,8 @@ function Div(div)
   local plotcat_meta = quarto.metadata.get("plotcat") or {}
   local weights = quarto.json.encode(merge_weights(div.attributes, plotcat_meta["weights"]))
   local dims = merge_dimensions(div.attributes, plotcat_meta["dimensions"])
-  return widget(id, engine, chunks[1].block.text, starter, extra_class_str, weights, dims)
+  local heading = div.attributes["plotcat-heading"] or (plotcat_meta["heading"] and pandoc.utils.stringify(plotcat_meta["heading"])) or nil
+  return widget(id, engine, chunks[1].block.text, starter, extra_class_str, weights, dims, heading)
 end
 
 function Pandoc(doc)

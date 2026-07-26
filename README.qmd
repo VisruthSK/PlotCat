@@ -194,6 +194,20 @@ plotcat:
 ::: {.plotcat id="tall-plot" plotcat-width="4" plotcat-height="6"}
 ```
 
+### Heading
+
+Override the heading text with `plotcat-heading` on the `.plotcat` Div
+or `plotcat.heading` in YAML frontmatter. Defaults to "Recreate this plot".
+
+``` markdown
+::: {.plotcat id="labeled" plotcat-heading="Reproduce the graphic"}
+```
+
+``` yaml
+plotcat:
+  heading: "Reproduce the graphic"
+```
+
 ## Limitations
 
 - **Font and text styling**: SVG comparison checks text content, but
