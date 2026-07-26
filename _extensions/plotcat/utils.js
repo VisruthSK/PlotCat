@@ -26,3 +26,9 @@ export function parseSvgDoc(source) {
 export function serializeSvgDoc(doc) {
   return new XMLSerializer().serializeToString(doc.documentElement);
 }
+
+export function resolveTitle(layout, path) {
+  const obj = path ? layout[path] || {} : layout;
+  if (!obj.title) return '';
+  return typeof obj.title === 'string' ? obj.title : (obj.title.text || '');
+}

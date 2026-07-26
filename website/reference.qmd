@@ -6,6 +6,22 @@ format:
     toc-depth: 3
 ---
 
+```{=html}
+<style>
+.plotcat.accent-green {
+  --plotcat-accent: #059669;
+  --plotcat-accent-rgb: 5, 150, 105;
+}
+
+.plotcat.custom-card {
+  --plotcat-bg: #fffbeb;
+  --plotcat-border: #f59e0b;
+  --plotcat-accent: #d97706;
+  --plotcat-accent-rgb: 217, 119, 6;
+}
+</style>
+```
+
 Configuration options, chunk markup syntax, and CSS theme variables for the `plotcat` extension.
 
 ## Document Setup
@@ -209,26 +225,49 @@ PlotCat inherits global colors from Quarto Bootstrap themes automatically.
 
 ### Theme Accent Override
 
-Change PlotCat accent color globally in a custom CSS file:
-
 ```css
-.plotcat {
+.plotcat.accent-green {
   --plotcat-accent: #059669;
   --plotcat-accent-rgb: 5, 150, 105;
 }
 ```
 
+::: {.plotcat .accent-green}
+```{r}
+#| eval: false
+tinyplot::tinyplot(dist ~ speed, data = cars, main = "Stopping distance by speed", xlab = "Speed", ylab = "Stopping distance")
+```
+
+```{r}
+#| eval: false
+tinyplot::tinyplot(dist ~ speed, data = cars)
+```
+:::
+
 ### Scoped Container Styling
 
-Adjust code editor height or card layout for specific exercise blocks:
+#### Custom card
 
 ```css
-#scatter-exercise .plotcat__editor {
-  height: 16rem;
-}
-
 .plotcat.custom-card {
-  --plotcat-bg: #f8fafc;
-  --plotcat-border: #cbd5e1;
+  --plotcat-bg: #fffbeb;
+  --plotcat-border: #f59e0b;
+  --plotcat-accent: #d97706;
+  --plotcat-accent-rgb: 217, 119, 6;
 }
 ```
+
+::: {.plotcat .custom-card}
+```{r}
+#| eval: false
+library(lattice)
+xyplot(mpg ~ wt, data = mtcars, main = "MPG vs Weight", xlab = "Weight", ylab = "MPG")
+```
+
+```{r}
+#| eval: false
+library(lattice)
+xyplot(mpg ~ wt, data = mtcars)
+```
+:::
+

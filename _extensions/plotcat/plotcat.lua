@@ -202,7 +202,7 @@ function Div(div)
     return div
   end
 
-  quarto.doc.add_html_dependency({name="plotcat", version="0.2.0", scripts={{path="plotcat.js", attribs={type="module"}}}, stylesheets={"plotcat.css"}, resources={"utils.js", "svg.js", "runtime-manager.js", "quarto-live-bridge.js", "webr-adapter.js", "pyodide-adapter.js"}})
+  quarto.doc.add_html_dependency({name="plotcat", version="0.2.0", scripts={{path="plotcat.js", attribs={type="module"}}}, stylesheets={"plotcat.css"}, resources={"utils.js", "svg.js", "runtime-manager.js", "quarto-live-bridge.js", "webr-adapter.js", "pyodide-adapter.js"}, head='<link rel="preconnect" href="https://cdn.plot.ly" crossorigin>'})
   local extra_classes = {}
   for _, class in ipairs(div.classes) do
     if class ~= "plotcat" then

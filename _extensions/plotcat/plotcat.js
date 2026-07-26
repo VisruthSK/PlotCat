@@ -1,6 +1,6 @@
-import { compareSvgFeatures, extractFeatures, sanitizeSvg, scopeSvgIds, comparePlotly } from './svg.js';
+import { compareSvgFeatures, comparePlotly, prepareSvg } from './svg.js';
 import { withRetry, errorMessage } from './utils.js';
-import { runtimeManager } from './runtime-manager.js';
+import { runtimeManager } from './runtime-runtimeManager.js';
 
 let plotlyPromise;
 
@@ -40,13 +40,22 @@ function setMode(root, mode) {
   root.classList.add(`plotcat--${mode}`);
 }
 
+function packageHint(msg) {
+  if (msg.includes('requireNamespace') || msg.includes('package is not available') || (msg.includes('not') && msg.includes('module'))) {
+    return msg + ' Required packages must be listed under `format.live-html` in your Quarto config.';
+  }
+  return msg;
+}
+
 function limitPlotlyToSideBySide(root) {
+  const radios = root.querySelectorAll('input[value="overlay"], input[value="wipe"]');
   root.querySelector('input[value="side-by-side"]').checked = true;
-  root.querySelectorAll('input[value="overlay"], input[value="wipe"]').forEach(input => {
+  radios.forEach(input => {
     input.disabled = true;
     input.closest('label').title = 'Overlay and wipe are unavailable for Plotly charts.';
   });
   setMode(root, 'side-by-side');
+  return radios;
 }
 
 function svgFragment(svg) {
@@ -84,12 +93,9 @@ function renderPlotly(target, figure) {
   return Plotly.newPlot(div, figure.data, figure.layout, { responsive: true, displayModeBar: false });
 }
 
-export function mountPlotCat(root, manager = runtimeManager) {
-  if (!manager || typeof manager.get !== 'function') {
-    manager = runtimeManager;
-  }
+export function mountPlotCat(root) {
   const manifest = JSON.parse(root.dataset.plotcatManifest);
-  const adapterPromise = manager.get(manifest.engine);
+  const adapterPromise = runtimeManager.get(manifest.engine);
   adapterPromise.catch(() => {});
 
   const weights = JSON.parse(atob(root.dataset.plotcatWeights));
@@ -114,7 +120,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     const adapter = await adapterPromise;
 
     status.textContent = 'Rendering target…';
-    const result = await manager.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height }));
+    const result = await runtimeManager.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height }));
 
     if (result.kind === 'plotly') {
       outputType = 'plotly';
@@ -125,9 +131,10 @@ export function mountPlotCat(root, manager = runtimeManager) {
       await renderPlotly(target, targetFigure);
     } else if (result.kind === 'svg') {
       outputType = 'svg';
-      targetSvg = sanitizeSvg(result.svg);
-      targetFeatures = extractFeatures(targetSvg);
-      target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
+      const result_ = prepareSvg(result.svg, `${svgPrefix}-target`);
+      targetSvg = result_.svg;
+      targetFeatures = result_.features;
+      target.replaceChildren(svgFragment(result_.svg));
     } else {
       throw new Error(result.message);
     }
@@ -140,27 +147,24 @@ export function mountPlotCat(root, manager = runtimeManager) {
       .then(() => { status.textContent = ''; run.disabled = false; })
       .catch(error => {
         console.error('Failed to render target plot:', error);
-        const msg = error.message || String(error);
-        if (msg.includes('requireNamespace') || msg.includes('package')) {
-          status.textContent = msg + ' Required R packages must be listed under `format.live-html.webr.packages` in your Quarto config.';
-        } else {
-          status.textContent = 'Error rendering target: ' + msg;
-        }
+        status.textContent = 'Error rendering target: ' + packageHint(errorMessage(error));
         root.classList.add('plotcat--error');
       });
   } else {
     const targetSvgEl = target.querySelector('svg');
     if (targetSvgEl) {
       outputType = 'svg';
-      targetSvg = sanitizeSvg(targetSvgEl.outerHTML);
-      targetFeatures = extractFeatures(targetSvg);
-      target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
+      const result_ = prepareSvg(targetSvgEl.outerHTML, `${svgPrefix}-target`);
+      targetSvg = result_.svg;
+      targetFeatures = result_.features;
+      target.replaceChildren(svgFragment(result_.svg));
       status.textContent = '';
       run.disabled = false;
     }
   }
 
-  root.querySelectorAll('input[type=radio]').forEach(input => {
+  const radios = root.querySelectorAll('input[type=radio]');
+  radios.forEach(input => {
     input.addEventListener('change', () => setMode(root, input.value));
   });
   const wipeHandle = root.querySelector('[data-plotcat-wipe-handle]');
@@ -215,8 +219,8 @@ export function mountPlotCat(root, manager = runtimeManager) {
     run.disabled = true;
     status.textContent = 'Running…';
     try {
-      const adapter = await manager.get(manifest.engine);
-      const result = await manager.run(manifest.engine, () => adapter.renderSvg(studentCode(root), { width, height }));
+      const adapter = await runtimeManager.get(manifest.engine);
+      const result = await runtimeManager.run(manifest.engine, () => adapter.renderSvg(studentCode(root), { width, height }));
 
       let score;
       if (result.kind === 'plotly') {
@@ -225,9 +229,9 @@ export function mountPlotCat(root, manager = runtimeManager) {
         await renderPlotly(student, result.figure);
         score = comparePlotly(targetFigure, result.figure, weights.plotly).score;
       } else if (result.kind === 'svg') {
-        const svg = sanitizeSvg(result.svg);
-        student.replaceChildren(svgFragment(scopeSvgIds(svg, `${svgPrefix}-student`)));
-        score = compareSvgFeatures(targetFeatures, extractFeatures(svg), weights.svg).score;
+        const result_ = prepareSvg(result.svg, `${svgPrefix}-student`);
+        student.replaceChildren(svgFragment(result_.svg));
+        score = compareSvgFeatures(targetFeatures, result_.features, weights.svg).score;
       } else if (result.kind === 'no-plot') {
         throw new Error(result.message);
       } else {
@@ -248,12 +252,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
       status.textContent = '';
       root.classList.add('plotcat--complete');
     } catch (error) {
-      const msg = errorMessage(error);
-      if (msg.includes('requireNamespace') || msg.includes('package is not available') || (msg.includes('not') && msg.includes('module'))) {
-        status.textContent = msg + ' Required packages must be listed under `format.live-html` in your Quarto config.';
-      } else {
-        status.textContent = msg;
-      }
+      status.textContent = packageHint(errorMessage(error));
       root.classList.add('plotcat--error');
     } finally {
       run.disabled = false;
