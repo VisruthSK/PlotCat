@@ -22,7 +22,7 @@ export function sanitizeSvg(source) {
 }
 
 export function scopeSvgIds(source, prefix) {
-  const doc = new DOMParser().parseFromString(sanitizeSvg(source), 'image/svg+xml');
+  const doc = typeof source === 'string' ? new DOMParser().parseFromString(source, 'image/svg+xml') : source;
   const ids = new Map();
   doc.querySelectorAll('[id]').forEach(node => {
     const original = node.id;
@@ -41,7 +41,7 @@ export function scopeSvgIds(source, prefix) {
 }
 
 export function normalizeSvg(source) {
-  const doc = new DOMParser().parseFromString(sanitizeSvg(source), 'image/svg+xml');
+  const doc = typeof source === 'string' ? new DOMParser().parseFromString(source, 'image/svg+xml') : source;
   const ids = new Map();
   let index = 0;
   doc.querySelectorAll('[id]').forEach(node => {
@@ -67,8 +67,7 @@ export function extractFeatures(source) {
   const geometryAttributes = ['d','cx','cy','r','x','y','width','height','x1','y1','x2','y2','points','transform'];
   const marks = [...svg.querySelectorAll('path,circle,rect,line,polygon,polyline')];
   const texts = [...svg.querySelectorAll('text')].map(node => ({
-    value: node.textContent.replace(/\s+/g, ' ').trim(),
-    position: ['x','y','dx','dy','transform'].map(name => node.getAttribute(name) || '').join('|')
+    value: node.textContent.replace(/\s+/g, ' ').trim()
   })).filter(item => item.value);
   return {
     viewBox: svg.getAttribute('viewBox') || '',
@@ -76,7 +75,6 @@ export function extractFeatures(source) {
     counts: Object.fromEntries(tags.map(tag => [tag, svg.querySelectorAll(tag).length])),
     geometry: marks.map(node => `${node.localName}|${geometryAttributes.map(name => node.getAttribute(name) || '').join('|')}`).sort(),
     text: texts.map(item => item.value),
-    textPlacement: texts.map(item => `${item.value}|${item.position}`).sort(),
     styles: marks.map(node => ['fill','stroke','opacity','fill-opacity','stroke-opacity','stroke-width'].map(name => node.getAttribute(name) || '').join('|')).sort()
   };
 }
@@ -90,13 +88,6 @@ function countSimilarity(a, b) {
     total += Math.max(a[key] || 0, b[key] || 0);
   }
   return total ? 1 - difference / total : 1;
-}
-
-function setOverlap(a, b) {
-  const left = new Set(a);
-  const right = new Set(b);
-  const union = new Set([...left, ...right]);
-  return union.size ? [...left].filter(value => right.has(value)).length / union.size : 1;
 }
 
 function bagOverlap(a, b) {
@@ -130,19 +121,24 @@ function frameSimilarity(a, b) {
   return Math.abs(left - right) / Math.max(left, right) <= 0.01 ? 1 : 0;
 }
 
-export function compareSvg(target, student) {
-  const a = extractFeatures(target), b = extractFeatures(student);
-  const counts = countSimilarity(a.counts, b.counts);
-  const coarse = bagOverlap(coarseGeometry(a), coarseGeometry(b));
+export function compareSvgFeatures(target, student) {
+  const counts = countSimilarity(target.counts, student.counts);
+  const coarse = bagOverlap(coarseGeometry(target), coarseGeometry(student));
   const geometry = counts * .4 + coarse * .6;
-  const text = bagOverlap(a.text, b.text);
-  const style = bagOverlap(a.styles, b.styles);
-  const frame = frameSimilarity(a, b);
+  const text = bagOverlap(target.text, student.text);
+  const style = bagOverlap(target.styles, student.styles);
+  const frame = frameSimilarity(target, student);
   const equivalent = counts === 1 && text === 1 && coarse >= .8 && style >= .8 && frame === 1;
   const rawScore = geometry * .5 + text * .25 + style * .15 + frame * .1;
   const score = equivalent ? 1 : Math.round(rawScore * 1e6) / 1e6;
-  const feedback = [];
-  return { score, categories: { geometry, text, style, frame, counts, coarseGeometry: coarse }, feedback };
+  return { score, categories: { geometry, text, style, frame, counts, coarseGeometry: coarse } };
+}
+
+export function compareSvg(target, student) {
+  return compareSvgFeatures(
+    typeof target === 'object' && target !== null && target.counts ? target : extractFeatures(target),
+    typeof student === 'object' && student !== null && student.counts ? student : extractFeatures(student)
+  );
 }
 
 export function comparePlotly(target, student) {
@@ -302,3 +298,4 @@ export function comparePlotly(target, student) {
     feedback
   };
 }
+

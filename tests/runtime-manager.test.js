@@ -59,3 +59,20 @@ test('unsupported engines fail before creating a runtime', async () => {
   const manager = new RuntimeManager({});
   await assert.rejects(manager.get('julia', {}), /Unsupported runtime: julia/);
 });
+
+test('failed runtime initialization can be retried', async () => {
+  let attempts = 0;
+  const manager = new RuntimeManager({
+    r: () => ({
+      init: async () => {
+        attempts++;
+        if (attempts === 1) throw new Error('CDN download failed');
+      }
+    })
+  });
+  await assert.rejects(manager.get('r', {}), /CDN download failed/);
+  const success = await manager.get('r', {});
+  assert.ok(success);
+  assert.equal(attempts, 2);
+});
+

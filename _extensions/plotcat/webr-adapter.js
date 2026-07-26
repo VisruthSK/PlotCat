@@ -1,13 +1,11 @@
 export class WebRAdapter {
-  constructor(load = () => import('https://webr.r-wasm.org/latest/webr.mjs')) {
-    this.load = load;
+  constructor(webRPromise) {
+    this.webRPromise = webRPromise;
     this.installed = new Set();
   }
 
   async init(manifest) {
-    const { WebR } = await this.load();
-    this.webR = new WebR();
-    await this.webR.init();
+    this.webR = await this.webRPromise;
     await this.installPackages(['svglite']);
     if (manifest && manifest.packages) {
       await this.installPackages(manifest.packages);
@@ -15,12 +13,18 @@ export class WebRAdapter {
   }
 
   async installPackages(packages) {
-    for (const pkg of packages) {
-      if (!this.installed.has(pkg)) {
-        await this.webR.installPackages([pkg]);
-        this.installed.add(pkg);
-      }
+    const missing = packages.filter(
+      packageName => !this.installed.has(packageName)
+    );
+
+    if (!missing.length) {
+      return;
     }
+
+    await this.webR.installPackages(missing);
+    missing.forEach(packageName => {
+      this.installed.add(packageName);
+    });
   }
 
   async renderSvg(code, options = {}) {
@@ -48,7 +52,6 @@ export class WebRAdapter {
       })`);
       try {
         const bytes = await this.webR.FS.readFile('/tmp/plotcat-plotly.json');
-        await this.webR.FS.unlink('/tmp/plotcat-plotly.json');
         return new TextDecoder().decode(bytes);
       } catch (e) {
         const bytes = await this.webR.FS.readFile(path);
@@ -64,6 +67,20 @@ export class WebRAdapter {
     } catch (error) {
       if (error?.output !== undefined) throw error;
       throw new Error(`R error: ${error instanceof Error ? error.message : error}`);
+    } finally {
+      if (this.webR?.FS?.unlink) {
+        for (const file of [
+          path,
+          outputPath,
+          '/tmp/plotcat-plotly.json'
+        ]) {
+          try {
+            await this.webR.FS.unlink(file);
+          } catch {
+            // File was not created or was already removed.
+          }
+        }
+      }
     }
   }
 }

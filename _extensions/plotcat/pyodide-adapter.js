@@ -1,12 +1,11 @@
 export class PyodideAdapter {
-  constructor(load = () => import('https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.mjs')) {
-    this.load = load;
+  constructor(pyodidePromise) {
+    this.pyodidePromise = pyodidePromise;
     this.installed = new Set();
   }
 
   async init(manifest) {
-    const { loadPyodide } = await this.load();
-    this.pyodide = await loadPyodide();
+    this.pyodide = await this.pyodidePromise;
     if (manifest && manifest.packages) {
       await this.installPackages(manifest.packages);
     }
@@ -39,14 +38,17 @@ export class PyodideAdapter {
   async renderSvg(code, options = {}) {
     const width = options.width || 6.4;
     const height = options.height || 4.8;
-const wrapped = `import ast
+    const wrapped = `import ast
 import contextlib
 import io
 import json
-import matplotlib
-matplotlib.use('SVG')
-import matplotlib.pyplot as plt
-plt.close('all')
+import sys
+
+_plotcat_plt = sys.modules.get("matplotlib.pyplot")
+
+if _plotcat_plt is not None:
+    _plotcat_plt.close("all")
+
 _plotcat_globals = {'__builtins__': __builtins__}
 _plotcat_result = None
 _plotcat_console = io.StringIO()
@@ -66,20 +68,22 @@ if _plotcat_result is None:
 if _plotcat_result is not None and type(_plotcat_result).__module__.startswith('plotly') and hasattr(_plotcat_result, 'to_json'):
     _plotcat_out = '{"type":"plotly","data":' + _plotcat_result.to_json() + '}'
 else:
+    _plotcat_plt = sys.modules.get("matplotlib.pyplot")
     if hasattr(_plotcat_result, 'savefig'):
         _plotcat_figure = _plotcat_result
     elif type(_plotcat_result).__module__.startswith('plotnine') and hasattr(_plotcat_result, 'draw'):
         _plotcat_figure = _plotcat_result.draw()
-    elif plt.get_fignums():
-        _plotcat_figure = plt.gcf()
+    elif _plotcat_plt is not None and _plotcat_plt.get_fignums():
+        _plotcat_figure = _plotcat_plt.gcf()
     else:
         _plotcat_out = json.dumps({'type': 'no-plot', 'output': _plotcat_console.getvalue()})
-    if '_plotcat_figure' in globals():
+    if '_plotcat_figure' in globals() or '_plotcat_figure' in locals():
         _plotcat_figure.set_size_inches(${width}, ${height})
         _plotcat_buffer = io.StringIO()
         _plotcat_figure.savefig(_plotcat_buffer, format='svg')
         _plotcat_out = _plotcat_buffer.getvalue()
-        plt.close('all')
+        if _plotcat_plt is not None:
+            _plotcat_plt.close('all')
 _plotcat_out`;
     try {
       const result = await this.pyodide.runPythonAsync(wrapped);

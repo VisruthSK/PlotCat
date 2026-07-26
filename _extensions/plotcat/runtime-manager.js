@@ -1,8 +1,34 @@
 import { WebRAdapter } from './webr-adapter.js';
 import { PyodideAdapter } from './pyodide-adapter.js';
 
+function waitForOJS() {
+  return new Promise(resolve => {
+    function check() {
+      if (window._ojs?.ojsConnector?.mainModule) {
+        resolve(window._ojs.ojsConnector.mainModule);
+      } else {
+        requestAnimationFrame(check);
+      }
+    }
+    check();
+  });
+}
+
 export class RuntimeManager {
-  constructor(factories = { r: () => new WebRAdapter(), python: () => new PyodideAdapter() }) {
+  constructor(factories = {
+    r: () => {
+      const promise = waitForOJS()
+        .then(main => main.value('webROjs'))
+        .then(ojs => ojs.webRPromise);
+      return new WebRAdapter(promise);
+    },
+    python: () => {
+      const promise = waitForOJS()
+        .then(main => main.value('pyodideOjs'))
+        .then(ojs => ojs.pyodidePromise);
+      return new PyodideAdapter(promise);
+    }
+  }) {
     this.factories = factories;
     this.instances = new Map();
     this.queues = new Map();
@@ -11,12 +37,18 @@ export class RuntimeManager {
 
   async get(engine, manifest) {
     if (!this.instances.has(engine)) {
-      this.instances.set(engine, (async () => {
+      const promise = (async () => {
         const adapter = this.factories[engine]?.();
         if (!adapter) throw new Error(`Unsupported runtime: ${engine}`);
         await adapter.init({ packages: [] });
         return adapter;
-      })());
+      })();
+      this.instances.set(engine, promise);
+      promise.catch(() => {
+        if (this.instances.get(engine) === promise) {
+          this.instances.delete(engine);
+        }
+      });
     }
     const adapter = await this.instances.get(engine);
     if (manifest?.packages?.length) {

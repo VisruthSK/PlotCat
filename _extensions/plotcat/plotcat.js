@@ -1,15 +1,32 @@
-import { compareSvg, sanitizeSvg, scopeSvgIds, comparePlotly } from './svg.js';
+import { compareSvgFeatures, extractFeatures, sanitizeSvg, scopeSvgIds, comparePlotly } from './svg.js';
 import { runtimeManager } from './runtime-manager.js';
 
-async function decodePattern(salt, encoded) {
-  const bytes = new TextEncoder().encode(salt);
-  const hash = await crypto.subtle.digest("SHA-256", bytes);
-  const key = new Uint8Array(hash);
-  const resultBytes = new Uint8Array(encoded.length / 2);
-  for (let i = 0; i < resultBytes.length; i++) {
-    resultBytes[i] = parseInt(encoded.slice(i * 2, i * 2 + 2), 16) ^ key[i % key.length];
+let plotlyPromise;
+
+function loadPlotly() {
+  if (window.Plotly) {
+    return Promise.resolve(window.Plotly);
   }
-  return new TextDecoder().decode(resultBytes);
+
+  if (!plotlyPromise) {
+    plotlyPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
+      script.onload = () => resolve(window.Plotly);
+      script.onerror = () => reject(
+        new Error('Failed to load Plotly.')
+      );
+      document.head.appendChild(script);
+    });
+  }
+
+  return plotlyPromise;
+}
+
+function decodeTarget(encoded) {
+  const binary = atob(encoded);
+  const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
 
 function setMode(root, mode) {
@@ -45,25 +62,6 @@ function studentCode(root) {
   return editor.innerText;
 }
 
-function getPlotlySvg(container) {
-  const svgs = container.querySelectorAll('svg.main-svg');
-  if (svgs.length > 0) {
-    const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    wrapper.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    wrapper.setAttribute('viewBox', `0 0 ${container.clientWidth} ${container.clientHeight}`);
-    wrapper.setAttribute('width', '100%');
-    wrapper.setAttribute('height', '100%');
-    svgs.forEach(svg => {
-      const clone = svg.cloneNode(true);
-      clone.removeAttribute('width');
-      clone.removeAttribute('height');
-      wrapper.appendChild(clone);
-    });
-    return new XMLSerializer().serializeToString(wrapper);
-  }
-  return null;
-}
-
 export function mountPlotCat(root, manager = runtimeManager) {
   if (!manager || typeof manager.get !== 'function') {
     manager = runtimeManager;
@@ -79,31 +77,26 @@ export function mountPlotCat(root, manager = runtimeManager) {
   const target = root.querySelector('[data-plotcat-target]');
   const student = root.querySelector('[data-plotcat-student]');
 
-  const targetCodeHex = root.dataset.plotcatTargetCode;
-  const salt = root.dataset.plotcatSalt;
+  const targetCodeBase64 = root.dataset.plotcatTargetCode;
   const svgPrefix = (root.id || manifest.id || 'plotcat').replace(/[^a-zA-Z0-9_-]/g, '-');
 
   let width = manifest.engine === 'r' ? 7 : 6.4;
   let height = manifest.engine === 'r' ? 5 : 4.8;
 
   let targetSvg = null;
+  let targetFeatures = null;
   let targetPlotlyPayload = null;
 
-  if (targetCodeHex && salt) {
+  if (targetCodeBase64) {
     run.disabled = true;
     status.textContent = `Loading ${manifest.engine === 'r' ? 'WebR' : 'Pyodide'}…`;
-    decodePattern(salt, targetCodeHex).then(async (targetCode) => {
+    (async () => {
+      const targetCode = decodeTarget(targetCodeBase64);
       const adapter = await adapterPromise;
 
-      if (manifest.packages.includes('plotly') && !window.Plotly) {
+      if (manifest.packages.includes('plotly')) {
         status.textContent = 'Loading Plotly…';
-        await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
+        await loadPlotly();
       }
 
       status.textContent = 'Rendering target…';
@@ -113,6 +106,10 @@ export function mountPlotCat(root, manager = runtimeManager) {
         const payload = JSON.parse(result);
         targetPlotlyPayload = payload.data.x ? payload.data.x : payload.data;
         limitPlotlyToSideBySide(root);
+        const previousTarget = target.querySelector('.js-plotly-plot');
+        if (previousTarget && window.Plotly) {
+          window.Plotly.purge(previousTarget);
+        }
         target.replaceChildren();
         target.style.height = '280px';
         const plotlyDiv = document.createElement('div');
@@ -124,12 +121,13 @@ export function mountPlotCat(root, manager = runtimeManager) {
         await Plotly.newPlot(plotlyDiv, targetPlotlyPayload.data, targetPlotlyPayload.layout, { responsive: true, displayModeBar: false });
       } else {
         targetSvg = sanitizeSvg(result);
+        targetFeatures = extractFeatures(targetSvg);
         target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
       }
 
       status.textContent = '';
       run.disabled = false;
-    }).catch(error => {
+    })().catch(error => {
       console.error('Failed to render target plot:', error);
       status.textContent = 'Error rendering target: ' + (error.message || error);
       root.classList.add('plotcat--error');
@@ -138,6 +136,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     const targetSvgEl = target.querySelector('svg');
     if (targetSvgEl) {
       targetSvg = sanitizeSvg(targetSvgEl.outerHTML);
+      targetFeatures = extractFeatures(targetSvg);
       target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
       status.textContent = '';
       run.disabled = false;
@@ -192,8 +191,6 @@ export function mountPlotCat(root, manager = runtimeManager) {
     });
   }
 
-
-
   run.addEventListener('click', async () => {
     if (!targetSvg && !targetPlotlyPayload) return;
     root.classList.remove('plotcat--error', 'plotcat--complete');
@@ -209,6 +206,10 @@ export function mountPlotCat(root, manager = runtimeManager) {
       if (result.startsWith('{"type":"plotly"')) {
         const payload = JSON.parse(result);
         const studentPlotlyPayload = payload.data.x ? payload.data.x : payload.data;
+        const previous = student.querySelector('.js-plotly-plot');
+        if (previous && window.Plotly) {
+          window.Plotly.purge(previous);
+        }
         student.replaceChildren();
         student.style.height = '280px';
         const plotlyDiv = document.createElement('div');
@@ -225,9 +226,10 @@ export function mountPlotCat(root, manager = runtimeManager) {
       } else {
         const svg = sanitizeSvg(result);
         student.replaceChildren(svgFragment(scopeSvgIds(svg, `${svgPrefix}-student`)));
-        const compareResult = compareSvg(targetSvg, svg);
+        const studentFeatures = extractFeatures(svg);
+        const compareResult = compareSvgFeatures(targetFeatures, studentFeatures);
         score = compareResult.score;
-        feedback = compareResult.feedback;
+        feedback = compareResult.feedback || [];
       }
 
       let hue;
@@ -256,3 +258,4 @@ export function mountPlotCat(root, manager = runtimeManager) {
 }
 
 document.querySelectorAll('.plotcat[data-plotcat-manifest]').forEach(el => mountPlotCat(el));
+

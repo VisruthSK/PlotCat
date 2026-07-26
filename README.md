@@ -10,8 +10,8 @@ compare it with the target.
 PlotCat compares SVG structure and plot text for static plots. It also
 supports a focused comparison of Plotly traces and layout. Plotly
 exercises support side-by-side comparison only; overlay and wipe apply
-to SVG plots. The target source is removed from the rendered HTML, but
-this is not a security boundary: do not put secrets in an exercise.
+to SVG plots. PlotCat obfuscates the target source in the rendered HTML,
+which prevents casual inspection but does not protect the source.
 
 ## Requirements
 
@@ -92,7 +92,7 @@ tinyplot::tinyplot(
 ````
 
 The first chunk becomes the browser-rendered target, and its source is
-omitted from the rendered HTML. The second chunk appears in the editor.
+obfuscated in the rendered HTML. The second chunk appears in the editor.
 
 PlotCat accepts R and Python chunks. Both chunks in an exercise must use
 the same language.

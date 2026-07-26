@@ -4,19 +4,26 @@ import { WebRAdapter } from '../_extensions/plotcat/webr-adapter.js';
 import { PyodideAdapter } from '../_extensions/plotcat/pyodide-adapter.js';
 import { comparePlotly } from '../_extensions/plotcat/svg.js';
 
-test('WebR initializes once, installs declared packages, and returns SVG bytes', async () => {
-  const calls = { init: 0, packages: [], code: '' };
+function mockWebR(overrides = {}) {
+  const calls = { init: 0, packages: [], code: '', ...overrides.calls };
   class WebR {
-    FS = { readFile: async () => new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>') };
+    FS = overrides.FS || { readFile: async () => new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>') };
     async init() { calls.init++; }
     async installPackages(packages) { calls.packages.push(packages); }
     async evalRVoid(code) { calls.code = code; }
   }
-  const adapter = new WebRAdapter(async () => ({ WebR }));
+  return { WebR, calls };
+}
+
+test('WebR installs declared packages and returns SVG bytes', async () => {
+  const { WebR, calls } = mockWebR();
+  const webR = new WebR();
+  await webR.init();
+  const adapter = new WebRAdapter(Promise.resolve(webR));
   await adapter.init({ packages: ['tinyplot', 'ggplot2'] });
   const svg = await adapter.renderSvg('plot(cars)');
   assert.equal(calls.init, 1);
-  assert.deepEqual(calls.packages, [['svglite'], ['tinyplot'], ['ggplot2']]);
+  assert.deepEqual(calls.packages, [['svglite'], ['tinyplot', 'ggplot2']]);
   assert.match(calls.code, /new\.env\(parent = globalenv\(\)\)/);
   assert.match(calls.code, /svglite::svglite\(/);
   assert.match(calls.code, /withVisible\(eval\(parse/);
@@ -26,14 +33,30 @@ test('WebR initializes once, installs declared packages, and returns SVG bytes',
   assert.match(svg, /^<svg/);
 });
 
+test('WebR adapter does not initialize the provided WebR instance', async () => {
+  const { WebR, calls } = mockWebR();
+  const existing = new WebR();
+  await existing.init();
+  const adapter = new WebRAdapter(Promise.resolve(existing));
+  await adapter.init({ packages: ['tinyplot'] });
+  assert.equal(calls.init, 1, 'should not re-initialize the provided WebR instance');
+  assert.deepEqual(calls.packages, [['svglite'], ['tinyplot']]);
+  const svg = await adapter.renderSvg('plot(cars)');
+  assert.match(svg, /^<svg/);
+});
+
 test('WebR reports runtime and invalid-output errors with language context', async () => {
   class BrokenWebR {
-    FS = { readFile: async path => new TextEncoder().encode(path.endsWith('.txt') ? '[1] 2\n' : '<svg xmlns="http://www.w3.org/2000/svg"/>') };
+    FS = { readFile: async path => {
+      if (path === '/tmp/plotcat-plotly.json') throw new Error('File not found');
+      return new TextEncoder().encode(path.endsWith('.txt') ? '[1] 2\n' : '<svg xmlns="http://www.w3.org/2000/svg"/>');
+    } };
     async init() {}
     async installPackages() {}
     async evalRVoid() {}
   }
-  const adapter = new WebRAdapter(async () => ({ WebR: BrokenWebR })); await adapter.init({ packages: [] });
+  const adapter = new WebRAdapter(Promise.resolve(new BrokenWebR()));
+  await adapter.init({ packages: [] });
   await assert.rejects(adapter.renderSvg('1 + 1'), error => error.message === 'R code did not produce a plot.' && error.output === '[1] 2\n');
   adapter.webR.evalRVoid = async () => { throw new Error('unexpected symbol'); };
   await assert.rejects(adapter.renderSvg('plot('), /R error: unexpected symbol/);
@@ -46,7 +69,7 @@ test('Pyodide installs import aliases and captures an isolated final plot expres
     pyimport: () => ({ install: async packages => calls.installed.push(packages) }),
     runPythonAsync: async code => { calls.code = code; return '<svg xmlns="http://www.w3.org/2000/svg"/>'; }
   };
-  const adapter = new PyodideAdapter(async () => ({ loadPyodide: async () => pyodide }));
+  const adapter = new PyodideAdapter(Promise.resolve(pyodide));
   await adapter.init({ packages: ['matplotlib', 'sklearn', 'plotnine'] });
   const svg = await adapter.renderSvg('fig, ax = plt.subplots()');
   assert.deepEqual(calls.loaded, [['matplotlib', 'scikit-learn'], 'micropip']);
@@ -55,13 +78,13 @@ test('Pyodide installs import aliases and captures an isolated final plot expres
   assert.match(calls.code, /isinstance\(_plotcat_tree\.body\[-1\], ast\.Expr\)/);
   assert.match(calls.code, /type\(_plotcat_result\)\.__module__\.startswith\('plotnine'\)/);
   assert.match(calls.code, /_plotcat_result\.draw\(\)/);
-  assert.match(calls.code, /plt\.close\('all'\)/);
+  assert.match(calls.code, /_plotcat_plt\.close\(/);
   assert.match(svg, /^<svg/);
 });
 
 test('Pyodide reports Python failures and missing plots clearly', async () => {
   const pyodide = { loadPackage: async () => {}, pyimport: () => ({ install: async () => {} }), runPythonAsync: async () => '{"type": "no-plot", "output": "hello\\n"}' };
-  const adapter = new PyodideAdapter(async () => ({ loadPyodide: async () => pyodide })); await adapter.init({ packages: [] });
+  const adapter = new PyodideAdapter(Promise.resolve(pyodide)); await adapter.init({ packages: [] });
   await assert.rejects(adapter.renderSvg('print("hello")'), error => error.message === 'Python code did not produce a plot.' && error.output === 'hello\n');
   pyodide.runPythonAsync = async () => 'not svg';
   await assert.rejects(adapter.renderSvg('x = 1'), /Python error: Python code did not produce a plot/);

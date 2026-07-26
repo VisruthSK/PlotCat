@@ -30,8 +30,8 @@ try {
   assert.equal(valid.status, 0, valid.stdout + valid.stderr);
   const html = readFileSync(resolve(output, 'minimal.html'), 'utf8');
   assert.match(html, /class="plotcat plotcat--side-by-side"/);
-  assert.match(html, /data-plotcat-target-code="[0-9a-f]+"/);
-  assert.match(html, /data-plotcat-salt="salt_[0-9a-f]+"/);
+  assert.match(html, /data-plotcat-target-code="[A-Za-z0-9+/=]+"/);
+  assert.doesNotMatch(html, /data-plotcat-salt=/);
   assert.match(html, /class="plotcat__target-loading"/);
   assert.doesNotMatch(html, /plot\(cars\)/);
   assert.match(html, /type="module"/);

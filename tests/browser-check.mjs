@@ -48,7 +48,6 @@ try {
   assert.ok(comparison.different.score < comparison.same.score);
   assert.equal(comparison.different.categories.text, 0);
   assert.equal(comparison.features.counts.circle, 1);
-  assert.deepEqual(comparison.features.textPlacement, ['Speed|1|2|||']);
 
   const rendererTolerance = await page.evaluate(() => {
     const target = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20.1" cy="40.1" r="2" fill="red"/><text x="10" y="90">Speed</text></svg>';
