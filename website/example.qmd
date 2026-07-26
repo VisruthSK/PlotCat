@@ -14,7 +14,6 @@ format:
 ```{r}
 #| eval: false
 library(ggplot2)
-library(palmerpenguins)
 
 ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
   geom_point(size = 2, na.rm = TRUE) +
@@ -34,7 +33,6 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
 ```{r}
 #| eval: false
 library(ggplot2)
-library(palmerpenguins)
 
 ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
   geom_point(na.rm = TRUE)
