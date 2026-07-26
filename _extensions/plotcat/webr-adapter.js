@@ -9,7 +9,7 @@ export class WebRAdapter {
 
   async renderSvg(code, options = {}) {
     const width = options.width || 7;
-    const height = options.height || 7;
+    const height = options.height || 5;
     const path = `/tmp/plotcat-${crypto.randomUUID()}.svg`;
     const outputPath = `/tmp/plotcat-${crypto.randomUUID()}.txt`;
     const source = JSON.stringify(code);
@@ -47,7 +47,7 @@ export class WebRAdapter {
       const svgBytes = await this.webR.FS.readFile(path);
       const svg = new TextDecoder().decode(svgBytes);
       if (!/<(?:circle|line|path|polygon|polyline|rect|text|image|use)\b/.test(svg)) {
-        return { kind: 'no-plot', message: 'R code did not produce a plot.' };
+        return { kind: 'no-plot', message: 'R code did not produce a plot. Make sure the last expression generates a plot (e.g., plot(), ggplot(), tinyplot()).' };
       }
       return { kind: 'svg', svg, stdout: [], warnings: [] };
     } catch (error) {

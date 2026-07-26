@@ -72,8 +72,6 @@ try {
   assert.equal(decoded.svg.text, 0.5);
   assert.equal(decoded.svg.style, 0.1);
   assert.equal(decoded.svg.frame, 0.15);
-  assert.equal(decoded.svg.geometry_counts, 0.15);
-  assert.equal(decoded.svg.geometry_coarse, 0.85);
 
   const fmWeights = render('weights-frontmatter.qmd');
   assert.equal(fmWeights.status, 0, fmWeights.stdout + fmWeights.stderr);
@@ -89,7 +87,7 @@ try {
     ['zero-chunks.qmd', 'needs one target chunk'],
     ['too-many.qmd', 'more than two executable chunks'],
     ['mixed.qmd', 'mixes engines'],
-    ['invalid-attribute.qmd', "attribute 'title' is not supported; only id and weight attributes are allowed"],
+    ['invalid-attribute.qmd', "attribute 'title' is not supported; only id, weight, and dimension attributes are allowed"],
     ['executed-starter.qmd', 'starter chunk executed'],
     ['duplicate-id.qmd', "duplicate id 'same'"],
     ['unsupported-engine.qmd', "unsupported engine 'bash'"],

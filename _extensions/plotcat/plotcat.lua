@@ -29,8 +29,6 @@ local WEIGHT_ATTRS = {
   ["svg-text"] = {"svg", "text"},
   ["svg-style"] = {"svg", "style"},
   ["svg-frame"] = {"svg", "frame"},
-  ["svg-geometry-counts"] = {"svg", "geometry_counts"},
-  ["svg-geometry-coarse"] = {"svg", "geometry_coarse"},
   ["plotly-trace"] = {"plotly", "trace"},
   ["plotly-data"] = {"plotly", "data"},
   ["plotly-style"] = {"plotly", "style"},
@@ -38,9 +36,19 @@ local WEIGHT_ATTRS = {
 }
 
 local DEFAULT_WEIGHTS = {
-  svg = {geometry = 0.6, text = 0.15, style = 0.1, frame = 0.15, geometry_counts = 0.15, geometry_coarse = 0.85},
+  svg = {geometry = 0.6, text = 0.15, style = 0.1, frame = 0.15},
   plotly = {trace = 0.3, data = 0.4, style = 0.2, layout = 0.1}
 }
+
+local DIM_ATTRS = {["plotcat-width"] = true, ["plotcat-height"] = true}
+
+local function merge_dimensions(attrs, yaml)
+  local dims = {}
+  local raw = yaml or {}
+  dims.width = tonumber(raw.width) or (type(attrs["plotcat-width"]) == "string" and tonumber(attrs["plotcat-width"])) or nil
+  dims.height = tonumber(raw.height) or (type(attrs["plotcat-height"]) == "string" and tonumber(attrs["plotcat-height"])) or nil
+  return dims
+end
 
 local function merge_weights(attrs, yaml_overrides)
   local weights = {}
@@ -90,11 +98,13 @@ local function has_output(cell)
   return false
 end
 
-local function widget(id, engine, target, starter, extra_classes, weights_json)
+local function widget(id, engine, target, starter, extra_classes, weights_json, dimensions)
   local dom_id = "plotcat-" .. id:gsub("[^%w_-]", "-")
   local manifest = quarto.json.encode({
     id = id,
-    engine = engine
+    engine = engine,
+    width = dimensions and dimensions.width or nil,
+    height = dimensions and dimensions.height or nil
   })
   local encoded_target = quarto.base64.encode(target)
   local encoded_weights = quarto.base64.encode(weights_json)
@@ -136,8 +146,8 @@ end
 function Div(div)
   if not div.classes:includes("plotcat") then return nil end
   for key, _ in pairs(div.attributes) do
-    if key ~= "id" and not WEIGHT_ATTRS[key] then
-      fail("attribute '" .. key .. "' is not supported; only id and weight attributes are allowed")
+    if key ~= "id" and not WEIGHT_ATTRS[key] and not DIM_ATTRS[key] then
+      fail("attribute '" .. key .. "' is not supported; only id, weight, and dimension attributes are allowed")
       return div
     end
   end
@@ -201,7 +211,8 @@ function Div(div)
   local extra_class_str = #extra_classes > 0 and (" " .. table.concat(extra_classes, " ")) or ""
   local plotcat_meta = quarto.metadata.get("plotcat") or {}
   local weights = quarto.json.encode(merge_weights(div.attributes, plotcat_meta["weights"]))
-  return widget(id, engine, chunks[1].block.text, starter, extra_class_str, weights)
+  local dims = merge_dimensions(div.attributes, plotcat_meta["dimensions"])
+  return widget(id, engine, chunks[1].block.text, starter, extra_class_str, weights, dims)
 end
 
 function Pandoc(doc)

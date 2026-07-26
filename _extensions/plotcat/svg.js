@@ -79,17 +79,6 @@ export function extractFeatures(source) {
   };
 }
 
-function countSimilarity(a, b) {
-  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
-  let difference = 0;
-  let total = 0;
-  for (const key of keys) {
-    difference += Math.abs((a[key] || 0) - (b[key] || 0));
-    total += Math.max(a[key] || 0, b[key] || 0);
-  }
-  return total ? 1 - difference / total : 1;
-}
-
 function bagOverlap(a, b) {
   const counts = values => values.reduce((map, value) => map.set(value, (map.get(value) || 0) + 1), new Map());
   const left = counts(a), right = counts(b);
@@ -127,19 +116,14 @@ export function compareSvgFeatures(target, student, weights = {}) {
     text: weights.text ?? 0.15,
     style: weights.style ?? 0.1,
     frame: weights.frame ?? 0.15,
-    geometryCounts: weights.geometry_counts ?? 0.15,
-    geometryCoarse: weights.geometry_coarse ?? 0.85,
   };
-  const counts = countSimilarity(target.counts, student.counts);
   const coarse = bagOverlap(coarseGeometry(target), coarseGeometry(student));
-  const geometry = counts * w.geometryCounts + coarse * w.geometryCoarse;
   const text = bagOverlap(target.text, student.text);
   const style = bagOverlap(target.styles, student.styles);
   const frame = frameSimilarity(target, student);
-  const equivalent = counts === 1 && text === 1 && coarse >= .95 && style >= .95 && frame === 1;
-  const rawScore = geometry * w.geometry + text * w.text + style * w.style + frame * w.frame;
-  const score = equivalent ? 1 : Math.round(rawScore * 1e6) / 1e6;
-  return { score, categories: { geometry, text, style, frame, counts, coarseGeometry: coarse } };
+  const rawScore = coarse * w.geometry + text * w.text + style * w.style + frame * w.frame;
+  const score = Math.round(rawScore * 1e6) / 1e6;
+  return { score, categories: { geometry: coarse, text, style, frame } };
 }
 
 export function compareSvg(target, student, weights) {

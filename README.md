@@ -158,19 +158,12 @@ plotcat:
 
 ### SVG weights
 
-| Attribute      | Default | Controls                   |
-|----------------|---------|----------------------------|
-| `svg-geometry` | 0.6     | Overall weight of geometry |
-| `svg-text`     | 0.15    | Text content match         |
-| `svg-style`    | 0.1     | Fill, stroke, opacity      |
-| `svg-frame`    | 0.15    | Aspect ratio               |
-
-Geometry splits into sub-weights:
-
-| Attribute             | Default | Controls                             |
-|-----------------------|---------|--------------------------------------|
-| `svg-geometry-coarse` | 0.85    | Element positions (rounded to ~0.1%) |
-| `svg-geometry-counts` | 0.15    | Element counts per tag type          |
+| Attribute      | Default | Controls                                           |
+|----------------|---------|----------------------------------------------------|
+| `svg-geometry` | 0.6     | Element positions (bag overlap of coarse geometry) |
+| `svg-text`     | 0.15    | Text content match                                 |
+| `svg-style`    | 0.1     | Fill, stroke, opacity                              |
+| `svg-frame`    | 0.15    | Aspect ratio                                       |
 
 A scatter exercise might need higher `svg-text` weight because axis
 labels matter more. A bar chart might raise `svg-geometry` to penalise
@@ -190,14 +183,31 @@ missing bars.
 ``` markdown
 ::: {.plotcat id="scatter"
     svg-geometry="0.4"
-    svg-text="0.4"
-    svg-geometry-coarse="0.5"
-    svg-geometry-counts="0.5"}
+    svg-text="0.4"}
 ```
 
-The total geometric score combines the coarse and counts sub-scores:
-`coarse * svg-geometry-coarse + counts * svg-geometry-counts`. The final
-score sums each category multiplied by its top-level weight.
+The final score sums each category multiplied by its top-level weight:
+`geometry * svg-geometry + text * svg-text + style * svg-style + frame * svg-frame`.
+
+### Dimensions
+
+Override the default plot dimensions per exercise using `plotcat-width`
+and `plotcat-height` attributes on the `.plotcat` Div. The default is
+7×5 in for both R and Python.
+
+Set document-wide defaults under `plotcat.dimensions` in YAML
+frontmatter:
+
+``` yaml
+plotcat:
+  dimensions:
+    width: 8
+    height: 6
+```
+
+``` markdown
+::: {.plotcat id="tall-plot" plotcat-width="4" plotcat-height="6"}
+```
 
 ## Limitations
 

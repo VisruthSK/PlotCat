@@ -8,8 +8,8 @@ export class PyodideAdapter {
   }
 
   async renderSvg(code, options = {}) {
-    const width = options.width || 6.4;
-    const height = options.height || 4.8;
+    const width = options.width || 7;
+    const height = options.height || 5;
     const wrapped = `import ast
 import contextlib
 import io
@@ -64,7 +64,7 @@ _plotcat_out`;
       const result = await this.pyodide.runPythonAsync(wrapped);
       const output = String(result);
       if (output.startsWith('{"type": "no-plot"')) {
-        return { kind: 'no-plot', message: 'Python code did not produce a plot.' };
+        return { kind: 'no-plot', message: 'Python code did not produce a plot. Make sure the last expression is a figure (e.g., plt.plot(), ggplot(), go.Figure()).' };
       }
       if (output.startsWith('{"type":"plotly"')) {
         return { kind: 'plotly', figure: JSON.parse(output).data, stdout: [], warnings: [] };
@@ -72,7 +72,7 @@ _plotcat_out`;
       if (output.includes('<svg')) {
         return { kind: 'svg', svg: output, stdout: [], warnings: [] };
       }
-      return { kind: 'no-plot', message: 'Python code did not produce a plot.' };
+      return { kind: 'no-plot', message: 'Python code did not produce a plot. Make sure the last expression is a figure (e.g., plt.plot(), ggplot(), go.Figure()).' };
     } catch (error) {
       return { kind: 'error', message: error instanceof Error ? error.message : String(error), traceback: '' };
     }

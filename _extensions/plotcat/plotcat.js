@@ -1,6 +1,17 @@
 import { compareSvgFeatures, extractFeatures, sanitizeSvg, scopeSvgIds, comparePlotly } from './svg.js';
 import { runtimeManager } from './runtime-manager.js';
 
+async function withRetry(fn, retries = 3) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt > retries) throw error;
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+    }
+  }
+}
+
 let plotlyPromise;
 
 function loadPlotly() {
@@ -9,15 +20,19 @@ function loadPlotly() {
   }
 
   if (!plotlyPromise) {
-    plotlyPromise = new Promise((resolve, reject) => {
+    plotlyPromise = withRetry(() => new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = 'https://cdn.plot.ly/plotly-3.6.0.min.js';
       script.onload = () => resolve(window.Plotly);
-      script.onerror = () => {
-        plotlyPromise = undefined;
-        reject(new Error('Failed to load Plotly.'));
-      };
+      script.onerror = () => reject(new Error(
+        'Could not load Plotly from the CDN. Check your internet connection ' +
+        'and any network restrictions. Plotly exercises need access to ' +
+        'https://cdn.plot.ly/plotly-3.6.0.min.js.'
+      ));
       document.head.appendChild(script);
+    })).catch(error => {
+      plotlyPromise = undefined;
+      throw error;
     });
   }
 
@@ -96,8 +111,8 @@ export function mountPlotCat(root, manager = runtimeManager) {
   const targetCodeBase64 = root.dataset.plotcatTargetCode;
   const svgPrefix = (root.id || manifest.id || 'plotcat').replace(/[^a-zA-Z0-9_-]/g, '-');
 
-  let width = manifest.engine === 'r' ? 7 : 6.4;
-  let height = manifest.engine === 'r' ? 5 : 4.8;
+  let width = manifest.width || 7;
+  let height = manifest.height || 5;
 
   let targetSvg = null;
   let targetFeatures = null;
@@ -135,7 +150,12 @@ export function mountPlotCat(root, manager = runtimeManager) {
       .then(() => { status.textContent = ''; run.disabled = false; })
       .catch(error => {
         console.error('Failed to render target plot:', error);
-        status.textContent = 'Error rendering target: ' + (error.message || error);
+        const msg = error.message || String(error);
+        if (msg.includes('requireNamespace') || msg.includes('package')) {
+          status.textContent = msg + ' Required R packages must be listed under `format.live-html.webr.packages` in your Quarto config.';
+        } else {
+          status.textContent = 'Error rendering target: ' + msg;
+        }
         root.classList.add('plotcat--error');
       });
   } else {
@@ -238,7 +258,12 @@ export function mountPlotCat(root, manager = runtimeManager) {
       status.textContent = '';
       root.classList.add('plotcat--complete');
     } catch (error) {
-      status.textContent = error instanceof Error ? error.message : String(error);
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes('requireNamespace') || msg.includes('package is not available') || (msg.includes('not') && msg.includes('module'))) {
+        status.textContent = msg + ' Required packages must be listed under `format.live-html` in your Quarto config.';
+      } else {
+        status.textContent = msg;
+      }
       root.classList.add('plotcat--error');
     } finally {
       run.disabled = false;
