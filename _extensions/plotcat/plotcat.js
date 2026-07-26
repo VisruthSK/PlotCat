@@ -31,7 +31,18 @@ function svgFragment(svg) {
 }
 
 function studentCode(root) {
-  return root.querySelector('.cm-content')?.innerText || root.querySelector('textarea')?.value || '';
+  const editor = root.querySelector(
+    '.plotcat__editor .cm-content'
+  );
+
+  if (!editor) {
+    throw new Error(
+      "PlotCat could not find Quarto Live's code editor. " +
+      "Ensure Quarto Live is installed and use `format: live-html`."
+    );
+  }
+
+  return editor.innerText;
 }
 
 function getPlotlySvg(container) {

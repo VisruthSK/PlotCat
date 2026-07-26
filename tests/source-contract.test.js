@@ -38,3 +38,10 @@ test('the wipe handle has one pointer listener for each pointer action', async (
   assert.equal((ui.match(/wipeHandle\.addEventListener\('pointerdown'/g) || []).length, 1);
   assert.equal((ui.match(/wipeHandle\.addEventListener\('pointermove'/g) || []).length, 1);
 });
+
+test('studentCode checks editor DOM without textarea fallback', async () => {
+  const ui = await readFile(new URL('../_extensions/plotcat/plotcat.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(ui, /querySelector\(['"]textarea/);
+  assert.doesNotMatch(ui, /function studentCode[\s\S]*?textarea[\s\S]*?\n}/);
+  assert.match(ui, /PlotCat could not find Quarto Live's code editor/);
+});

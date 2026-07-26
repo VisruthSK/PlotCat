@@ -316,6 +316,8 @@ function Div(div)
       pandoc.Attr(id, {"plotcat"})
     )
   end
+
+
   quarto.doc.add_html_dependency({name="plotcat", version="0.2.0", scripts={{path="plotcat.js", attribs={type="module"}}}, stylesheets={"plotcat.css"}, resources={"svg.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js"}})
   local extra_classes = {}
   for _, class in ipairs(div.classes) do

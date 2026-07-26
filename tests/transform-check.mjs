@@ -9,16 +9,15 @@ try { rmSync(output, { recursive: true, force: true }); } catch {}
 function render(file) {
   let source = readFileSync(resolve('tests/fixtures', file), 'utf8')
     .replace('../../_extensions/plotcat/plotcat.lua', 'plotcat');
-  if (file !== 'wrong-format.qmd') {
-    source = source
-      .replace('format: html', 'format:\n  live-html:\n    fig-format: svg')
-      .replace('format: gfm', 'format:\n  gfm:\n    fig-format: svg');
-  }
   writeFileSync(resolve(output, file), source);
   const windows = process.platform === 'win32';
-  return spawnSync(windows ? process.env.ComSpec : 'quarto', windows ? ['/d', '/s', '/c', `quarto render ${file}`] : ['render', file], {
+  const executable = windows ? 'quarto.cmd' : 'quarto';
+  const isInteractive = file !== 'wrong-format.qmd' && file !== 'non-html.qmd';
+  const args = isInteractive ? ['render', file, '--to', 'live-html'] : ['render', file];
+  return spawnSync(executable, args, {
     encoding: 'utf8',
-    cwd: output
+    cwd: output,
+    shell: windows
   });
 }
 
@@ -26,6 +25,7 @@ try {
   mkdirSync(output, { recursive: true });
   cpSync(resolve('_extensions'), resolve(output, '_extensions'), { recursive: true });
   cpSync(resolve('website/_extensions/r-wasm'), resolve(output, '_extensions/r-wasm'), { recursive: true });
+  writeFileSync(resolve(output, '_quarto.yml'), 'format:\n  live-html:\n    toc: true\n');
   const valid = render('minimal.qmd');
   assert.equal(valid.status, 0, valid.stdout + valid.stderr);
   const html = readFileSync(resolve(output, 'minimal.html'), 'utf8');
@@ -56,6 +56,9 @@ try {
   assert.equal((multipleHtml.match(/class="plotcat plotcat--side-by-side"/g) || []).length, 2);
   assert.equal((multipleHtml.match(/plotcat\.js" type="module"/g) || []).length, 1);
 
+  const wrongFormat = render('wrong-format.qmd');
+  assert.equal(wrongFormat.status, 0, wrongFormat.stdout + wrongFormat.stderr);
+
   const nonHtml = render('non-html.qmd');
   assert.equal(nonHtml.status, 0, nonHtml.stdout + nonHtml.stderr);
   const markdown = readFileSync(resolve(output, 'non-html.md'), 'utf8');
@@ -76,5 +79,5 @@ try {
     assert.match(result.stdout + result.stderr, new RegExp(message));
   }
 } finally {
-  rmSync(output, { recursive: true, force: true });
+  try { rmSync(output, { recursive: true, force: true }); } catch {}
 }
