@@ -7,6 +7,7 @@ filters:
 
 ::: {.plotcat id="minimal-r"}
 ```{r}
+#| eval: false
 plot(cars)
 ```
 :::

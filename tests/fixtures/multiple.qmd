@@ -6,12 +6,14 @@ filters:
 
 ::: {.plotcat id="first"}
 ```{r}
+#| eval: false
 plot(cars)
 ```
 :::
 
 ::: {.plotcat id="second"}
 ```{r}
+#| eval: false
 plot(pressure)
 ```
 :::

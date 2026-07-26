@@ -7,6 +7,7 @@ filters:
 ::: {.plotcat id="unsupported"}
 ::: {.cell}
 ```{.bash .cell-code}
+#| eval: false
 echo plot
 ```
 :::

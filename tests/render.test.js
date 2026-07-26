@@ -8,7 +8,7 @@ test('the transform replaces source chunks with a widget shell', async () => {
   assert.match(lua, /class=\"plotcat plotcat--side-by-side/);
 });
 
-test('interactive PlotCat requires live-html', async () => {
+test('interactive PlotCat requires Quarto Live metadata', async () => {
   const lua = await readFile(
     new URL(
       '../_extensions/plotcat/plotcat.lua',
@@ -19,17 +19,12 @@ test('interactive PlotCat requires live-html', async () => {
 
   assert.match(
     lua,
-    /os\.getenv\("QUARTO_EXECUTE_INFO"\)/
+    /quarto\.metadata\.get\(key\)/
   );
 
   assert.match(
     lua,
-    /identifier\["target-format"\]/
-  );
-
-  assert.match(
-    lua,
-    /target_format ~= "live-html"/
+    /metadata_is_true\("ojs-engine"\)/
   );
 
   assert.match(
@@ -39,6 +34,6 @@ test('interactive PlotCat requires live-html', async () => {
 
   assert.doesNotMatch(
     lua,
-    /quarto\.doc\.is_format\("live-html"\)/
+    /QUARTO_EXECUTE_INFO/
   );
 });

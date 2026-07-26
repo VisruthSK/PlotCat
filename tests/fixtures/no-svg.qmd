@@ -6,6 +6,7 @@ filters:
 
 ::: {.plotcat id="no-svg"}
 ```{r}
+#| eval: false
 1 + 1
 ```
 :::

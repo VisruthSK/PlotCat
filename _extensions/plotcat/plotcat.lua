@@ -1,9 +1,15 @@
 local seen_ids = {}
 local validation_errors = {}
+local validation_error_set = {}
 local exercise_counter = 0
 
 local function fail(message)
-  table.insert(validation_errors, "PlotCat: " .. message)
+  local full_message = "PlotCat: " .. message
+  if validation_error_set[full_message] then
+    return
+  end
+  validation_error_set[full_message] = true
+  table.insert(validation_errors, full_message)
 end
 
 local function engine_of(block)
@@ -26,35 +32,14 @@ local function clean_starter(code)
   return code:gsub("^#|[^\n]*\n", ""):gsub("\n#|[^\n]*", "")
 end
 
-local function read_target_format()
-  local path = os.getenv("QUARTO_EXECUTE_INFO")
+local function metadata_is_true(key)
+  local value = quarto.metadata.get(key)
 
-  if not path or path == "" then
-    return nil
-  end
-
-  local file = io.open(path, "r")
-
-  if not file then
-    return nil
-  end
-
-  local contents = file:read("*a")
-  file:close()
-
-  local ok, info = pcall(quarto.json.decode, contents)
-
-  if not ok or type(info) ~= "table" then
-    return nil
-  end
-
-  local format = info.format
-  local identifier = format and format.identifier
-
-  return identifier and identifier["target-format"] or nil
+  return value == true or (
+    value ~= nil and
+    pandoc.utils.stringify(value) == "true"
+  )
 end
-
-local target_format = read_target_format()
 
 local function has_output(cell)
   for _, block in ipairs(cell.content) do
@@ -100,7 +85,7 @@ local function widget(id, engine, target, starter, extra_classes)
   <div class="plotcat__status" role="status" aria-live="polite"></div>
   <div class="plotcat__feedback"></div>
 </section>]]
-  local cell_options = "#| completion: true\n#| output: false\n#| runbutton: false\n"
+  local cell_options = "#| completion: true\n#| output: false\n"
   return {
     pandoc.RawBlock("html", html_before),
     pandoc.CodeBlock(cell_options .. starter, pandoc.Attr("", {live_engine})),
@@ -176,18 +161,12 @@ function Div(div)
     )
   end
 
-  if target_format ~= "live-html" then
-    if target_format == nil then
-      fail(
-        "could not determine the Quarto target format; " ..
-        "PlotCat requires Quarto >= 1.8 and `format: live-html`"
-      )
-    else
-      fail(
-        "requires `format: live-html`; current format is `" ..
-        target_format .. "`"
-      )
-    end
+  if not metadata_is_true("ojs-engine") then
+    fail(
+      "requires Quarto Live; install it with " ..
+      "`quarto add r-wasm/quarto-live` and use " ..
+      "`format: live-html`"
+    )
 
     return div
   end
