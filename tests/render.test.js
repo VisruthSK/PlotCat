@@ -8,13 +8,37 @@ test('the transform replaces source chunks with a widget shell', async () => {
   assert.match(lua, /class=\"plotcat plotcat--side-by-side/);
 });
 
-test('the generated code block is marked for Quarto Live detection', async () => {
-  const lua = await readFile(new URL('../_extensions/plotcat/plotcat.lua', import.meta.url), 'utf8');
-  assert.match(lua, /plotcat-live-cell/);
-});
+test('interactive PlotCat requires live-html', async () => {
+  const lua = await readFile(
+    new URL(
+      '../_extensions/plotcat/plotcat.lua',
+      import.meta.url
+    ),
+    'utf8'
+  );
 
-test('require-live.lua errors when plotcat-live-cell survives', async () => {
-  const lua = await readFile(new URL('../_extensions/plotcat/require-live.lua', import.meta.url), 'utf8');
-  assert.match(lua, /plotcat-live-cell/);
-  assert.match(lua, /Quarto Live/);
+  assert.match(
+    lua,
+    /os\.getenv\("QUARTO_EXECUTE_INFO"\)/
+  );
+
+  assert.match(
+    lua,
+    /identifier\["target-format"\]/
+  );
+
+  assert.match(
+    lua,
+    /target_format ~= "live-html"/
+  );
+
+  assert.match(
+    lua,
+    /quarto\.doc\.is_format\("html"\)/
+  );
+
+  assert.doesNotMatch(
+    lua,
+    /quarto\.doc\.is_format\("live-html"\)/
+  );
 });

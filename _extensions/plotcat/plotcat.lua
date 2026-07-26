@@ -26,6 +26,36 @@ local function clean_starter(code)
   return code:gsub("^#|[^\n]*\n", ""):gsub("\n#|[^\n]*", "")
 end
 
+local function read_target_format()
+  local path = os.getenv("QUARTO_EXECUTE_INFO")
+
+  if not path or path == "" then
+    return nil
+  end
+
+  local file = io.open(path, "r")
+
+  if not file then
+    return nil
+  end
+
+  local contents = file:read("*a")
+  file:close()
+
+  local ok, info = pcall(quarto.json.decode, contents)
+
+  if not ok or type(info) ~= "table" then
+    return nil
+  end
+
+  local format = info.format
+  local identifier = format and format.identifier
+
+  return identifier and identifier["target-format"] or nil
+end
+
+local target_format = read_target_format()
+
 local function has_output(cell)
   for _, block in ipairs(cell.content) do
     if block.t == "Div" and (block.classes:includes("cell-output") or block.classes:includes("cell-output-display")) then
@@ -73,7 +103,7 @@ local function widget(id, engine, target, starter, extra_classes)
   local cell_options = "#| completion: true\n#| output: false\n#| runbutton: false\n"
   return {
     pandoc.RawBlock("html", html_before),
-    pandoc.CodeBlock(cell_options .. starter, pandoc.Attr("", {live_engine, "plotcat-live-cell"})),
+    pandoc.CodeBlock(cell_options .. starter, pandoc.Attr("", {live_engine})),
     pandoc.RawBlock("html", html_after)
   }
 end
@@ -146,6 +176,21 @@ function Div(div)
     )
   end
 
+  if target_format ~= "live-html" then
+    if target_format == nil then
+      fail(
+        "could not determine the Quarto target format; " ..
+        "PlotCat requires Quarto >= 1.8 and `format: live-html`"
+      )
+    else
+      fail(
+        "requires `format: live-html`; current format is `" ..
+        target_format .. "`"
+      )
+    end
+
+    return div
+  end
 
   quarto.doc.add_html_dependency({name="plotcat", version="0.2.0", scripts={{path="plotcat.js", attribs={type="module"}}}, stylesheets={"plotcat.css"}, resources={"svg.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js"}})
   local extra_classes = {}

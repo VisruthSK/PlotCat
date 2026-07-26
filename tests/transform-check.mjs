@@ -60,8 +60,17 @@ try {
   assert.equal((multipleHtml.match(/plotcat\.js" type="module"/g) || []).length, 1);
 
   const wrongFormat = render('wrong-format.qmd');
-  assert.notEqual(wrongFormat.status, 0, 'wrong-format.qmd should fail without Quarto Live');
-  assert.match(wrongFormat.stdout + wrongFormat.stderr, /Quarto Live/);
+
+  assert.notEqual(
+    wrongFormat.status,
+    0,
+    'format: html should be rejected'
+  );
+
+  assert.match(
+    wrongFormat.stdout + wrongFormat.stderr,
+    /requires `format: live-html`; current format is `html`/
+  );
 
   const nonHtml = render('non-html.qmd');
   assert.equal(nonHtml.status, 0, nonHtml.stdout + nonHtml.stderr);
