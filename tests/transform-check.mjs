@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -45,7 +46,8 @@ try {
   assert.equal(two.status, 0, two.stdout + two.stderr);
   const twoHtml = readFileSync(resolve(output, 'two-chunks.html'), 'utf8');
   assert.match(twoHtml, /id="plotcat-two-r"/);
-  assert.match(twoHtml, /&quot;packages&quot;:\[&quot;ggplot2&quot;\]/);
+  assert.match(twoHtml, /&quot;engine&quot;:&quot;r&quot;/);
+  assert.doesNotMatch(twoHtml, /&quot;packages&quot;/);
   assert.match(twoHtml, /id="webr-/);
   assert.doesNotMatch(twoHtml, /cdnjs\.cloudflare\.com\/ajax\/libs\/codemirror/);
   assert.doesNotMatch(twoHtml, /main = "Target title"/);
@@ -78,6 +80,34 @@ try {
     assert.notEqual(result.status, 0, `${fixture} unexpectedly rendered`);
     assert.match(result.stdout + result.stderr, new RegExp(message));
   }
+
+  // Quarto Live owns runtime package installation
+  const lua = await readFile(
+    new URL('../_extensions/plotcat/plotcat.lua', import.meta.url),
+    'utf8'
+  );
+
+  const runtime = await readFile(
+    new URL('../_extensions/plotcat/runtime-manager.js', import.meta.url),
+    'utf8'
+  );
+
+  const pyodide = await readFile(
+    new URL('../_extensions/plotcat/pyodide-adapter.js', import.meta.url),
+    'utf8'
+  );
+
+  const webr = await readFile(
+    new URL('../_extensions/plotcat/webr-adapter.js', import.meta.url),
+    'utf8'
+  );
+
+  assert.doesNotMatch(lua, /packages_for/);
+  assert.doesNotMatch(lua, /packages\s*=/);
+  assert.doesNotMatch(runtime, /manifest\.packages/);
+  assert.doesNotMatch(runtime, /installPackages/);
+  assert.doesNotMatch(pyodide, /micropip|pyimport|loadPackage/);
+  assert.doesNotMatch(webr, /installPackages/);
 } finally {
   try { rmSync(output, { recursive: true, force: true }); } catch {}
 }

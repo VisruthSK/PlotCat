@@ -13,9 +13,10 @@ function loadPlotly() {
       const script = document.createElement('script');
       script.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
       script.onload = () => resolve(window.Plotly);
-      script.onerror = () => reject(
-        new Error('Failed to load Plotly.')
-      );
+      script.onerror = () => {
+        plotlyPromise = undefined;
+        reject(new Error('Failed to load Plotly.'));
+      };
       document.head.appendChild(script);
     });
   }
@@ -67,7 +68,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
     manager = runtimeManager;
   }
   const manifest = JSON.parse(root.dataset.plotcatManifest);
-  const adapterPromise = manager.get(manifest.engine, manifest);
+  const adapterPromise = manager.get(manifest.engine);
   // Prevent unhandled promise rejection warnings in the console
   adapterPromise.catch(() => {});
 
@@ -94,15 +95,12 @@ export function mountPlotCat(root, manager = runtimeManager) {
       const targetCode = decodeTarget(targetCodeBase64);
       const adapter = await adapterPromise;
 
-      if (manifest.packages.includes('plotly')) {
-        status.textContent = 'Loading Plotly…';
-        await loadPlotly();
-      }
-
       status.textContent = 'Rendering target…';
       const result = await manager.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height }));
 
       if (result.startsWith('{"type":"plotly"')) {
+        status.textContent = 'Loading Plotly…';
+        await loadPlotly();
         const payload = JSON.parse(result);
         targetPlotlyPayload = payload.data.x ? payload.data.x : payload.data;
         limitPlotlyToSideBySide(root);
@@ -199,11 +197,13 @@ export function mountPlotCat(root, manager = runtimeManager) {
     run.disabled = true;
     status.textContent = 'Running…';
     try {
-      const adapter = await manager.get(manifest.engine, manifest);
+      const adapter = await manager.get(manifest.engine);
       const result = await manager.run(manifest.engine, () => adapter.renderSvg(studentCode(root), { width, height }));
 
       let score, feedback;
       if (result.startsWith('{"type":"plotly"')) {
+        status.textContent = 'Loading Plotly…';
+        await loadPlotly();
         const payload = JSON.parse(result);
         const studentPlotlyPayload = payload.data.x ? payload.data.x : payload.data;
         const previous = student.querySelector('.js-plotly-plot');
@@ -224,6 +224,13 @@ export function mountPlotCat(root, manager = runtimeManager) {
         score = compareResult.score;
         feedback = compareResult.feedback;
       } else {
+        // Purge any previous Plotly chart
+        const previousPlotly = student.querySelector('.js-plotly-plot');
+        if (previousPlotly && window.Plotly) {
+          window.Plotly.purge(previousPlotly);
+        }
+        // Remove inline height set by Plotly branch
+        student.style.removeProperty('height');
         const svg = sanitizeSvg(result);
         student.replaceChildren(svgFragment(scopeSvgIds(svg, `${svgPrefix}-student`)));
         const studentFeatures = extractFeatures(svg);

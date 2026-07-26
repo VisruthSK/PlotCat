@@ -1,6 +1,5 @@
-
-
 # PlotCat
+
 
 `plotcat` is a Quarto extension for plot-recreation exercises. Authors
 provide a target plot and optional starter code. Students write R or
@@ -32,11 +31,29 @@ quarto add VisruthSK/PlotCat
 Then enable the filter in a document or project config:
 
 ``` yaml
-format: live-html
+format:
+  live-html:
+    webr:
+      packages:
+        - svglite
+        - ggplot2
+
+    pyodide:
+      packages:
+        - matplotlib
 
 filters:
   - plotcat
 ```
+
+R pages using PlotCat must declare `svglite`. Authors must declare every
+non-base R or Python package used by target or starter code. PlotCat
+does not infer or install runtime packages. Package configuration
+belongs to Quarto Live.
+
+For a single document, Quarto Live also accepts `webr` and `pyodide`
+options in document front matter. For project configuration, nesting
+them under `live-html` avoids metadata-merging problems.
 
 `live-html` provides the native WebR and Pyodide editors. Set
 `#| eval: false` on each PlotCat chunk so Quarto leaves it for the
@@ -52,8 +69,10 @@ runs.
 
 ```` markdown
 ::: {.plotcat}
-```{r}
-#| eval: false
+
+::: {.cell}
+
+```{.r .cell-code}
 tinyplot::tinyplot(
   dist ~ speed,
   data = cars,
@@ -63,6 +82,8 @@ tinyplot::tinyplot(
 )
 ```
 :::
+
+:::
 ````
 
 Add a second chunk to give students starter code. Also set
@@ -70,8 +91,10 @@ Add a second chunk to give students starter code. Also set
 
 ```` markdown
 ::: {.plotcat}
-```{r}
-#| eval: false
+
+::: {.cell}
+
+```{.r .cell-code}
 tinyplot::tinyplot(
   dist ~ speed,
   data = cars,
@@ -80,14 +103,20 @@ tinyplot::tinyplot(
   ylab = "Stopping distance"
 )
 ```
+:::
 
-```{r}
-#| eval: false
+
+
+::: {.cell}
+
+```{.r .cell-code}
 tinyplot::tinyplot(
   dist ~ speed,
   data = cars
 )
 ```
+:::
+
 :::
 ````
 

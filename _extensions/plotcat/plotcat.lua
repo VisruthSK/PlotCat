@@ -22,28 +22,6 @@ local function escape_html(value)
   return value:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;")
 end
 
-local function packages_for(engine, code)
-  local packages, found = {}, {}
-  local function add(name) if not found[name] then found[name] = true; table.insert(packages, name) end end
-  if engine == "r" then
-    for name in code:gmatch("([%w%.]+)%s*::") do add(name) end
-    for name in code:gmatch("library%s*%(%s*['\"]?([%w%.]+)") do add(name) end
-  else
-    for line in code:gmatch("[^\r\n]+") do
-      local from_pkg = line:match("^%s*from%s+([%w_]+)") or line:match("%s+from%s+([%w_]+)")
-      if from_pkg then
-        add(from_pkg)
-      else
-        local import_pkg = line:match("^%s*import%s+([%w_]+)") or line:match("%s+import%s+([%w_]+)")
-        if import_pkg then
-          add(import_pkg)
-        end
-      end
-    end
-  end
-  return packages
-end
-
 local function clean_starter(code)
   return code:gsub("^#|[^\n]*\n", ""):gsub("\n#|[^\n]*", "")
 end
@@ -59,22 +37,9 @@ end
 
 local function widget(id, engine, target, starter, extra_classes)
   local dom_id = "plotcat-" .. id:gsub("[^%w_-]", "-")
-  local packages = {}
-  local seen = {}
-  local function add_packages(code)
-    for _, package in ipairs(packages_for(engine, code)) do
-      if not seen[package] then
-        seen[package] = true
-        table.insert(packages, package)
-      end
-    end
-  end
-  add_packages(target)
-  add_packages(starter)
   local manifest = quarto.json.encode({
     id = id,
-    engine = engine,
-    packages = packages
+    engine = engine
   })
   local encoded_target = quarto.base64.encode(target)
 

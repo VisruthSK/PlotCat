@@ -1,39 +1,10 @@
 export class PyodideAdapter {
   constructor(pyodidePromise) {
     this.pyodidePromise = pyodidePromise;
-    this.installed = new Set();
   }
 
-  async init(manifest) {
+  async init() {
     this.pyodide = await this.pyodidePromise;
-    if (manifest && manifest.packages) {
-      await this.installPackages(manifest.packages);
-    }
-  }
-
-  async installPackages(packages) {
-    const aliases = { sklearn: 'scikit-learn' };
-    const bundledNames = new Set(['matplotlib', 'numpy', 'pandas', 'scikit-learn', 'scipy']);
-    const bundled = [];
-    const wheels = [];
-    for (const name of packages) {
-      const normalized = aliases[name] || name;
-      if (!this.installed.has(normalized)) {
-        (bundledNames.has(normalized) ? bundled : wheels).push(normalized);
-      }
-    }
-    if (bundled.length) {
-      await this.pyodide.loadPackage(bundled);
-      bundled.forEach(name => this.installed.add(name));
-      if (bundled.includes('matplotlib')) {
-        await this.pyodide.runPythonAsync("import matplotlib; matplotlib.use('SVG')");
-      }
-    }
-    if (wheels.length) {
-      await this.pyodide.loadPackage('micropip');
-      await this.pyodide.pyimport('micropip').install(wheels);
-      wheels.forEach(name => this.installed.add(name));
-    }
   }
   async renderSvg(code, options = {}) {
     const width = options.width || 6.4;
@@ -51,7 +22,10 @@ if _plotcat_plt is not None:
 
 _plotcat_globals = {'__builtins__': __builtins__}
 _plotcat_result = None
+_plotcat_figure = None
+_plotcat_out = None
 _plotcat_console = io.StringIO()
+
 with contextlib.redirect_stdout(_plotcat_console), contextlib.redirect_stderr(_plotcat_console):
     _plotcat_tree = ast.parse(${JSON.stringify(code)})
     if _plotcat_tree.body and isinstance(_plotcat_tree.body[-1], ast.Expr):
@@ -77,7 +51,7 @@ else:
         _plotcat_figure = _plotcat_plt.gcf()
     else:
         _plotcat_out = json.dumps({'type': 'no-plot', 'output': _plotcat_console.getvalue()})
-    if '_plotcat_figure' in globals() or '_plotcat_figure' in locals():
+    if _plotcat_figure is not None:
         _plotcat_figure.set_size_inches(${width}, ${height})
         _plotcat_buffer = io.StringIO()
         _plotcat_figure.savefig(_plotcat_buffer, format='svg')

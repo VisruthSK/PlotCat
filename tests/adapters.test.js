@@ -5,27 +5,26 @@ import { PyodideAdapter } from '../_extensions/plotcat/pyodide-adapter.js';
 import { comparePlotly } from '../_extensions/plotcat/svg.js';
 
 function mockWebR(overrides = {}) {
-  const calls = { init: 0, packages: [], code: '', ...overrides.calls };
+  const calls = { init: 0, code: '', ...overrides.calls };
   class WebR {
     FS = overrides.FS || { readFile: async () => new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>') };
     async init() { calls.init++; }
-    async installPackages(packages) { calls.packages.push(packages); }
     async evalRVoid(code) { calls.code = code; }
   }
   return { WebR, calls };
 }
 
-test('WebR installs declared packages and returns SVG bytes', async () => {
+test('WebR returns SVG bytes', async () => {
   const { WebR, calls } = mockWebR();
   const webR = new WebR();
   await webR.init();
   const adapter = new WebRAdapter(Promise.resolve(webR));
-  await adapter.init({ packages: ['tinyplot', 'ggplot2'] });
+  await adapter.init();
   const svg = await adapter.renderSvg('plot(cars)');
   assert.equal(calls.init, 1);
-  assert.deepEqual(calls.packages, [['svglite'], ['tinyplot', 'ggplot2']]);
   assert.match(calls.code, /new\.env\(parent = globalenv\(\)\)/);
   assert.match(calls.code, /svglite::svglite\(/);
+  assert.match(calls.code, /requireNamespace\("svglite"/);
   assert.match(calls.code, /withVisible\(eval\(parse/);
   assert.match(calls.code, /sink\(/);
   assert.match(calls.code, /print\(val\)/);
@@ -38,9 +37,8 @@ test('WebR adapter does not initialize the provided WebR instance', async () => 
   const existing = new WebR();
   await existing.init();
   const adapter = new WebRAdapter(Promise.resolve(existing));
-  await adapter.init({ packages: ['tinyplot'] });
+  await adapter.init();
   assert.equal(calls.init, 1, 'should not re-initialize the provided WebR instance');
-  assert.deepEqual(calls.packages, [['svglite'], ['tinyplot']]);
   const svg = await adapter.renderSvg('plot(cars)');
   assert.match(svg, /^<svg/);
 });
@@ -52,29 +50,30 @@ test('WebR reports runtime and invalid-output errors with language context', asy
       return new TextEncoder().encode(path.endsWith('.txt') ? '[1] 2\n' : '<svg xmlns="http://www.w3.org/2000/svg"/>');
     } };
     async init() {}
-    async installPackages() {}
     async evalRVoid() {}
   }
   const adapter = new WebRAdapter(Promise.resolve(new BrokenWebR()));
-  await adapter.init({ packages: [] });
+  await adapter.init();
   await assert.rejects(adapter.renderSvg('1 + 1'), error => error.message === 'R code did not produce a plot.' && error.output === '[1] 2\n');
   adapter.webR.evalRVoid = async () => { throw new Error('unexpected symbol'); };
   await assert.rejects(adapter.renderSvg('plot('), /R error: unexpected symbol/);
 });
 
-test('Pyodide installs import aliases and captures an isolated final plot expression', async () => {
-  const calls = { loaded: [], installed: [], code: '' };
+test('Pyodide captures an isolated final plot expression', async () => {
+  const calls = {
+    code: ''
+  };
   const pyodide = {
-    loadPackage: async name => calls.loaded.push(name),
-    pyimport: () => ({ install: async packages => calls.installed.push(packages) }),
-    runPythonAsync: async code => { calls.code = code; return '<svg xmlns="http://www.w3.org/2000/svg"/>'; }
+    runPythonAsync: async code => {
+      calls.code = code;
+      return '<svg xmlns="http://www.w3.org/2000/svg"/>';
+    }
   };
   const adapter = new PyodideAdapter(Promise.resolve(pyodide));
-  await adapter.init({ packages: ['matplotlib', 'sklearn', 'plotnine'] });
+  await adapter.init();
   const svg = await adapter.renderSvg('fig, ax = plt.subplots()');
-  assert.deepEqual(calls.loaded, [['matplotlib', 'scikit-learn'], 'micropip']);
-  assert.deepEqual(calls.installed, [['plotnine']]);
   assert.match(calls.code, /_plotcat_globals = \{'__builtins__': __builtins__\}/);
+  assert.match(calls.code, /_plotcat_console = io\.StringIO\(\)/);
   assert.match(calls.code, /isinstance\(_plotcat_tree\.body\[-1\], ast\.Expr\)/);
   assert.match(calls.code, /type\(_plotcat_result\)\.__module__\.startswith\('plotnine'\)/);
   assert.match(calls.code, /_plotcat_result\.draw\(\)/);
@@ -83,13 +82,39 @@ test('Pyodide installs import aliases and captures an isolated final plot expres
 });
 
 test('Pyodide reports Python failures and missing plots clearly', async () => {
-  const pyodide = { loadPackage: async () => {}, pyimport: () => ({ install: async () => {} }), runPythonAsync: async () => '{"type": "no-plot", "output": "hello\\n"}' };
-  const adapter = new PyodideAdapter(Promise.resolve(pyodide)); await adapter.init({ packages: [] });
+  const pyodide = { runPythonAsync: async () => '{"type": "no-plot", "output": "hello\\n"}' };
+  const adapter = new PyodideAdapter(Promise.resolve(pyodide)); await adapter.init();
   await assert.rejects(adapter.renderSvg('print("hello")'), error => error.message === 'Python code did not produce a plot.' && error.output === 'hello\n');
   pyodide.runPythonAsync = async () => 'not svg';
   await assert.rejects(adapter.renderSvg('x = 1'), /Python error: Python code did not produce a plot/);
   pyodide.runPythonAsync = async () => { throw new Error('NameError: x'); };
   await assert.rejects(adapter.renderSvg('x'), /Python error: NameError: x/);
+});
+
+test('Pyodide does not leak previous plot between executions', async () => {
+  let callCount = 0;
+  const pyodide = {
+    runPythonAsync: async code => {
+      callCount++;
+      if (callCount === 1) {
+        return '<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>';
+      }
+      return '{"type": "no-plot", "output": "no plot\\n"}';
+    }
+  };
+  const adapter = new PyodideAdapter(Promise.resolve(pyodide));
+  await adapter.init();
+
+  const first = await adapter.renderSvg(`
+import matplotlib.pyplot as plt
+plt.plot([1, 2], [3, 4])
+`);
+  assert.match(first, /<svg/);
+
+  await assert.rejects(
+    () => adapter.renderSvg('print("no plot")'),
+    /Python code did not produce a plot/
+  );
 });
 
 test('comparePlotly evaluates data, types, styling, and layout variables', () => {

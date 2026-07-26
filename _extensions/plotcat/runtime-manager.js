@@ -1,15 +1,31 @@
 import { WebRAdapter } from './webr-adapter.js';
 import { PyodideAdapter } from './pyodide-adapter.js';
 
-function waitForOJS() {
-  return new Promise(resolve => {
+function waitForOJS(timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const started = performance.now();
+
     function check() {
-      if (window._ojs?.ojsConnector?.mainModule) {
-        resolve(window._ojs.ojsConnector.mainModule);
-      } else {
-        requestAnimationFrame(check);
+      const main = window._ojs?.ojsConnector?.mainModule;
+      if (main) {
+        resolve(main);
+        return;
       }
+
+      if (performance.now() - started >= timeoutMs) {
+        reject(
+          new Error(
+            'Quarto Live did not initialize its OJS runtime. ' +
+            'Ensure Quarto Live is installed and use ' +
+            '`format: live-html`.'
+          )
+        );
+        return;
+      }
+
+      requestAnimationFrame(check);
     }
+
     check();
   });
 }
@@ -32,36 +48,31 @@ export class RuntimeManager {
     this.factories = factories;
     this.instances = new Map();
     this.queues = new Map();
-    this.installedPackages = new Map();
   }
 
-  async get(engine, manifest) {
+  async get(engine) {
     if (!this.instances.has(engine)) {
       const promise = (async () => {
         const adapter = this.factories[engine]?.();
-        if (!adapter) throw new Error(`Unsupported runtime: ${engine}`);
-        await adapter.init({ packages: [] });
+
+        if (!adapter) {
+          throw new Error(`Unsupported runtime: ${engine}`);
+        }
+
+        await adapter.init();
         return adapter;
       })();
+
       this.instances.set(engine, promise);
+
       promise.catch(() => {
         if (this.instances.get(engine) === promise) {
           this.instances.delete(engine);
         }
       });
     }
-    const adapter = await this.instances.get(engine);
-    if (manifest?.packages?.length) {
-      await this.run(engine, async () => {
-        const installed = this.installedPackages.get(engine) || new Set();
-        const missing = manifest.packages.filter(packageName => !installed.has(packageName));
-        if (!missing.length) return;
-        await adapter.installPackages(missing);
-        missing.forEach(packageName => installed.add(packageName));
-        this.installedPackages.set(engine, installed);
-      });
-    }
-    return adapter;
+
+    return this.instances.get(engine);
   }
 
   run(engine, task) {

@@ -61,10 +61,10 @@ try {
   await load();
   const successfulRun = await page.evaluate(async () => {
     const root = document.querySelector('.plotcat');
-    root.dataset.plotcatManifest = '{"id":"test","engine":"r","packages":[]}';
+    root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
     const calls = [];
     const manager = {
-      get: async (engine, manifest) => { calls.push({ engine, manifest }); return { renderSvg: async () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>bad()</script><circle fill="red"/></svg>` }; },
+      get: async engine => { calls.push({ engine }); return { renderSvg: async () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>bad()</script><circle fill="red"/></svg>` }; },
       run: async (_engine, task) => task()
     };
     window.plotcatUi.mountPlotCat(root, manager);
@@ -90,11 +90,11 @@ try {
   await load();
   const forEachRun = await page.evaluate(async () => {
     const root = document.querySelector('.plotcat');
-    root.dataset.plotcatManifest = '{"id":"test","engine":"r","packages":[]}';
+    root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
     const { runtimeManager } = await import('../../_extensions/plotcat/runtime-manager.js');
     const calls = [];
-    runtimeManager.get = async (engine, manifest) => {
-      calls.push({ engine, manifest });
+    runtimeManager.get = async engine => {
+      calls.push({ engine });
       return { renderSvg: async () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg>` };
     };
     runtimeManager.run = async (_engine, task) => task();
@@ -116,7 +116,7 @@ try {
 
   await load();
   const failedRun = await page.evaluate(async () => {
-    const root = document.querySelector('.plotcat'); root.dataset.plotcatManifest = '{"id":"test","engine":"r","packages":[]}';
+    const root = document.querySelector('.plotcat'); root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
     window.plotcatUi.mountPlotCat(root, { get: async () => { throw new Error('R package tinyplot is unavailable.'); }, run: async () => {} });
     root.querySelector('[data-plotcat-run]').click(); await new Promise(resolve => setTimeout(resolve, 0));
     return { status: root.querySelector('.plotcat__status').textContent, error: root.classList.contains('plotcat--error'), enabled: !root.querySelector('[data-plotcat-run]').disabled };

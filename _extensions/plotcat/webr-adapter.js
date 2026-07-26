@@ -1,30 +1,10 @@
 export class WebRAdapter {
   constructor(webRPromise) {
     this.webRPromise = webRPromise;
-    this.installed = new Set();
   }
 
-  async init(manifest) {
+  async init() {
     this.webR = await this.webRPromise;
-    await this.installPackages(['svglite']);
-    if (manifest && manifest.packages) {
-      await this.installPackages(manifest.packages);
-    }
-  }
-
-  async installPackages(packages) {
-    const missing = packages.filter(
-      packageName => !this.installed.has(packageName)
-    );
-
-    if (!missing.length) {
-      return;
-    }
-
-    await this.webR.installPackages(missing);
-    missing.forEach(packageName => {
-      this.installed.add(packageName);
-    });
   }
 
   async renderSvg(code, options = {}) {
@@ -36,6 +16,14 @@ export class WebRAdapter {
     try {
       await this.webR.evalRVoid(`local({
         if (file.exists("/tmp/plotcat-plotly.json")) file.remove("/tmp/plotcat-plotly.json");
+        if (!requireNamespace("svglite", quietly = TRUE)) {
+          stop(
+            paste(
+              "PlotCat requires the R package 'svglite'.",
+              "Add it under format.live-html.webr.packages."
+            )
+          )
+        }
         svglite::svglite(${JSON.stringify(path)}, width = ${width}, height = ${height});
         sink(${JSON.stringify(outputPath)});
         on.exit({ sink(); dev.off() }, add = TRUE);
