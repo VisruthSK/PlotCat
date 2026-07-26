@@ -1,5 +1,6 @@
 project:
   type: website
+  output-dir: _site
   render:
     - index.qmd
     - example.qmd
@@ -33,7 +34,7 @@ format:
     fig-format: svg
 
 filters:
-  - plotcat
+  - ../_extensions/plotcat/plotcat.lua
 
 execute:
   freeze: auto
