@@ -232,10 +232,10 @@ function Div(div)
 
   quarto.doc.add_html_dependency({
     name = "plotcat",
-    version = "0.2.0",
+    version = "0.3.0",
     scripts = {{path = "plotcat.js", attribs = {type = "module"}}},
     stylesheets = {"plotcat.css"},
-    resources = {"utils.js", "svg.js", "runtime-manager.js", "quarto-live-bridge.js", "webr-adapter.js", "pyodide-adapter.js"},
+    resources = {"svg.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js"},
     head = '<link rel="preconnect" href="https://cdn.plot.ly" crossorigin><link rel="dns-prefetch" href="https://webr.r-wasm.org"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net">'
   })
 
