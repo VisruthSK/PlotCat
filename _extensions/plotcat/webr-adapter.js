@@ -1,3 +1,5 @@
+import { errorMessage } from './utils.js';
+
 export class WebRAdapter {
   constructor(webRPromise) {
     this.webRPromise = webRPromise;
@@ -41,7 +43,7 @@ export class WebRAdapter {
 
       if (plotlyBytes) {
         const raw = new TextDecoder().decode(plotlyBytes);
-        return { kind: 'plotly', figure: JSON.parse(raw).data, stdout: [], warnings: [] };
+        return { kind: 'plotly', figure: JSON.parse(raw).data };
       }
 
       const svgBytes = await this.webR.FS.readFile(path);
@@ -49,11 +51,11 @@ export class WebRAdapter {
       if (!/<(?:circle|line|path|polygon|polyline|rect|text|image|use)\b/.test(svg)) {
         return { kind: 'no-plot', message: 'R code did not produce a plot. Make sure the last expression generates a plot (e.g., plot(), ggplot(), tinyplot()).' };
       }
-      return { kind: 'svg', svg, stdout: [], warnings: [] };
+      return { kind: 'svg', svg };
     } catch (error) {
       let traceback = '';
       try { traceback = new TextDecoder().decode(await this.webR.FS.readFile(outputPath)); } catch {}
-      return { kind: 'error', message: error instanceof Error ? error.message : String(error), traceback };
+      return { kind: 'error', message: errorMessage(error), traceback };
     } finally {
       if (this.webR?.FS?.unlink) {
         for (const file of [path, outputPath, '/tmp/plotcat-plotly.json']) {

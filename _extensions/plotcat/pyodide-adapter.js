@@ -1,3 +1,5 @@
+import { errorMessage } from './utils.js';
+
 export class PyodideAdapter {
   constructor(pyodidePromise) {
     this.pyodidePromise = pyodidePromise;
@@ -67,14 +69,14 @@ _plotcat_out`;
         return { kind: 'no-plot', message: 'Python code did not produce a plot. Make sure the last expression is a figure (e.g., plt.plot(), ggplot(), go.Figure()).' };
       }
       if (output.startsWith('{"type":"plotly"')) {
-        return { kind: 'plotly', figure: JSON.parse(output).data, stdout: [], warnings: [] };
+        return { kind: 'plotly', figure: JSON.parse(output).data };
       }
       if (output.includes('<svg')) {
-        return { kind: 'svg', svg: output, stdout: [], warnings: [] };
+        return { kind: 'svg', svg: output };
       }
       return { kind: 'no-plot', message: 'Python code did not produce a plot. Make sure the last expression is a figure (e.g., plt.plot(), ggplot(), go.Figure()).' };
     } catch (error) {
-      return { kind: 'error', message: error instanceof Error ? error.message : String(error), traceback: '' };
+      return { kind: 'error', message: errorMessage(error), traceback: '' };
     }
   }
 }

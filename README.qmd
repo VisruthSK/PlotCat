@@ -8,8 +8,8 @@ compare it with the target.
 `PlotCat` compares SVG structure and plot text for static plots. It also
 supports a focused comparison of Plotly traces and layout. Plotly
 exercises support side-by-side comparison only; overlay and wipe apply
-to SVG plots. `PlotCa`t obfuscates the target source in the rendered HTML,
-which prevents casual inspection but does not protect the source.
+to SVG plots. PlotCat obfuscates the target source in the rendered HTML,
+which prevents casual inspection.
 
 ## Requirements
 

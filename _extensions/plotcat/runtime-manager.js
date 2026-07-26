@@ -1,3 +1,4 @@
+import { withRetry } from './utils.js';
 import { quartoLiveBridge } from './quarto-live-bridge.js';
 
 export class RuntimeManager {
@@ -22,23 +23,12 @@ export class RuntimeManager {
         return err;
       }
 
-      const promise = (async () => {
-        let lastError;
-        for (let attempt = 1; attempt <= 3; attempt++) {
-          try {
-            const adapter = factory();
-            if (!adapter) {
-              throw new Error(`Runtime factory for '${engine}' returned null`);
-            }
-            await adapter.init();
-            return adapter;
-          } catch (error) {
-            lastError = error;
-            if (attempt < 3) {
-              await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-            }
-          }
-        }
+      const promise = withRetry(async () => {
+        const adapter = factory();
+        if (!adapter) throw new Error(`Runtime factory for '${engine}' returned null`);
+        await adapter.init();
+        return adapter;
+      }).catch(() => {
         const name = engine === 'r' ? 'WebR' : engine === 'python' ? 'Pyodide' : engine;
         throw new Error(
           `Could not load ${name} after 3 attempts. ` +
@@ -47,7 +37,7 @@ export class RuntimeManager {
           `on first use and is cached by your browser afterwards. ` +
           `If you use a corporate proxy or firewall, confirm these domains are allowed.`
         );
-      })();
+      });
       this.instances.set(engine, promise);
       promise.catch(() => {
         if (this.instances.get(engine) === promise) {

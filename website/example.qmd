@@ -6,6 +6,20 @@ format:
     toc-depth: 3
 ---
 
+
+```{=html}
+<style>
+#scatter-exercise .plotcat__editor {
+  height: 16rem;
+}
+
+.plotcat.custom-card {
+  --plotcat-bg: #f8fafc;
+  --plotcat-border: #cbd5e1;
+}
+</style>
+```
+
 # R
 
 ## [`ggplot2`](https://ggplot2.tidyverse.org)
@@ -179,5 +193,33 @@ fig
 import plotly.graph_objects as go
 fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6]))
 fig
+```
+:::
+
+# Styled
+
+## Custom card
+
+::: {.plotcat .custom-card}
+```{r}
+#| eval: false
+tinyplot::tinyplot(dist ~ speed, data = cars)
+```
+:::
+
+## Tall editor
+
+::: {.plotcat id="scatter-exercise"}
+```{python}
+#| eval: false
+import matplotlib.pyplot as plt
+plt.plot([1, 2, 3, 4], [1, 4, 9, 16], 'o')
+plt.title("Simple")
+```
+
+```{python}
+#| eval: false
+import matplotlib.pyplot as plt
+plt.plot([1, 2, 3, 4], [1, 4, 9, 16], 'o')
 ```
 :::

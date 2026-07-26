@@ -1,16 +1,6 @@
 import { compareSvgFeatures, extractFeatures, sanitizeSvg, scopeSvgIds, comparePlotly } from './svg.js';
+import { withRetry, errorMessage } from './utils.js';
 import { runtimeManager } from './runtime-manager.js';
-
-async function withRetry(fn, retries = 3) {
-  for (let attempt = 1; ; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (attempt > retries) throw error;
-      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-    }
-  }
-}
 
 let plotlyPromise;
 
@@ -258,7 +248,7 @@ export function mountPlotCat(root, manager = runtimeManager) {
       status.textContent = '';
       root.classList.add('plotcat--complete');
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
+      const msg = errorMessage(error);
       if (msg.includes('requireNamespace') || msg.includes('package is not available') || (msg.includes('not') && msg.includes('module'))) {
         status.textContent = msg + ' Required packages must be listed under `format.live-html` in your Quarto config.';
       } else {

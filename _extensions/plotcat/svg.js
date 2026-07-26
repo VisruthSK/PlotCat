@@ -1,8 +1,10 @@
+import { parseSvgDoc, serializeSvgDoc } from './utils.js';
+
 const unsafeUrl = /^\s*(?:https?:|data:|javascript:|\/\/)/i;
 const round = value => String(Math.round(Number(value) * 1000) / 1000);
 
 export function sanitizeSvg(source) {
-  const doc = new DOMParser().parseFromString(source, 'image/svg+xml');
+  const doc = parseSvgDoc(source);
   if (doc.querySelector('parsererror') || doc.documentElement.localName !== 'svg') throw new Error('The runtime did not return valid SVG.');
   doc.querySelectorAll('script, foreignObject, metadata').forEach(node => node.remove());
   const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_COMMENT);
@@ -18,11 +20,11 @@ export function sanitizeSvg(source) {
       if (/^on/i.test(attribute.name) || externalReference) node.removeAttribute(attribute.name);
     });
   });
-  return new XMLSerializer().serializeToString(doc.documentElement);
+  return serializeSvgDoc(doc);
 }
 
 export function scopeSvgIds(source, prefix) {
-  const doc = typeof source === 'string' ? new DOMParser().parseFromString(source, 'image/svg+xml') : source;
+  const doc = parseSvgDoc(source);
   const ids = new Map();
   doc.querySelectorAll('[id]').forEach(node => {
     const original = node.id;
@@ -37,11 +39,11 @@ export function scopeSvgIds(source, prefix) {
         .replace(/^#(.+)$/, (match, id) => `#${ids.get(id) || id}`);
     });
   });
-  return new XMLSerializer().serializeToString(doc.documentElement);
+  return serializeSvgDoc(doc);
 }
 
 export function normalizeSvg(source) {
-  const doc = typeof source === 'string' ? new DOMParser().parseFromString(source, 'image/svg+xml') : source;
+  const doc = parseSvgDoc(source);
   const ids = new Map();
   let index = 0;
   doc.querySelectorAll('[id]').forEach(node => {
