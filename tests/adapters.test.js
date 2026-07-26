@@ -63,7 +63,7 @@ test('WebR reports runtime and invalid-output errors with language context', asy
   await adapter.init();
   const noPlot = await adapter.renderSvg('1 + 1');
   assert.equal(noPlot.kind, 'no-plot');
-  assert.equal(noPlot.message, 'R code did not produce a plot.');
+  assert.match(noPlot.message, /R code did not produce a plot/);
 
   adapter.webR.evalRVoid = async () => { throw new Error('unexpected symbol'); };
   const error = await adapter.renderSvg('plot(');
@@ -99,7 +99,7 @@ test('Pyodide reports Python failures and missing plots clearly', async () => {
   const adapter = new PyodideAdapter(Promise.resolve(pyodide)); await adapter.init();
   const noPlot = await adapter.renderSvg('print("hello")');
   assert.equal(noPlot.kind, 'no-plot');
-  assert.equal(noPlot.message, 'Python code did not produce a plot.');
+  assert.match(noPlot.message, /Python code did not produce a plot/);
   pyodide.runPythonAsync = async () => 'not svg';
   const noSvg = await adapter.renderSvg('x = 1');
   assert.equal(noSvg.kind, 'no-plot');

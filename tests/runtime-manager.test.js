@@ -27,25 +27,38 @@ test('different language queues can run independently', async () => {
   releaseR(); await r; assert.deepEqual(order, ['r-start', 'python', 'r-end']);
 });
 
-test('unsupported engines fail before creating a runtime', async () => {
+test('unsupported engines fail immediately without retry', async () => {
   const manager = new RuntimeManager({});
-  await assert.rejects(manager.get('julia'), /Unsupported runtime: julia/);
+  await assert.rejects(manager.get('julia'), /Use .r. for WebR or .python. for Pyodide/);
 });
 
-test('failed runtime initialization can be retried', async () => {
+test('runtime init is retried up to 3 times before giving up', async () => {
   let attempts = 0;
   const manager = new RuntimeManager({
     r: () => ({
       init: async () => {
         attempts++;
-        if (attempts === 1) throw new Error('CDN download failed');
+        throw new Error('CDN download failed');
       }
     })
   });
-  await assert.rejects(manager.get('r'), /CDN download failed/);
-  const success = await manager.get('r');
-  assert.ok(success);
-  assert.equal(attempts, 2);
+  await assert.rejects(manager.get('r'), /after 3 attempts/);
+  assert.equal(attempts, 3);
+});
+
+test('runtime init succeeds on retry if transient failure clears', async () => {
+  let attempts = 0;
+  const manager = new RuntimeManager({
+    r: () => ({
+      init: async () => {
+        attempts++;
+        if (attempts < 3) throw new Error('Transient failure');
+      }
+    })
+  });
+  const adapter = await manager.get('r');
+  assert.ok(adapter);
+  assert.equal(attempts, 3);
 });
 
 test('runtime initialization is delegated to Quarto Live', async () => {
