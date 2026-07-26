@@ -8,7 +8,14 @@ const TEXT_KEYS = new Set([
 ]);
 
 export function normalizeFigure(value) {
-  const fig = typeof value === 'string' ? JSON.parse(value) : (value ?? {});
+  let fig = value ?? {};
+  if (typeof value === 'string') {
+    try {
+      fig = JSON.parse(value);
+    } catch {
+      fig = {};
+    }
+  }
   return {
     data: fig.data ?? [],
     layout: fig.layout ?? {},

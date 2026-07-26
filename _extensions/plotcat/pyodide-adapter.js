@@ -65,11 +65,16 @@ _plotcat_out`;
     try {
       const result = await this.pyodide.runPythonAsync(wrapped);
       const output = String(result);
-      if (output.startsWith('{"type": "no-plot"')) {
-        return { kind: 'no-plot', message: 'Python code did not produce a plot. Make sure the last expression is a figure (e.g., plt.plot(), ggplot(), go.Figure()).' };
-      }
-      if (output.startsWith('{"type":"plotly"')) {
-        return { kind: 'plotly', figure: JSON.parse(output).data };
+      if (output.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(output);
+          if (parsed.type === 'no-plot') {
+            return { kind: 'no-plot', message: 'Python code did not produce a plot. Make sure the last expression is a figure (e.g., plt.plot(), ggplot(), go.Figure()).' };
+          }
+          if (parsed.type === 'plotly') {
+            return { kind: 'plotly', figure: parsed.data };
+          }
+        } catch {}
       }
       if (output.includes('<svg')) {
         return { kind: 'svg', svg: output };

@@ -35,10 +35,10 @@ const ENGINE_CONFIG = {
   python: { ojsKey: 'pyodideOjs', promiseKey: 'pyodidePromise', Adapter: PyodideAdapter }
 };
 
-async function getRuntimePromise(engine) {
+async function getRuntimePromise(config) {
   const main = await waitForOJS();
-  const ojs = await main.value(engine.ojsKey);
-  return ojs[engine.promiseKey];
+  const ojs = await main.value(config.ojsKey);
+  return ojs[config.promiseKey];
 }
 
 export const quartoLiveBridge = {
