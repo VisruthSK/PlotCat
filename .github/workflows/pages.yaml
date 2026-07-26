@@ -52,7 +52,7 @@ jobs:
           pip install matplotlib scikit-learn plotnine seaborn pandas plotly
 
       - name: Render site
-        run: quarto render website
+        run: pnpm build
 
       - name: Prepare Pages metadata
         run: |

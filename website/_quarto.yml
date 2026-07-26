@@ -34,7 +34,7 @@ format:
     fig-format: svg
 
 filters:
-  - ../_extensions/plotcat/plotcat.lua
+  - plotcat
 
 execute:
   freeze: auto

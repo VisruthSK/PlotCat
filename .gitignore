@@ -6,6 +6,7 @@
 **/website/_freeze/
 /_site/
 **/website/_site/
+website/_extensions/plotcat
 /.tmp-render/
 /node_modules/
 /tests/fixtures/*_files/
