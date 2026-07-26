@@ -58,6 +58,12 @@ export function normalizeSvg(source) {
       attr.value = value;
     });
   });
+  doc.querySelectorAll('text').forEach(node => {
+    const family = node.getAttribute('font-family');
+    if (!family || /^sans$|^sans-serif$|^serif$|^monospace$/i.test(family.trim())) {
+      node.setAttribute('font-family', 'system-ui, -apple-system, sans-serif');
+    }
+  });
   return doc.documentElement;
 }
 
