@@ -28,19 +28,6 @@ local function escape_html(value)
   return value:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;")
 end
 
-local function clean_starter(code)
-  return code:gsub("^#|[^\n]*\n", ""):gsub("\n#|[^\n]*", "")
-end
-
-local function metadata_is_true(key)
-  local value = quarto.metadata.get(key)
-
-  return value == true or (
-    value ~= nil and
-    pandoc.utils.stringify(value) == "true"
-  )
-end
-
 local function has_output(cell)
   for _, block in ipairs(cell.content) do
     if block.t == "Div" and (block.classes:includes("cell-output") or block.classes:includes("cell-output-display")) then
@@ -50,17 +37,18 @@ local function has_output(cell)
   return false
 end
 
-local function widget(id, engine, target, starter, extra_classes)
+local function widget(id, engine, target, starter, extra_classes, weights_json)
   local dom_id = "plotcat-" .. id:gsub("[^%w_-]", "-")
   local manifest = quarto.json.encode({
     id = id,
     engine = engine
   })
   local encoded_target = quarto.base64.encode(target)
+  local encoded_weights = quarto.base64.encode(weights_json)
 
   local live_engine = engine == "r" and "webr" or "pyodide"
   local html_before = [[
-<section class="plotcat plotcat--side-by-side]] .. escape_html(extra_classes or "") .. [[" id="]] .. escape_html(dom_id) .. [[" data-plotcat-manifest="]] .. escape_html(manifest) .. [[" data-plotcat-target-code="]] .. escape_html(encoded_target) .. [[">
+<section class="plotcat plotcat--side-by-side]] .. escape_html(extra_classes or "") .. [[" id="]] .. escape_html(dom_id) .. [[" data-plotcat-manifest="]] .. escape_html(manifest) .. [[" data-plotcat-target-code="]] .. escape_html(encoded_target) .. [[" data-plotcat-weights="]] .. escape_html(encoded_weights) .. [[">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target" data-plotcat-target><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
@@ -83,7 +71,6 @@ local function widget(id, engine, target, starter, extra_classes)
     </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite"></div>
-  <div class="plotcat__feedback"></div>
 </section>]]
   local cell_options = "#| completion: true\n#| output: false\n"
   return {
@@ -143,35 +130,14 @@ function Div(div)
   if not engine then return div end
   if #chunks == 2 and engine_of(chunks[2].block) ~= engine then fail("'" .. id .. "' mixes engines"); return div end
   if #chunks == 2 and chunks[2].produced_output then fail("'" .. id .. "' starter chunk executed; add #| eval: false to the starter chunk"); return div end
-  local starter = #chunks == 2 and clean_starter(chunks[2].block.text) or ""
+  local starter = #chunks == 2 and chunks[2].block.text or ""
 
-  if not quarto.doc.is_format("html") then
-    local target = chunks[1].cell:walk({
-      CodeBlock = function()
-        return {}
-      end
-    })
-
-    return pandoc.Div(
-      {
-        target,
-        pandoc.Para("The interactive PlotCat exercise is available in HTML.")
-      },
-      pandoc.Attr(id, {"plotcat"})
-    )
-  end
-
-  if not metadata_is_true("ojs-engine") then
-    fail(
-      "requires Quarto Live; install it with " ..
-      "`quarto add r-wasm/quarto-live` and use " ..
-      "`format: live-html`"
-    )
-
+  if not quarto.doc.is_format("live-html") then
+    fail("PlotCat only supports format: live-html (add `format: live-html` and install Quarto Live)")
     return div
   end
 
-  quarto.doc.add_html_dependency({name="plotcat", version="0.2.0", scripts={{path="plotcat.js", attribs={type="module"}}}, stylesheets={"plotcat.css"}, resources={"svg.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js"}})
+  quarto.doc.add_html_dependency({name="plotcat", version="0.2.0", scripts={{path="plotcat.js", attribs={type="module"}}}, stylesheets={"plotcat.css"}, resources={"svg.js", "runtime-manager.js", "quarto-live-bridge.js", "webr-adapter.js", "pyodide-adapter.js"}})
   local extra_classes = {}
   for _, class in ipairs(div.classes) do
     if class ~= "plotcat" then
@@ -179,7 +145,23 @@ function Div(div)
     end
   end
   local extra_class_str = #extra_classes > 0 and (" " .. table.concat(extra_classes, " ")) or ""
-  return widget(id, engine, chunks[1].block.text, starter, extra_class_str)
+  local weights = quarto.json.encode({
+    svg = {
+      geometry = 0.5,
+      text = 0.25,
+      style = 0.15,
+      frame = 0.1,
+      geometry_counts = 0.4,
+      geometry_coarse = 0.6
+    },
+    plotly = {
+      trace = 0.3,
+      data = 0.4,
+      style = 0.2,
+      layout = 0.1
+    }
+  })
+  return widget(id, engine, chunks[1].block.text, starter, extra_class_str, weights)
 end
 
 function Pandoc(doc)
