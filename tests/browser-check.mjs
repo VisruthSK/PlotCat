@@ -289,7 +289,11 @@ try {
     {
       type: 'newPlot',
       data: [{ type: 'scatter', x: [1], y: [2] }],
-      layout: { title: { text: 'Animated' } },
+      layout: {
+        title: { text: 'Animated' },
+        autosize: true,
+        margin: { l: 40, r: 10, t: 30, b: 40 }
+      },
       config: { scrollZoom: true, displayModeBar: false, responsive: true }
     },
     { type: 'addFrames', frames: [{ name: 'step-1', data: [{ y: [3] }] }] }

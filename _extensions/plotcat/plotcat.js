@@ -90,8 +90,21 @@ async function renderPlotly(target, figure) {
   div.style.alignSelf = 'stretch';
   div.style.flexGrow = '1';
   target.appendChild(div);
+
+  const layout = structuredClone(figure.layout || {});
+  delete layout.width;
+  delete layout.height;
+  layout.autosize = true;
+  layout.margin = {
+    l: 40,
+    r: 10,
+    t: 30,
+    b: 40,
+    ...layout.margin
+  };
+
   const config = { ...(figure.config || {}), responsive: true, displayModeBar: false };
-  await Plotly.newPlot(div, figure.data || [], figure.layout || {}, config);
+  await Plotly.newPlot(div, figure.data || [], layout, config);
   if (Array.isArray(figure.frames) && figure.frames.length > 0) {
     await Plotly.addFrames(div, figure.frames);
   }
