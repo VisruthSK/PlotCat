@@ -4,11 +4,9 @@ filters:
   - ../../_extensions/plotcat/plotcat.lua
 ---
 
-::: {.plotcat id="unsupported"}
-::: {.cell}
-```{.bash .cell-code}
+::: {.plotcat id="custom-weights" svg-geometry="0.3" svg-text="0.5"}
+```{r}
 #| eval: false
-echo plot
+plot(cars)
 ```
-:::
 :::

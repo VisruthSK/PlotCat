@@ -1,28 +1,28 @@
 
 
-# PlotCat
+# `PlotCat`
 
-`plotcat` is a Quarto extension for plot-recreation exercises. Authors
+`PlotCat` is a Quarto extension for plot-recreation exercises. Authors
 provide a target plot and optional starter code. Students write R or
 Python in the browser, render their plot with WebR or Pyodide, and
 compare it with the target.
 
-PlotCat compares SVG structure and plot text for static plots. It also
+`PlotCat` compares SVG structure and plot text for static plots. It also
 supports a focused comparison of Plotly traces and layout. Plotly
 exercises support side-by-side comparison only; overlay and wipe apply
-to SVG plots. The target source is removed from the rendered HTML, but
-this is not a security boundary: do not put secrets in an exercise.
+to SVG plots. PlotCat obfuscates the target source in the rendered
+HTML, which prevents casual inspection.
 
 ## Requirements
 
-PlotCat publishes interactive HTML only. Its browser runtimes need
+`PlotCat` publishes interactive HTML only. Its browser runtimes need
 network access on first use and package availability in WebR or Pyodide.
 The included examples cover base R, `ggplot2`, `tinyplot`, `lattice`,
-`matplotlib`, `plotnine`, `seaborn`, and Plotly.
+`matplotlib`, `plotnine`, `seaborn`, and `Plotly`.
 
 ## Installation
 
-Add Quarto Live, then PlotCat:
+Add Quarto Live, then `PlotCat`:
 
 ``` bash
 quarto add r-wasm/quarto-live
@@ -32,28 +32,48 @@ quarto add VisruthSK/PlotCat
 Then enable the filter in a document or project config:
 
 ``` yaml
-format: live-html
+format:
+  live-html:
+    webr:
+      packages:
+        - svglite
+        - ggplot2
+
+    pyodide:
+      packages:
+        - matplotlib
 
 filters:
-  - plotcat
+  - plotcat 
 ```
 
+R pages using `PlotCat` must declare `svglite`. Authors must declare
+every non-base R or Python package used by target or starter code.
+`PlotCat` does not infer or install runtime packages. Package
+configuration belongs to Quarto Live.
+
+For a single document, Quarto Live also accepts `webr` and `pyodide`
+options in document front matter. For project configuration, nesting
+them under `live-html` avoids metadata-merging problems.
+
 `live-html` provides the native WebR and Pyodide editors. Set
-`#| eval: false` on each PlotCat chunk so Quarto leaves it for the
+`#| eval: false` on each `PlotCat` chunk so Quarto leaves it for the
 browser runtime.
 
 ## Example
 
 Write the target plot as the first chunk inside a `.plotcat` Div. Set
-`#| eval: false`: PlotCat renders both the target and a student’s
-submission in the browser. This must be set on each PlotCat chunk
-because Quarto decides whether to execute it before PlotCat’s filter
+`#| eval: false`: `PlotCat` renders both the target and a student’s
+submission in the browser. This must be set on each `PlotCat` chunk
+because Quarto decides whether to execute it before `PlotCat`’s filter
 runs.
 
 ```` markdown
 ::: {.plotcat}
-```{r}
-#| eval: false
+
+::: {.cell}
+
+```{.r .cell-code}
 tinyplot::tinyplot(
   dist ~ speed,
   data = cars,
@@ -62,6 +82,8 @@ tinyplot::tinyplot(
   ylab = "Stopping distance"
 )
 ```
+:::
+
 :::
 ````
 
@@ -70,8 +92,10 @@ Add a second chunk to give students starter code. Also set
 
 ```` markdown
 ::: {.plotcat}
-```{r}
-#| eval: false
+
+::: {.cell}
+
+```{.r .cell-code}
 tinyplot::tinyplot(
   dist ~ speed,
   data = cars,
@@ -80,36 +104,135 @@ tinyplot::tinyplot(
   ylab = "Stopping distance"
 )
 ```
+:::
 
-```{r}
-#| eval: false
+
+
+::: {.cell}
+
+```{.r .cell-code}
 tinyplot::tinyplot(
   dist ~ speed,
   data = cars
 )
 ```
 :::
+
+:::
 ````
 
 The first chunk becomes the browser-rendered target, and its source is
-omitted from the rendered HTML. The second chunk appears in the editor.
+obfuscated in the rendered HTML. The second chunk appears in the editor.
 
-PlotCat accepts R and Python chunks. Both chunks in an exercise must use
-the same language.
+`PlotCat` accepts R and Python chunks. Both chunks in an exercise must
+use the same language.
 
 Use either `{r}` or `{webr}` for R, and either `{python}` or `{pyodide}`
-for Python. PlotCat turns the student editor into Quarto Live’s native
+for Python. `PlotCat` turns the student editor into Quarto Live’s native
 `webr` or `pyodide` cell.
+
+## Weights
+
+`PlotCat` scores student plots against a target using a weighted
+comparison. You can override individual weights per exercise as
+attributes on the `.plotcat` Div.
+
+Unset attributes keep their defaults.
+
+### Global defaults
+
+Set project-wide or document-wide weights under `plotcat.weights` in
+YAML frontmatter. Per-exercise attributes on the `.plotcat` Div override
+these.
+
+``` yaml
+plotcat:
+  weights:
+    svg:
+      geometry: 0.5
+      text: 0.25
+    plotly:
+      data: 0.5
+      layout: 0.2
+```
+
+### SVG weights
+
+| Attribute      | Default | Controls                                           |
+|----------------|---------|----------------------------------------------------|
+| `svg-geometry` | 0.6     | Element positions (bag overlap of coarse geometry) |
+| `svg-text`     | 0.15    | Text content match                                 |
+| `svg-style`    | 0.1     | Fill, stroke, opacity                              |
+| `svg-frame`    | 0.15    | Aspect ratio                                       |
+
+A scatter exercise might need higher `svg-text` weight because axis
+labels matter more. A bar chart might raise `svg-geometry` to penalise
+missing bars.
+
+### Plotly weights
+
+| Attribute       | Default | Controls                   |
+|-----------------|---------|----------------------------|
+| `plotly-trace`  | 0.3     | Trace type and count       |
+| `plotly-data`   | 0.4     | Data values (x, y arrays)  |
+| `plotly-style`  | 0.2     | Marker and line formatting |
+| `plotly-layout` | 0.1     | Title and axis labels      |
+
+### Example
+
+``` markdown
+::: {.plotcat id="scatter"
+    svg-geometry="0.4"
+    svg-text="0.4"}
+```
+
+The final score sums each category multiplied by its top-level weight:
+`geometry * svg-geometry + text * svg-text + style * svg-style + frame * svg-frame`.
+
+### Dimensions
+
+Override the default plot dimensions per exercise using `plotcat-width`
+and `plotcat-height` attributes on the `.plotcat` Div. The default is
+7×5 in for both R and Python.
+
+Set document-wide defaults under `plotcat.dimensions` in YAML
+frontmatter:
+
+``` yaml
+plotcat:
+  dimensions:
+    width: 8
+    height: 6
+```
+
+``` markdown
+::: {.plotcat id="tall-plot" plotcat-width="4" plotcat-height="6"}
+```
+
+### Heading
+
+Override the heading text with `plotcat-heading` on the `.plotcat` Div
+or `plotcat.heading` in YAML frontmatter. Defaults to “Recreate this
+plot”.
+
+``` markdown
+::: {.plotcat id="labeled" plotcat-heading="Reproduce the graphic"}
+```
+
+``` yaml
+plotcat:
+  heading: "Reproduce the graphic"
+```
 
 ## Limitations
 
 - **Font and text styling**: SVG comparison checks text content, but
   ignores font families, font sizes, font weights, and text positioning.
-- **Coarse geometry matching**: Coordinates are rounded to ~1% relative
-  precision and matched as unordered marks. Minor position shifts or
-  point jittering may still yield high scores.
-- **No code inspection**: PlotCat evaluates rendered plot output (SVG or
-  Plotly JSON), not R or Python code structure. It cannot check for
+- **Coarse geometry matching**: Coordinates are rounded to ~0.1%
+  relative precision and matched as unordered marks. Minor position
+  shifts or point jittering may still yield high scores.
+- **No code inspection**: `PlotCat` evaluates rendered plot output (SVG
+  or Plotly JSON), not R or Python code structure. It cannot check for
   specific function calls or idioms.
 - **Plotly support**: Plotly exercises only support side-by-side
   comparison and evaluate a subset of trace data, mark attributes, and
@@ -123,6 +246,6 @@ for Python. PlotCat turns the student editor into Quarto Live’s native
 
 ## Design Inspiration
 
-PlotCat was inspired by [ggplot2
+`PlotCat` was inspired by [ggplot2
 Battles](https://github.com/MikeLydeamore/ggplot2-battles), brought to
 my attention by [Emily Robinson](https://www.emilyarobinson.com/).

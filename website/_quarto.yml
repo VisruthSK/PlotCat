@@ -33,6 +33,23 @@ format:
     toc: true
     fig-format: svg
 
+    webr:
+      packages:
+        - svglite
+        - ggplot2
+        - tinyplot
+        - lattice
+        - plotly
+
+    pyodide:
+      packages:
+        - matplotlib
+        - scikit-learn
+        - pandas
+        - seaborn
+        - plotnine
+        - plotly
+
 filters:
   - plotcat
 

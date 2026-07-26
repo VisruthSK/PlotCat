@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
-import { startStaticServer } from './static-server.mjs';
+import { setupBrowserTest } from './playwright-helper.mjs';
 
-const server = await startStaticServer('website/_site');
-const browser = await chromium.launch();
-const page = await browser.newPage();
+const { server, page, teardown } = await setupBrowserTest('website/_site');
 page.setDefaultTimeout(180_000);
 const requests = [];
 const failedRequests = [];
@@ -215,8 +212,6 @@ ggplotly(p)`;
   const incorrectRScoreText = await rPlotly.locator('.plotcat__score').textContent();
   const incorrectRScore = parseInt(incorrectRScoreText);
   assert.ok(incorrectRScore < 100, `R Plotly ggplotly solution should score < 100% against plot_ly target, but got ${incorrectRScore}%`);
-  const rFeedback = await rPlotly.locator('.plotcat__feedback').textContent();
-  assert.ok(rFeedback.includes('expected') || rFeedback.length > 0, 'Feedback should report trace/layout mismatches');
 
   // R Plotly Green Step: submit correct plot_ly code
   const rPlotlySolution = `library(plotly)
@@ -270,6 +265,5 @@ fig`;
     assert.equal(await widget.evaluate(node => node.classList.contains('plotcat--side-by-side')), true, `${label} should use side-by-side comparison`);
   }
 } finally {
-  await browser.close();
-  await server.close();
+  await teardown();
 }

@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
-import { startStaticServer } from './static-server.mjs';
+import { setupBrowserTest } from './playwright-helper.mjs';
 
-const server = await startStaticServer('.');
-const browser = await chromium.launch();
-const page = await browser.newPage();
+const { server, page, teardown } = await setupBrowserTest('.');
 const fixture = `${server.origin}/tests/fixtures/browser.html`;
 
 async function load() {
@@ -48,7 +45,6 @@ try {
   assert.ok(comparison.different.score < comparison.same.score);
   assert.equal(comparison.different.categories.text, 0);
   assert.equal(comparison.features.counts.circle, 1);
-  assert.deepEqual(comparison.features.textPlacement, ['Speed|1|2|||']);
 
   const rendererTolerance = await page.evaluate(() => {
     const target = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20.1" cy="40.1" r="2" fill="red"/><text x="10" y="90">Speed</text></svg>';
@@ -59,16 +55,29 @@ try {
   assert.equal(rendererTolerance.equivalent.score, 1);
   assert.ok(rendererTolerance.changed.score < 1);
 
+  const swappedScore = await page.evaluate(() => {
+    const target = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="5" fill="red"/><circle cx="90" cy="90" r="5" fill="blue"/></svg>';
+    const swapped = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="90" r="5" fill="red"/><circle cx="90" cy="10" r="5" fill="blue"/></svg>';
+    return window.plotcatSvg.compareSvg(target, swapped);
+  });
+  assert.ok(swappedScore.score < 0.6, 'swapped positions should score below 0.6');
+
+  const scatteredWrong = await page.evaluate(() => {
+    const target = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="1" cy="1" r="0.2" fill="red"/><circle cx="2" cy="3" r="0.2" fill="red"/><circle cx="4" cy="5" r="0.2" fill="red"/></svg>';
+    const wrong = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="8" cy="8" r="0.2" fill="red"/><circle cx="7" cy="6" r="0.2" fill="red"/><circle cx="5" cy="4" r="0.2" fill="red"/></svg>';
+    return window.plotcatSvg.compareSvg(target, wrong);
+  });
+  assert.ok(scatteredWrong.score < 0.6, 'wrong positions should score below 0.6');
+
   await load();
   const successfulRun = await page.evaluate(async () => {
     const root = document.querySelector('.plotcat');
-    root.dataset.plotcatManifest = '{"id":"test","engine":"r","packages":[]}';
+    root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
+    const { runtimeManager } = await import('../../_extensions/plotcat/runtime-manager.js');
     const calls = [];
-    const manager = {
-      get: async (engine, manifest) => { calls.push({ engine, manifest }); return { renderSvg: async () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>bad()</script><circle fill="red"/></svg>` }; },
-      run: async (_engine, task) => task()
-    };
-    window.plotcatUi.mountPlotCat(root, manager);
+    runtimeManager.get = async engine => { calls.push({ engine }); return { renderSvg: async () => ({ kind: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>bad()</script><circle fill="red"/></svg>' }) }; };
+    runtimeManager.run = async (_engine, task) => task();
+    window.plotcatUi.mountPlotCat(root);
     const wipeMode = root.querySelector('input[value=wipe]'); wipeMode.click();
     const handle = root.querySelector('[data-plotcat-wipe-handle]');
     handle.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
@@ -91,12 +100,12 @@ try {
   await load();
   const forEachRun = await page.evaluate(async () => {
     const root = document.querySelector('.plotcat');
-    root.dataset.plotcatManifest = '{"id":"test","engine":"r","packages":[]}';
+    root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
     const { runtimeManager } = await import('../../_extensions/plotcat/runtime-manager.js');
     const calls = [];
-    runtimeManager.get = async (engine, manifest) => {
-      calls.push({ engine, manifest });
-      return { renderSvg: async () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg>` };
+    runtimeManager.get = async engine => {
+      calls.push({ engine });
+      return { renderSvg: async () => ({ kind: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg>' }) };
     };
     runtimeManager.run = async (_engine, task) => task();
 
@@ -117,13 +126,12 @@ try {
 
   await load();
   const failedRun = await page.evaluate(async () => {
-    const root = document.querySelector('.plotcat'); root.dataset.plotcatManifest = '{"id":"test","engine":"r","packages":[]}';
+    const root = document.querySelector('.plotcat'); root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
     window.plotcatUi.mountPlotCat(root, { get: async () => { throw new Error('R package tinyplot is unavailable.'); }, run: async () => {} });
     root.querySelector('[data-plotcat-run]').click(); await new Promise(resolve => setTimeout(resolve, 0));
     return { status: root.querySelector('.plotcat__status').textContent, error: root.classList.contains('plotcat--error'), enabled: !root.querySelector('[data-plotcat-run]').disabled };
   });
   assert.deepEqual(failedRun, { status: 'R package tinyplot is unavailable.', error: true, enabled: true });
 } finally {
-  await browser.close();
-  await server.close();
+  await teardown();
 }

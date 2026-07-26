@@ -1,15 +1,38 @@
-import { compareSvg, sanitizeSvg, scopeSvgIds, comparePlotly } from './svg.js';
+import { compareSvgFeatures, comparePlotly, prepareSvg } from './svg.js';
+import { withRetry, errorMessage } from './utils.js';
 import { runtimeManager } from './runtime-manager.js';
 
-async function decodePattern(salt, encoded) {
-  const bytes = new TextEncoder().encode(salt);
-  const hash = await crypto.subtle.digest("SHA-256", bytes);
-  const key = new Uint8Array(hash);
-  const resultBytes = new Uint8Array(encoded.length / 2);
-  for (let i = 0; i < resultBytes.length; i++) {
-    resultBytes[i] = parseInt(encoded.slice(i * 2, i * 2 + 2), 16) ^ key[i % key.length];
+let plotlyPromise;
+
+function loadPlotly() {
+  if (window.Plotly) {
+    return Promise.resolve(window.Plotly);
   }
-  return new TextDecoder().decode(resultBytes);
+
+  if (!plotlyPromise) {
+    plotlyPromise = withRetry(() => new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.plot.ly/plotly-3.6.0.min.js';
+      script.onload = () => resolve(window.Plotly);
+      script.onerror = () => reject(new Error(
+        'Could not load Plotly from the CDN. Check your internet connection ' +
+        'and any network restrictions. Plotly exercises need access to ' +
+        'https://cdn.plot.ly/plotly-3.6.0.min.js.'
+      ));
+      document.head.appendChild(script);
+    })).catch(error => {
+      plotlyPromise = undefined;
+      throw error;
+    });
+  }
+
+  return plotlyPromise;
+}
+
+function decodeTarget(encoded) {
+  const binary = atob(encoded);
+  const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
 
 function setMode(root, mode) {
@@ -17,13 +40,22 @@ function setMode(root, mode) {
   root.classList.add(`plotcat--${mode}`);
 }
 
+function packageHint(msg) {
+  if (msg.includes('requireNamespace') || msg.includes('package is not available') || (msg.includes('not') && msg.includes('module'))) {
+    return msg + ' Required packages must be listed under `format.live-html` in your Quarto config.';
+  }
+  return msg;
+}
+
 function limitPlotlyToSideBySide(root) {
+  const radios = root.querySelectorAll('input[value="overlay"], input[value="wipe"]');
   root.querySelector('input[value="side-by-side"]').checked = true;
-  root.querySelectorAll('input[value="overlay"], input[value="wipe"]').forEach(input => {
+  radios.forEach(input => {
     input.disabled = true;
     input.closest('label').title = 'Overlay and wipe are unavailable for Plotly charts.';
   });
   setMode(root, 'side-by-side');
+  return radios;
 }
 
 function svgFragment(svg) {
@@ -45,106 +77,95 @@ function studentCode(root) {
   return editor.innerText;
 }
 
-function getPlotlySvg(container) {
-  const svgs = container.querySelectorAll('svg.main-svg');
-  if (svgs.length > 0) {
-    const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    wrapper.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    wrapper.setAttribute('viewBox', `0 0 ${container.clientWidth} ${container.clientHeight}`);
-    wrapper.setAttribute('width', '100%');
-    wrapper.setAttribute('height', '100%');
-    svgs.forEach(svg => {
-      const clone = svg.cloneNode(true);
-      clone.removeAttribute('width');
-      clone.removeAttribute('height');
-      wrapper.appendChild(clone);
-    });
-    return new XMLSerializer().serializeToString(wrapper);
+function renderPlotly(target, figure) {
+  const previous = target.querySelector('.js-plotly-plot');
+  if (previous && window.Plotly) {
+    window.Plotly.purge(previous);
   }
-  return null;
+  target.replaceChildren();
+  target.style.height = '280px';
+  const div = document.createElement('div');
+  div.style.width = '100%';
+  div.style.height = '100%';
+  div.style.alignSelf = 'stretch';
+  div.style.flexGrow = '1';
+  target.appendChild(div);
+  return Plotly.newPlot(div, figure.data, figure.layout, { responsive: true, displayModeBar: false });
 }
 
-export function mountPlotCat(root, manager = runtimeManager) {
-  if (!manager || typeof manager.get !== 'function') {
-    manager = runtimeManager;
-  }
+export function mountPlotCat(root, manager) {
+  const mgr = (manager && typeof manager.get === 'function') ? manager : runtimeManager;
   const manifest = JSON.parse(root.dataset.plotcatManifest);
-  const adapterPromise = manager.get(manifest.engine, manifest);
-  // Prevent unhandled promise rejection warnings in the console
+  const adapterPromise = mgr.get(manifest.engine);
   adapterPromise.catch(() => {});
 
+  const weights = JSON.parse(atob(root.dataset.plotcatWeights));
   const run = root.querySelector('[data-plotcat-run]');
   const status = root.querySelector('.plotcat__status');
-  const feedbackEl = root.querySelector('.plotcat__feedback');
   const target = root.querySelector('[data-plotcat-target]');
   const student = root.querySelector('[data-plotcat-student]');
 
-  const targetCodeHex = root.dataset.plotcatTargetCode;
-  const salt = root.dataset.plotcatSalt;
+  const targetCodeBase64 = root.dataset.plotcatTargetCode;
   const svgPrefix = (root.id || manifest.id || 'plotcat').replace(/[^a-zA-Z0-9_-]/g, '-');
 
-  let width = manifest.engine === 'r' ? 7 : 6.4;
-  let height = manifest.engine === 'r' ? 5 : 4.8;
+  let width = manifest.width || 7;
+  let height = manifest.height || 5;
 
   let targetSvg = null;
-  let targetPlotlyPayload = null;
+  let targetFeatures = null;
+  let targetFigure = null;
+  let outputType = null;
 
-  if (targetCodeHex && salt) {
+  async function renderTarget() {
+    const targetCode = decodeTarget(targetCodeBase64);
+    const adapter = await adapterPromise;
+
+    status.textContent = 'Rendering target…';
+    const result = await mgr.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height }));
+
+    if (result.kind === 'plotly') {
+      outputType = 'plotly';
+      targetFigure = result.figure;
+      status.textContent = 'Loading Plotly…';
+      await loadPlotly();
+      limitPlotlyToSideBySide(root);
+      await renderPlotly(target, targetFigure);
+    } else if (result.kind === 'svg') {
+      outputType = 'svg';
+      const result_ = prepareSvg(result.svg, `${svgPrefix}-target`);
+      targetSvg = result_.svg;
+      targetFeatures = result_.features;
+      target.replaceChildren(svgFragment(result_.svg));
+    } else {
+      throw new Error(result.message);
+    }
+  }
+
+  if (targetCodeBase64) {
     run.disabled = true;
     status.textContent = `Loading ${manifest.engine === 'r' ? 'WebR' : 'Pyodide'}…`;
-    decodePattern(salt, targetCodeHex).then(async (targetCode) => {
-      const adapter = await adapterPromise;
-
-      if (manifest.packages.includes('plotly') && !window.Plotly) {
-        status.textContent = 'Loading Plotly…';
-        await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-
-      status.textContent = 'Rendering target…';
-      const result = await manager.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height }));
-
-      if (result.startsWith('{"type":"plotly"')) {
-        const payload = JSON.parse(result);
-        targetPlotlyPayload = payload.data.x ? payload.data.x : payload.data;
-        limitPlotlyToSideBySide(root);
-        target.replaceChildren();
-        target.style.height = '280px';
-        const plotlyDiv = document.createElement('div');
-        plotlyDiv.style.width = '100%';
-        plotlyDiv.style.height = '100%';
-        plotlyDiv.style.alignSelf = 'stretch';
-        plotlyDiv.style.flexGrow = '1';
-        target.appendChild(plotlyDiv);
-        await Plotly.newPlot(plotlyDiv, targetPlotlyPayload.data, targetPlotlyPayload.layout, { responsive: true, displayModeBar: false });
-      } else {
-        targetSvg = sanitizeSvg(result);
-        target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
-      }
-
-      status.textContent = '';
-      run.disabled = false;
-    }).catch(error => {
-      console.error('Failed to render target plot:', error);
-      status.textContent = 'Error rendering target: ' + (error.message || error);
-      root.classList.add('plotcat--error');
-    });
+    renderTarget()
+      .then(() => { status.textContent = ''; run.disabled = false; })
+      .catch(error => {
+        console.error('Failed to render target plot:', error);
+        status.textContent = 'Error rendering target: ' + packageHint(errorMessage(error));
+        root.classList.add('plotcat--error');
+      });
   } else {
     const targetSvgEl = target.querySelector('svg');
     if (targetSvgEl) {
-      targetSvg = sanitizeSvg(targetSvgEl.outerHTML);
-      target.replaceChildren(svgFragment(scopeSvgIds(targetSvg, `${svgPrefix}-target`)));
+      outputType = 'svg';
+      const result_ = prepareSvg(targetSvgEl.outerHTML, `${svgPrefix}-target`);
+      targetSvg = result_.svg;
+      targetFeatures = result_.features;
+      target.replaceChildren(svgFragment(result_.svg));
       status.textContent = '';
       run.disabled = false;
     }
   }
 
-  root.querySelectorAll('input[type=radio]').forEach(input => {
+  const radios = root.querySelectorAll('input[type=radio]');
+  radios.forEach(input => {
     input.addEventListener('change', () => setMode(root, input.value));
   });
   const wipeHandle = root.querySelector('[data-plotcat-wipe-handle]');
@@ -192,42 +213,30 @@ export function mountPlotCat(root, manager = runtimeManager) {
     });
   }
 
-
-
   run.addEventListener('click', async () => {
-    if (!targetSvg && !targetPlotlyPayload) return;
+    if (!targetSvg && !targetFigure) return;
     root.classList.remove('plotcat--error', 'plotcat--complete');
-    feedbackEl.textContent = '';
     root.classList.add('plotcat--running');
     run.disabled = true;
     status.textContent = 'Running…';
     try {
-      const adapter = await manager.get(manifest.engine, manifest);
-      const result = await manager.run(manifest.engine, () => adapter.renderSvg(studentCode(root), { width, height }));
+      const adapter = await mgr.get(manifest.engine);
+      const result = await mgr.run(manifest.engine, () => adapter.renderSvg(studentCode(root), { width, height }));
 
-      let score, feedback;
-      if (result.startsWith('{"type":"plotly"')) {
-        const payload = JSON.parse(result);
-        const studentPlotlyPayload = payload.data.x ? payload.data.x : payload.data;
-        student.replaceChildren();
-        student.style.height = '280px';
-        const plotlyDiv = document.createElement('div');
-        plotlyDiv.style.width = '100%';
-        plotlyDiv.style.height = '100%';
-        plotlyDiv.style.alignSelf = 'stretch';
-        plotlyDiv.style.flexGrow = '1';
-        student.appendChild(plotlyDiv);
-        await Plotly.newPlot(plotlyDiv, studentPlotlyPayload.data, studentPlotlyPayload.layout, { responsive: true, displayModeBar: false });
-
-        const compareResult = comparePlotly(targetPlotlyPayload, studentPlotlyPayload);
-        score = compareResult.score;
-        feedback = compareResult.feedback;
+      let score;
+      if (result.kind === 'plotly') {
+        status.textContent = 'Loading Plotly…';
+        await loadPlotly();
+        await renderPlotly(student, result.figure);
+        score = comparePlotly(targetFigure, result.figure, weights.plotly).score;
+      } else if (result.kind === 'svg') {
+        const result_ = prepareSvg(result.svg, `${svgPrefix}-student`);
+        student.replaceChildren(svgFragment(result_.svg));
+        score = compareSvgFeatures(targetFeatures, result_.features, weights.svg).score;
+      } else if (result.kind === 'no-plot') {
+        throw new Error(result.message);
       } else {
-        const svg = sanitizeSvg(result);
-        student.replaceChildren(svgFragment(scopeSvgIds(svg, `${svgPrefix}-student`)));
-        const compareResult = compareSvg(targetSvg, svg);
-        score = compareResult.score;
-        feedback = compareResult.feedback;
+        throw new Error(result.traceback ? `${result.message}\n${result.traceback}` : result.message);
       }
 
       let hue;
@@ -241,12 +250,10 @@ export function mountPlotCat(root, manager = runtimeManager) {
       const scoreEl = root.querySelector('.plotcat__score');
       scoreEl.textContent = `${Math.round(score * 100)}%`;
       scoreEl.style.setProperty('--plotcat-score-hue', Math.round(hue));
-      feedbackEl.textContent = feedback.join(' ');
       status.textContent = '';
       root.classList.add('plotcat--complete');
     } catch (error) {
-      status.textContent = error instanceof Error ? error.message : String(error);
-      feedbackEl.textContent = error?.output || '';
+      status.textContent = packageHint(errorMessage(error));
       root.classList.add('plotcat--error');
     } finally {
       run.disabled = false;

@@ -6,6 +6,7 @@ filters:
 
 ::: {.plotcat id="two-r"}
 ```{r}
+#| eval: false
 plot(cars, main = "Target title")
 ```
 ```{r}
