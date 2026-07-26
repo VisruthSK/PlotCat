@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { startStaticServer } from './static-server.mjs';
 
-const server = await startStaticServer('_site');
+const server = await startStaticServer('website/_site');
 const browser = await chromium.launch();
 const page = await browser.newPage();
 page.setDefaultTimeout(180_000);

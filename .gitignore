@@ -1,8 +1,11 @@
 /.quarto/
+**/website/.quarto/
 **/*.quarto_ipynb
 /.pnpm-store/
 /_freeze/
+**/website/_freeze/
 /_site/
+**/website/_site/
 /.tmp-render/
 /node_modules/
 /tests/fixtures/*_files/

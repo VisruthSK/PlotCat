@@ -8,8 +8,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test --test-isolation=none && node tests/transform-check.mjs && node tests/browser-check.mjs",
-    "build": "quarto render",
-    "check": "pnpm test && quarto render && node tests/site-check.mjs"
+    "build": "quarto render website",
+    "check": "pnpm test && quarto render website && node tests/site-check.mjs"
   },
   "devDependencies": {
     "playwright": "^1.61.1"
