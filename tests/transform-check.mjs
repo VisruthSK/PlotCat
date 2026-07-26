@@ -35,6 +35,7 @@ try {
   assert.doesNotMatch(html, /data-plotcat-salt=/);
   assert.match(html, /class="plotcat__target-loading"/);
   assert.doesNotMatch(html, /plot\(cars\)/);
+  assert.doesNotMatch(html, /plotcat-live-cell/);
   assert.match(html, /type="module"/);
 
   const generated = render('missing-id.qmd');
@@ -59,7 +60,8 @@ try {
   assert.equal((multipleHtml.match(/plotcat\.js" type="module"/g) || []).length, 1);
 
   const wrongFormat = render('wrong-format.qmd');
-  assert.equal(wrongFormat.status, 0, wrongFormat.stdout + wrongFormat.stderr);
+  assert.notEqual(wrongFormat.status, 0, 'wrong-format.qmd should fail without Quarto Live');
+  assert.match(wrongFormat.stdout + wrongFormat.stderr, /Quarto Live/);
 
   const nonHtml = render('non-html.qmd');
   assert.equal(nonHtml.status, 0, nonHtml.stdout + nonHtml.stderr);

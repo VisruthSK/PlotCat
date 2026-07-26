@@ -6,3 +6,6 @@ contributes:
   filters:
     - path: plotcat.lua
       at: pre-ast
+
+    - path: require-live.lua
+      at: post-quarto

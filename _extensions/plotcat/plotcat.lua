@@ -73,7 +73,7 @@ local function widget(id, engine, target, starter, extra_classes)
   local cell_options = "#| completion: true\n#| output: false\n#| runbutton: false\n"
   return {
     pandoc.RawBlock("html", html_before),
-    pandoc.CodeBlock(cell_options .. starter, pandoc.Attr("", {live_engine})),
+    pandoc.CodeBlock(cell_options .. starter, pandoc.Attr("", {live_engine, "plotcat-live-cell"})),
     pandoc.RawBlock("html", html_after)
   }
 end
