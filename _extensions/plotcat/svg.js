@@ -5,6 +5,21 @@ const round = value => String(Math.round(Number(value) * 1000) / 1000);
 const geometryAttributes = ['d','cx','cy','r','x','y','width','height','x1','y1','x2','y2','points','transform'];
 const styleAttributes = ['fill','stroke','opacity','fill-opacity','stroke-opacity','stroke-width'];
 const tagSelector = 'path,circle,rect,line,polygon,polyline,text,clipPath';
+const fragmentUrl = /url\(\s*(['"]?)#([^)'"]+)\1\s*\)/g;
+
+export function rewriteSvgIdReferences(value, ids) {
+  return value
+    .replace(fragmentUrl, (_, _quote, id) => `url(#${ids.get(id) || id})`)
+    .replace(/^#(.+)$/, (_, id) => `#${ids.get(id) || id}`);
+}
+
+function rewriteDocIdReferences(doc, ids) {
+  doc.querySelectorAll('*').forEach(node => {
+    for (const attr of [...node.attributes]) {
+      attr.value = rewriteSvgIdReferences(attr.value, ids);
+    }
+  });
+}
 
 function sanitizeDoc(doc) {
   if (doc.querySelector('parsererror') || doc.documentElement.localName !== 'svg')
@@ -34,10 +49,10 @@ function normalizeDoc(doc) {
     ids.set(old, id);
     node.id = id;
   });
+  rewriteDocIdReferences(doc, ids);
   doc.querySelectorAll('*').forEach(node => {
     for (const attr of [...node.attributes]) {
-      let value = attr.value.replace(/url\(#([^)]+)\)/g, (_, id) => `url(#${ids.get(id) || id})`);
-      value = value.replace(/-?\d*\.\d+(?:e[-+]?\d+)?/gi, round).replace(/\s+/g, ' ').trim();
+      let value = attr.value.replace(/-?\d*\.\d+(?:e[-+]?\d+)?/gi, round).replace(/\s+/g, ' ').trim();
       if (attr.name === 'style') value = value.split(';').filter(Boolean).map(x => x.trim()).sort().join(';');
       attr.value = value;
     }
@@ -58,13 +73,7 @@ function scopeDocIds(doc, prefix) {
     ids.set(original, scoped);
     node.id = scoped;
   });
-  doc.querySelectorAll('*').forEach(node => {
-    for (const attr of [...node.attributes]) {
-      attr.value = attr.value
-        .replace(/url\(#([^)]+)\)/g, (_, id) => `url(#${ids.get(id) || id})`)
-        .replace(/^#(.+)$/, (_, id) => `#${ids.get(id) || id}`);
-    }
-  });
+  rewriteDocIdReferences(doc, ids);
 }
 
 function extractFeaturesFromDoc(doc) {

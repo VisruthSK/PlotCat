@@ -77,7 +77,7 @@ function studentCode(root) {
   return editor.innerText;
 }
 
-function renderPlotly(target, figure) {
+async function renderPlotly(target, figure) {
   const previous = target.querySelector('.js-plotly-plot');
   if (previous && window.Plotly) {
     window.Plotly.purge(previous);
@@ -90,7 +90,12 @@ function renderPlotly(target, figure) {
   div.style.alignSelf = 'stretch';
   div.style.flexGrow = '1';
   target.appendChild(div);
-  return Plotly.newPlot(div, figure.data, figure.layout, { responsive: true, displayModeBar: false });
+  const config = { ...(figure.config || {}), responsive: true, displayModeBar: false };
+  await Plotly.newPlot(div, figure.data || [], figure.layout || {}, config);
+  if (Array.isArray(figure.frames) && figure.frames.length > 0) {
+    await Plotly.addFrames(div, figure.frames);
+  }
+  return div;
 }
 
 export function mountPlotCat(root, manager) {
