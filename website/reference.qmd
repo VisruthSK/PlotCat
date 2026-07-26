@@ -73,7 +73,7 @@ tinyplot::tinyplot(
 ### Markup Rules
 
 - Set `#| eval: false` on both chunks. PlotCat executes R and Python code in the browser rather than during document rendering.
-- The first chunk defines the target plot. PlotCat renders it in WebR or Pyodide and encrypts the target code in the HTML.
+- The first chunk defines the target plot. PlotCat renders it in WebR or Pyodide and obfuscates the target code in the HTML.
 - The second chunk populates the student code editor. If omitted, the editor starts blank.
 - Both chunks in an exercise must use the same language. Use `{r}` or `{webr}` for R, and `{python}` or `{pyodide}` for Python. PlotCat normalizes the student editor to Quarto Live's native `webr` or `pyodide` cell.
 - Assign custom exercise IDs on the container div: `::: {.plotcat #scatter-exercise}`. If omitted, PlotCat auto-generates IDs (`exercise-1`, `exercise-2`).

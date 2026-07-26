@@ -188,5 +188,6 @@ function Pandoc(doc)
 end
 
 return {
-  { Div = Div, Pandoc = Pandoc }
+  Div = Div,
+  Pandoc = Pandoc
 }

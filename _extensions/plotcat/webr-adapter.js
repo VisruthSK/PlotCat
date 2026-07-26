@@ -32,7 +32,7 @@ export class WebRAdapter {
         if (plotcat_result$visible) {
           val <- plotcat_result$value;
           if (inherits(val, "plotly")) {
-            writeLines(paste0('{"type":"plotly","data":', plotly:::to_JSON(plotly::plotly_build(val)), '}'), "/tmp/plotcat-plotly.json");
+            writeLines(paste0('{"type":"plotly","data":', plotly::plotly_json(val, jsonedit = FALSE, pretty = FALSE), '}'), "/tmp/plotcat-plotly.json");
           } else {
             print(val);
           }

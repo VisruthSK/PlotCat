@@ -69,7 +69,7 @@ try {
 
   assert.match(
     wrongFormat.stdout + wrongFormat.stderr,
-    /requires `format: live-html`; current format is `html`/
+    /requires Quarto Live/
   );
 
   const nonHtml = render('non-html.qmd');
