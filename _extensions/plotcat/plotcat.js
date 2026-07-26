@@ -11,7 +11,7 @@ function loadPlotly() {
   if (!plotlyPromise) {
     plotlyPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
+      script.src = 'https://cdn.plot.ly/plotly-3.6.0.min.js';
       script.onload = () => resolve(window.Plotly);
       script.onerror = () => {
         plotlyPromise = undefined;

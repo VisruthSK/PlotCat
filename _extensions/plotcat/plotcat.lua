@@ -24,6 +24,59 @@ local function engine_of(block)
   end
 end
 
+local WEIGHT_ATTRS = {
+  ["svg-geometry"] = {"svg", "geometry"},
+  ["svg-text"] = {"svg", "text"},
+  ["svg-style"] = {"svg", "style"},
+  ["svg-frame"] = {"svg", "frame"},
+  ["svg-geometry-counts"] = {"svg", "geometry_counts"},
+  ["svg-geometry-coarse"] = {"svg", "geometry_coarse"},
+  ["plotly-trace"] = {"plotly", "trace"},
+  ["plotly-data"] = {"plotly", "data"},
+  ["plotly-style"] = {"plotly", "style"},
+  ["plotly-layout"] = {"plotly", "layout"}
+}
+
+local DEFAULT_WEIGHTS = {
+  svg = {geometry = 0.6, text = 0.15, style = 0.1, frame = 0.15, geometry_counts = 0.15, geometry_coarse = 0.85},
+  plotly = {trace = 0.3, data = 0.4, style = 0.2, layout = 0.1}
+}
+
+local function merge_weights(attrs, yaml_overrides)
+  local weights = {}
+  for category, fields in pairs(DEFAULT_WEIGHTS) do
+    weights[category] = {}
+    for field, val in pairs(fields) do
+      weights[category][field] = val
+    end
+  end
+  if yaml_overrides then
+    for category, fields in pairs(yaml_overrides) do
+      if weights[category] then
+        for field, val in pairs(fields) do
+      if weights[category][field] ~= nil then
+        local raw = type(val) == "number" and tostring(val) or (type(val) == "string" and val or pandoc.utils.stringify(val))
+        local num = tonumber(raw)
+        if num then weights[category][field] = num end
+      end
+        end
+      end
+    end
+  end
+  for key, value in pairs(attrs) do
+    local path = WEIGHT_ATTRS[key]
+    if path then
+      local num = tonumber(value)
+      if num then
+        weights[path[1]][path[2]] = num
+      else
+        fail("weight '" .. key .. "' must be a number, got '" .. value .. "'")
+      end
+    end
+  end
+  return weights
+end
+
 local function escape_html(value)
   return value:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;")
 end
@@ -83,8 +136,8 @@ end
 function Div(div)
   if not div.classes:includes("plotcat") then return nil end
   for key, _ in pairs(div.attributes) do
-    if key ~= "id" then
-      fail("attribute '" .. key .. "' is not supported; only id is allowed")
+    if key ~= "id" and not WEIGHT_ATTRS[key] then
+      fail("attribute '" .. key .. "' is not supported; only id and weight attributes are allowed")
       return div
     end
   end
@@ -146,22 +199,8 @@ function Div(div)
     end
   end
   local extra_class_str = #extra_classes > 0 and (" " .. table.concat(extra_classes, " ")) or ""
-  local weights = quarto.json.encode({
-    svg = {
-      geometry = 0.5,
-      text = 0.25,
-      style = 0.15,
-      frame = 0.1,
-      geometry_counts = 0.4,
-      geometry_coarse = 0.6
-    },
-    plotly = {
-      trace = 0.3,
-      data = 0.4,
-      style = 0.2,
-      layout = 0.1
-    }
-  })
+  local plotcat_meta = quarto.metadata.get("plotcat") or {}
+  local weights = quarto.json.encode(merge_weights(div.attributes, plotcat_meta["weights"]))
   return widget(id, engine, chunks[1].block.text, starter, extra_class_str, weights)
 end
 

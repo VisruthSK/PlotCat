@@ -58,6 +58,20 @@ try {
   assert.equal(rendererTolerance.equivalent.score, 1);
   assert.ok(rendererTolerance.changed.score < 1);
 
+  const swappedScore = await page.evaluate(() => {
+    const target = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="5" fill="red"/><circle cx="90" cy="90" r="5" fill="blue"/></svg>';
+    const swapped = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="90" r="5" fill="red"/><circle cx="90" cy="10" r="5" fill="blue"/></svg>';
+    return window.plotcatSvg.compareSvg(target, swapped);
+  });
+  assert.ok(swappedScore.score < 0.6, 'swapped positions should score below 0.6');
+
+  const scatteredWrong = await page.evaluate(() => {
+    const target = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="1" cy="1" r="0.2" fill="red"/><circle cx="2" cy="3" r="0.2" fill="red"/><circle cx="4" cy="5" r="0.2" fill="red"/></svg>';
+    const wrong = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="8" cy="8" r="0.2" fill="red"/><circle cx="7" cy="6" r="0.2" fill="red"/><circle cx="5" cy="4" r="0.2" fill="red"/></svg>';
+    return window.plotcatSvg.compareSvg(target, wrong);
+  });
+  assert.ok(scatteredWrong.score < 0.6, 'wrong positions should score below 0.6');
+
   await load();
   const successfulRun = await page.evaluate(async () => {
     const root = document.querySelector('.plotcat');

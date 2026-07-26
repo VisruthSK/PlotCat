@@ -117,11 +117,79 @@ Use either `{r}` or `{webr}` for R, and either `{python}` or `{pyodide}`
 for Python. `PlotCat` turns the student editor into Quarto Live's native
 `webr` or `pyodide` cell.
 
+## Weights
+
+`PlotCat` scores student plots against a target using a weighted
+comparison. You can override individual weights per exercise as
+attributes on the `.plotcat` Div.
+
+Unset attributes keep their defaults.
+
+### Global defaults
+
+Set project-wide or document-wide weights under `plotcat.weights` in
+YAML frontmatter. Per-exercise attributes on the `.plotcat` Div override
+these.
+
+``` yaml
+plotcat:
+  weights:
+    svg:
+      geometry: 0.5
+      text: 0.25
+    plotly:
+      data: 0.5
+      layout: 0.2
+```
+
+### SVG weights
+
+| Attribute | Default | Controls |
+|---|---|---|
+| `svg-geometry` | 0.6 | Overall weight of geometry |
+| `svg-text` | 0.15 | Text content match |
+| `svg-style` | 0.1 | Fill, stroke, opacity |
+| `svg-frame` | 0.15 | Aspect ratio |
+
+Geometry splits into sub-weights:
+
+| Attribute | Default | Controls |
+|---|---|---|
+| `svg-geometry-coarse` | 0.85 | Element positions (rounded to ~0.1%) |
+| `svg-geometry-counts` | 0.15 | Element counts per tag type |
+
+A scatter exercise might need higher `svg-text` weight because axis
+labels matter more. A bar chart might raise `svg-geometry` to penalise
+missing bars.
+
+### Plotly weights
+
+| Attribute | Default | Controls |
+|---|---|---|
+| `plotly-trace` | 0.3 | Trace type and count |
+| `plotly-data` | 0.4 | Data values (x, y arrays) |
+| `plotly-style` | 0.2 | Marker and line formatting |
+| `plotly-layout` | 0.1 | Title and axis labels |
+
+### Example
+
+``` markdown
+::: {.plotcat id="scatter"
+    svg-geometry="0.4"
+    svg-text="0.4"
+    svg-geometry-coarse="0.5"
+    svg-geometry-counts="0.5"}
+```
+
+The total geometric score combines the coarse and counts sub-scores:
+`coarse * svg-geometry-coarse + counts * svg-geometry-counts`. The
+final score sums each category multiplied by its top-level weight.
+
 ## Limitations
 
 - **Font and text styling**: SVG comparison checks text content, but
   ignores font families, font sizes, font weights, and text positioning.
-- **Coarse geometry matching**: Coordinates are rounded to ~1% relative
+- **Coarse geometry matching**: Coordinates are rounded to ~0.1% relative
   precision and matched as unordered marks. Minor position shifts or
   point jittering may still yield high scores.
 - **No code inspection**: `PlotCat` evaluates rendered plot output (SVG or

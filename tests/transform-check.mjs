@@ -62,11 +62,34 @@ try {
   const nonHtml = render('non-html.qmd');
   assert.equal(nonHtml.status, 0, nonHtml.stdout + nonHtml.stderr);
 
+  const weightsResult = render('weights.qmd');
+  assert.equal(weightsResult.status, 0, weightsResult.stdout + weightsResult.stderr);
+  const weightsHtml = readFileSync(resolve(output, 'weights.html'), 'utf8');
+  const weightsMatch = weightsHtml.match(/data-plotcat-weights="([^"]+)"/);
+  assert.ok(weightsMatch, 'data-plotcat-weights attribute not found');
+  const decoded = JSON.parse(atob(weightsMatch[1]));
+  assert.equal(decoded.svg.geometry, 0.3);
+  assert.equal(decoded.svg.text, 0.5);
+  assert.equal(decoded.svg.style, 0.1);
+  assert.equal(decoded.svg.frame, 0.15);
+  assert.equal(decoded.svg.geometry_counts, 0.15);
+  assert.equal(decoded.svg.geometry_coarse, 0.85);
+
+  const fmWeights = render('weights-frontmatter.qmd');
+  assert.equal(fmWeights.status, 0, fmWeights.stdout + fmWeights.stderr);
+  const fmHtml = readFileSync(resolve(output, 'weights-frontmatter.html'), 'utf8');
+  const fmMatch = fmHtml.match(/data-plotcat-weights="([^"]+)"/);
+  assert.ok(fmMatch, 'data-plotcat-weights attribute not found');
+  const fmDecoded = JSON.parse(atob(fmMatch[1]));
+  assert.equal(fmDecoded.svg.geometry, 0.7);
+  assert.equal(fmDecoded.svg.text, 0.2);
+  assert.equal(fmDecoded.svg.style, 0.1);
+
   for (const [fixture, message] of [
     ['zero-chunks.qmd', 'needs one target chunk'],
     ['too-many.qmd', 'more than two executable chunks'],
     ['mixed.qmd', 'mixes engines'],
-    ['invalid-attribute.qmd', "attribute 'title' is not supported"],
+    ['invalid-attribute.qmd', "attribute 'title' is not supported; only id and weight attributes are allowed"],
     ['executed-starter.qmd', 'starter chunk executed'],
     ['duplicate-id.qmd', "duplicate id 'same'"],
     ['unsupported-engine.qmd', "unsupported engine 'bash'"],

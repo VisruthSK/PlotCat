@@ -106,7 +106,7 @@ function coarseGeometry(features) {
   const viewBox = features.viewBox.split(/\s+/).map(Number);
   const scale = viewBox.length === 4 && Math.max(viewBox[2], viewBox[3]) > 0 ? Math.max(viewBox[2], viewBox[3]) : 100;
   return features.geometry.map(value => value.replace(/-?\d*\.?\d+(?:e[-+]?\d+)?/gi, number => {
-    const normalized = Math.round((Number(number) / scale) * 100) / 100;
+    const normalized = Math.round((Number(number) / scale) * 1000) / 1000;
     return String(Object.is(normalized, -0) ? 0 : normalized);
   }));
 }
@@ -123,12 +123,12 @@ function frameSimilarity(a, b) {
 
 export function compareSvgFeatures(target, student, weights = {}) {
   const w = {
-    geometry: weights.geometry ?? 0.5,
-    text: weights.text ?? 0.25,
-    style: weights.style ?? 0.15,
-    frame: weights.frame ?? 0.1,
-    geometryCounts: weights.geometry_counts ?? 0.4,
-    geometryCoarse: weights.geometry_coarse ?? 0.6,
+    geometry: weights.geometry ?? 0.6,
+    text: weights.text ?? 0.15,
+    style: weights.style ?? 0.1,
+    frame: weights.frame ?? 0.15,
+    geometryCounts: weights.geometry_counts ?? 0.15,
+    geometryCoarse: weights.geometry_coarse ?? 0.85,
   };
   const counts = countSimilarity(target.counts, student.counts);
   const coarse = bagOverlap(coarseGeometry(target), coarseGeometry(student));
@@ -136,7 +136,7 @@ export function compareSvgFeatures(target, student, weights = {}) {
   const text = bagOverlap(target.text, student.text);
   const style = bagOverlap(target.styles, student.styles);
   const frame = frameSimilarity(target, student);
-  const equivalent = counts === 1 && text === 1 && coarse >= .8 && style >= .8 && frame === 1;
+  const equivalent = counts === 1 && text === 1 && coarse >= .95 && style >= .95 && frame === 1;
   const rawScore = geometry * w.geometry + text * w.text + style * w.style + frame * w.frame;
   const score = equivalent ? 1 : Math.round(rawScore * 1e6) / 1e6;
   return { score, categories: { geometry, text, style, frame, counts, coarseGeometry: coarse } };
