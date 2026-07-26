@@ -109,9 +109,23 @@ tinyplot::tinyplot(
 - Assign custom exercise IDs on the container div: `::: {.plotcat #scatter-exercise}`. Auto-generated IDs are `exercise-1`, `exercise-2`, etc.
 - Extra classes on the `.plotcat` Div are forwarded to the widget container for scoped styling.
 
-## Weights
+## Comparison Modes
 
-PlotCat scores student plots against a target using a weighted comparison. Set per-exercise overrides as Div attributes. Unset attributes keep their defaults.
+Three comparison modes are available for SVG plots. Plotly charts are limited to side-by-side only — overlay and wipe are disabled and hidden behind a tooltip.
+
+| Mode | Behavior |
+|---|---|
+| **Side by side** (default) | Target and student plots rendered in a two-column grid. Stacks to single column below 48rem. |
+| **Overlay** | Student plot rendered on top of the target at 50% opacity. |
+| **Wipe** | A draggable vertical slider reveals the target on the left and the student plot on the right. Keyboard: Arrow keys, Home, End. |
+
+## Scoring & Comparison
+
+PlotCat compares SVG plots using feature weights and Plotly figures using an explicit target contract.
+
+### SVG Weights
+
+Set per-exercise weight overrides as Div attributes:
 
 ```markdown
 ::: {.plotcat id="scatter"
@@ -119,7 +133,7 @@ PlotCat scores student plots against a target using a weighted comparison. Set p
     svg-text="0.4"}
 ```
 
-Set document-wide defaults under `plotcat.weights` in YAML frontmatter. Per-exercise attributes override these.
+Set document-wide defaults under `plotcat.weights.svg` in YAML frontmatter:
 
 ```yaml
 plotcat:
@@ -127,13 +141,7 @@ plotcat:
     svg:
       geometry: 0.5
       text: 0.25
-    plotly:
-      data: 0.5
-      layout: 0.2
 ```
-
-
-### SVG Weights
 
 | Attribute | Default | Controls |
 |---|---|---|
@@ -142,16 +150,14 @@ plotcat:
 | `svg-style` | 0.1 | Fill, stroke, opacity attributes on geometry elements |
 | `svg-frame` | 0.15 | Aspect ratio from viewBox or explicit dimensions (pass/fail, not proportional) |
 
-Scatter exercises can raise `svg-text` when axis labels matter most. Bar charts can raise `svg-geometry` to penalise missing bars.
+### Plotly Exercises
 
-### Plotly Weights
+PlotCat evaluates Plotly charts by comparing serialized figure JSON (`data`, `layout`, `frames`, `config`) directly against the target plot.
 
-| Attribute | Default | Controls |
-|---|---|---|
-| `plotly-trace` | 0.3 | Trace type and count (40%) + per-trace type match (60%) |
-| `plotly-data` | 0.4 | Data arrays (x, y, z, values, labels) compared element-by-element |
-| `plotly-style` | 0.2 | Marker and line formatting (mode, marker color/size/symbol, line color/width) |
-| `plotly-layout` | 0.1 | Title text and axis labels |
+- **Explicit Property Contract**: Every property explicitly defined in the target figure must be present in the student figure. Unset target properties are not graded against implicit Plotly defaults. Explicitly define titles, axis labels, colors, ranges, and hover templates in the target code if students should be scored on them. It is not suggested to define them and set them to their default values.
+- **Trace and Array Order**: Traces, data points, annotations, and shapes are matched by position. Extra student array elements reduce the score.
+- **HTML Text Equivalents**: Basic markup tags in text properties (`<b>` / `<strong>`, `<i>` / `<em>`, `<br>` / `<br/>`) are treated as identical.
+- **Comparison Modes**: Plotly charts render in side-by-side mode. Overlay and wipe modes are disabled for Plotly figures.
 
 ## Dimensions
 
@@ -184,16 +190,6 @@ Set the heading in YAML frontmatter for a document-wide default.
 plotcat:
   heading: "Reproduce the graphic"
 ```
-
-## Comparison Modes
-
-Three comparison modes are available for SVG plots. Plotly charts are limited to side-by-side only — overlay and wipe are disabled and hidden behind a tooltip.
-
-| Mode | Behavior |
-|---|---|
-| **Side by side** (default) | Target and student plots rendered in a two-column grid. Stacks to single column below 48rem. |
-| **Overlay** | Student plot rendered on top of the target at 50% opacity. |
-| **Wipe** | A draggable vertical slider reveals the target on the left and the student plot on the right. Keyboard: Arrow keys, Home, End. |
 
 ## CSS Variables
 
