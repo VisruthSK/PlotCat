@@ -82,7 +82,8 @@
   border: 1px solid var(--plotcat-border);
   border-radius: 0.5rem;
   background: var(--plotcat-nested-bg);
-  overflow: hidden;
+  overflow: auto;
+  resize: vertical;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
