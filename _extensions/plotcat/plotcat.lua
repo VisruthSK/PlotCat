@@ -151,7 +151,6 @@ local function widget(id, engine, target, starter, extra_classes, weights_json, 
     '    <figure class="plotcat__plot plotcat__student" data-plotcat-student aria-label="Your plot"></figure>\n',
     '    <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>\n',
     '  </div>\n',
-    '  <label for="', escape_html(dom_id), '-editor">Code</label>\n',
     '  <div class="plotcat-editor-container"><div class="plotcat__editor" id="', escape_html(dom_id), '-editor">\n'
   }
 
