@@ -30,16 +30,25 @@ function waitForOJS(timeoutMs = 15000) {
   });
 }
 
+async function getWebR() {
+  const main = await waitForOJS();
+  const ojs = await main.value('webROjs');
+  return ojs.webRPromise;
+}
+
+async function getPyodide() {
+  const main = await waitForOJS();
+  const ojs = await main.value('pyodideOjs');
+  return ojs.pyodidePromise;
+}
+
 export const quartoLiveBridge = {
-  async getRuntime(engine) {
-    const main = await waitForOJS();
+  getRuntime(engine) {
     if (engine === 'r') {
-      const ojs = await main.value('webROjs');
-      return new WebRAdapter(ojs.webRPromise);
+      return new WebRAdapter(getWebR());
     }
     if (engine === 'python') {
-      const ojs = await main.value('pyodideOjs');
-      return new PyodideAdapter(ojs.pyodidePromise);
+      return new PyodideAdapter(getPyodide());
     }
     throw new Error(`Unsupported runtime: ${engine}`);
   }

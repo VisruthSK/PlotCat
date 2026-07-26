@@ -236,23 +236,10 @@
   display: none;
 }
 
-.plotcat__feedback {
-  font-size: 0.85rem;
-  color: var(--bs-secondary-color, #6c757d);
-  margin-top: 0.5rem;
-  line-height: 1.4;
-  display: none;
-}
-
 .plotcat--error .plotcat__status {
   display: block !important;
   color: var(--bs-danger, #dc3545) !important;
   font-weight: 600;
-}
-
-.plotcat--error .plotcat__feedback:not(:empty) {
-  display: block;
-  white-space: pre-wrap;
 }
 
 .plotcat--complete .plotcat__score {

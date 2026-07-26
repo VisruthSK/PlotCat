@@ -6,6 +6,7 @@ export class PyodideAdapter {
   async init() {
     this.pyodide = await this.pyodidePromise;
   }
+
   async renderSvg(code, options = {}) {
     const width = options.width || 6.4;
     const height = options.height || 4.8;
@@ -63,18 +64,17 @@ _plotcat_out`;
       const result = await this.pyodide.runPythonAsync(wrapped);
       const output = String(result);
       if (output.startsWith('{"type": "no-plot"')) {
-        const details = JSON.parse(output);
-        const error = new Error('Python code did not produce a plot.');
-        error.output = details.output;
-        throw error;
+        return { kind: 'no-plot', message: 'Python code did not produce a plot.' };
       }
-      if (!output.includes('<svg') && !output.startsWith('{"type":"plotly"')) {
-        throw new Error('Python code did not produce a plot.');
+      if (output.startsWith('{"type":"plotly"')) {
+        return { kind: 'plotly', figure: JSON.parse(output).data, stdout: [], warnings: [] };
       }
-      return output;
+      if (output.includes('<svg')) {
+        return { kind: 'svg', svg: output, stdout: [], warnings: [] };
+      }
+      return { kind: 'no-plot', message: 'Python code did not produce a plot.' };
     } catch (error) {
-      if (error?.output !== undefined) throw error;
-      throw new Error(`Python error: ${error instanceof Error ? error.message : error}`);
+      return { kind: 'error', message: error instanceof Error ? error.message : String(error), traceback: '' };
     }
   }
 }

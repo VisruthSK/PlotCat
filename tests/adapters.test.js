@@ -7,7 +7,12 @@ import { comparePlotly } from '../_extensions/plotcat/svg.js';
 function mockWebR(overrides = {}) {
   const calls = { init: 0, code: '', ...overrides.calls };
   class WebR {
-    FS = overrides.FS || { readFile: async () => new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>') };
+    FS = overrides.FS || {
+      readFile: async path => {
+        if (path === '/tmp/plotcat-plotly.json') throw new Error('File not found');
+        return new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>');
+      }
+    };
     async init() { calls.init++; }
     async evalRVoid(code) { calls.code = code; }
   }
@@ -20,8 +25,10 @@ test('WebR returns SVG bytes', async () => {
   await webR.init();
   const adapter = new WebRAdapter(Promise.resolve(webR));
   await adapter.init();
-  const svg = await adapter.renderSvg('plot(cars)');
+  const result = await adapter.renderSvg('plot(cars)');
   assert.equal(calls.init, 1);
+  assert.equal(result.kind, 'svg');
+  assert.match(result.svg, /^<svg/);
   assert.match(calls.code, /new\.env\(parent = globalenv\(\)\)/);
   assert.match(calls.code, /svglite::svglite\(/);
   assert.match(calls.code, /requireNamespace\("svglite"/);
@@ -29,7 +36,6 @@ test('WebR returns SVG bytes', async () => {
   assert.match(calls.code, /sink\(/);
   assert.match(calls.code, /print\(val\)/);
   assert.match(calls.code, /plot\(cars\)/);
-  assert.match(svg, /^<svg/);
 });
 
 test('WebR adapter does not initialize the provided WebR instance', async () => {
@@ -39,8 +45,9 @@ test('WebR adapter does not initialize the provided WebR instance', async () => 
   const adapter = new WebRAdapter(Promise.resolve(existing));
   await adapter.init();
   assert.equal(calls.init, 1, 'should not re-initialize the provided WebR instance');
-  const svg = await adapter.renderSvg('plot(cars)');
-  assert.match(svg, /^<svg/);
+  const result = await adapter.renderSvg('plot(cars)');
+  assert.equal(result.kind, 'svg');
+  assert.match(result.svg, /^<svg/);
 });
 
 test('WebR reports runtime and invalid-output errors with language context', async () => {
@@ -54,9 +61,14 @@ test('WebR reports runtime and invalid-output errors with language context', asy
   }
   const adapter = new WebRAdapter(Promise.resolve(new BrokenWebR()));
   await adapter.init();
-  await assert.rejects(adapter.renderSvg('1 + 1'), error => error.message === 'R code did not produce a plot.' && error.output === '[1] 2\n');
+  const noPlot = await adapter.renderSvg('1 + 1');
+  assert.equal(noPlot.kind, 'no-plot');
+  assert.equal(noPlot.message, 'R code did not produce a plot.');
+
   adapter.webR.evalRVoid = async () => { throw new Error('unexpected symbol'); };
-  await assert.rejects(adapter.renderSvg('plot('), /R error: unexpected symbol/);
+  const error = await adapter.renderSvg('plot(');
+  assert.equal(error.kind, 'error');
+  assert.match(error.message, /unexpected symbol/);
 });
 
 test('Pyodide captures an isolated final plot expression', async () => {
@@ -71,24 +83,30 @@ test('Pyodide captures an isolated final plot expression', async () => {
   };
   const adapter = new PyodideAdapter(Promise.resolve(pyodide));
   await adapter.init();
-  const svg = await adapter.renderSvg('fig, ax = plt.subplots()');
+  const result = await adapter.renderSvg('fig, ax = plt.subplots()');
+  assert.equal(result.kind, 'svg');
+  assert.match(result.svg, /^<svg/);
   assert.match(calls.code, /_plotcat_globals = \{'__builtins__': __builtins__\}/);
   assert.match(calls.code, /_plotcat_console = io\.StringIO\(\)/);
   assert.match(calls.code, /isinstance\(_plotcat_tree\.body\[-1\], ast\.Expr\)/);
   assert.match(calls.code, /type\(_plotcat_result\)\.__module__\.startswith\('plotnine'\)/);
   assert.match(calls.code, /_plotcat_result\.draw\(\)/);
   assert.match(calls.code, /_plotcat_plt\.close\(/);
-  assert.match(svg, /^<svg/);
 });
 
 test('Pyodide reports Python failures and missing plots clearly', async () => {
   const pyodide = { runPythonAsync: async () => '{"type": "no-plot", "output": "hello\\n"}' };
   const adapter = new PyodideAdapter(Promise.resolve(pyodide)); await adapter.init();
-  await assert.rejects(adapter.renderSvg('print("hello")'), error => error.message === 'Python code did not produce a plot.' && error.output === 'hello\n');
+  const noPlot = await adapter.renderSvg('print("hello")');
+  assert.equal(noPlot.kind, 'no-plot');
+  assert.equal(noPlot.message, 'Python code did not produce a plot.');
   pyodide.runPythonAsync = async () => 'not svg';
-  await assert.rejects(adapter.renderSvg('x = 1'), /Python error: Python code did not produce a plot/);
+  const noSvg = await adapter.renderSvg('x = 1');
+  assert.equal(noSvg.kind, 'no-plot');
   pyodide.runPythonAsync = async () => { throw new Error('NameError: x'); };
-  await assert.rejects(adapter.renderSvg('x'), /Python error: NameError: x/);
+  const error = await adapter.renderSvg('x');
+  assert.equal(error.kind, 'error');
+  assert.match(error.message, /NameError: x/);
 });
 
 test('Pyodide does not leak previous plot between executions', async () => {
@@ -109,12 +127,11 @@ test('Pyodide does not leak previous plot between executions', async () => {
 import matplotlib.pyplot as plt
 plt.plot([1, 2], [3, 4])
 `);
-  assert.match(first, /<svg/);
+  assert.equal(first.kind, 'svg');
+  assert.match(first.svg, /<svg/);
 
-  await assert.rejects(
-    () => adapter.renderSvg('print("no plot")'),
-    /Python code did not produce a plot/
-  );
+  const second = await adapter.renderSvg('print("no plot")');
+  assert.equal(second.kind, 'no-plot');
 });
 
 test('comparePlotly evaluates data, types, styling, and layout variables', () => {
@@ -134,7 +151,6 @@ test('comparePlotly evaluates data, types, styling, and layout variables', () =>
 
   const matchResult = comparePlotly(target, target);
   assert.equal(matchResult.score, 1.0);
-  assert.deepEqual(matchResult.feedback, ['Excellent recreation!']);
 
   const student = {
     data: [{
@@ -151,5 +167,4 @@ test('comparePlotly evaluates data, types, styling, and layout variables', () =>
   };
   const diffResult = comparePlotly(target, student);
   assert.ok(diffResult.score < 1.0);
-  assert.ok(diffResult.feedback.some(f => f.includes('Layout title expected')));
 });

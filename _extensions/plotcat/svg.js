@@ -121,38 +121,51 @@ function frameSimilarity(a, b) {
   return Math.abs(left - right) / Math.max(left, right) <= 0.01 ? 1 : 0;
 }
 
-export function compareSvgFeatures(target, student) {
+export function compareSvgFeatures(target, student, weights = {}) {
+  const w = {
+    geometry: weights.geometry ?? 0.5,
+    text: weights.text ?? 0.25,
+    style: weights.style ?? 0.15,
+    frame: weights.frame ?? 0.1,
+    geometryCounts: weights.geometry_counts ?? 0.4,
+    geometryCoarse: weights.geometry_coarse ?? 0.6,
+  };
   const counts = countSimilarity(target.counts, student.counts);
   const coarse = bagOverlap(coarseGeometry(target), coarseGeometry(student));
-  const geometry = counts * .4 + coarse * .6;
+  const geometry = counts * w.geometryCounts + coarse * w.geometryCoarse;
   const text = bagOverlap(target.text, student.text);
   const style = bagOverlap(target.styles, student.styles);
   const frame = frameSimilarity(target, student);
   const equivalent = counts === 1 && text === 1 && coarse >= .8 && style >= .8 && frame === 1;
-  const rawScore = geometry * .5 + text * .25 + style * .15 + frame * .1;
+  const rawScore = geometry * w.geometry + text * w.text + style * w.style + frame * w.frame;
   const score = equivalent ? 1 : Math.round(rawScore * 1e6) / 1e6;
   return { score, categories: { geometry, text, style, frame, counts, coarseGeometry: coarse } };
 }
 
-export function compareSvg(target, student) {
+export function compareSvg(target, student, weights) {
   return compareSvgFeatures(
     typeof target === 'object' && target !== null && target.counts ? target : extractFeatures(target),
-    typeof student === 'object' && student !== null && student.counts ? student : extractFeatures(student)
+    typeof student === 'object' && student !== null && student.counts ? student : extractFeatures(student),
+    weights
   );
 }
 
-export function comparePlotly(target, student) {
+export function comparePlotly(target, student, weights = {}) {
+  const w = {
+    trace: weights.trace ?? 0.3,
+    data: weights.data ?? 0.4,
+    style: weights.style ?? 0.2,
+    layout: weights.layout ?? 0.1,
+  };
   const a = typeof target === 'string' ? JSON.parse(target) : target;
   const b = typeof student === 'string' ? JSON.parse(student) : student;
 
-  const feedback = [];
   const tTraces = a.data || [];
   const sTraces = b.data || [];
 
   let traceScore = 1.0;
   if (tTraces.length !== sTraces.length) {
     traceScore = Math.max(0, 1 - Math.abs(tTraces.length - sTraces.length) / Math.max(tTraces.length, sTraces.length));
-    feedback.push(`Expected ${tTraces.length} trace(s), but got ${sTraces.length}.`);
   }
 
   let dataScore = 1.0;
@@ -169,8 +182,6 @@ export function comparePlotly(target, student) {
 
       if (t.type === s.type) {
         typeMatches++;
-      } else {
-        feedback.push(`Trace ${i + 1} type expected '${t.type}', but got '${s.type}'.`);
       }
 
       let dataDiff = 0;
@@ -182,7 +193,6 @@ export function comparePlotly(target, student) {
           const sArr = Array.isArray(s[key]) ? s[key] : [];
           if (tArr.length !== sArr.length) {
             dataDiff += 1.0;
-            feedback.push(`Trace ${i + 1} data array '${key}' length expected ${tArr.length}, but got ${sArr.length}.`);
           } else {
             let itemDiff = 0;
             for (let j = 0; j < tArr.length; j++) {
@@ -192,7 +202,6 @@ export function comparePlotly(target, student) {
             }
             if (itemDiff > 0) {
               dataDiff += tArr.length ? itemDiff / tArr.length : 0;
-              feedback.push(`Trace ${i + 1} data array '${key}' values mismatch.`);
             }
           }
         }
@@ -205,7 +214,6 @@ export function comparePlotly(target, student) {
         styleCount++;
         if (t.mode !== s.mode) {
           styleDiff++;
-          feedback.push(`Trace ${i + 1} mode expected '${t.mode}', but got '${s.mode}'.`);
         }
       }
       const tMarker = t.marker || {};
@@ -215,7 +223,6 @@ export function comparePlotly(target, student) {
           styleCount++;
           if (String(tMarker[prop]) !== String(sMarker[prop])) {
             styleDiff++;
-            feedback.push(`Trace ${i + 1} marker ${prop} expected '${tMarker[prop] || 'default'}', but got '${sMarker[prop] || 'default'}'.`);
           }
         }
       });
@@ -226,7 +233,6 @@ export function comparePlotly(target, student) {
           styleCount++;
           if (String(tLine[prop]) !== String(sLine[prop])) {
             styleDiff++;
-            feedback.push(`Trace ${i + 1} line ${prop} expected '${tLine[prop] || 'default'}', but got '${sLine[prop] || 'default'}'.`);
           }
         }
       });
@@ -258,7 +264,6 @@ export function comparePlotly(target, student) {
     layoutCount++;
     if (tTitle !== sTitle) {
       layoutDiff++;
-      feedback.push(`Layout title expected '${tTitle}', but got '${sTitle}'.`);
     }
   }
 
@@ -274,7 +279,6 @@ export function comparePlotly(target, student) {
       layoutCount++;
       if (tAxisTitle !== sAxisTitle) {
         layoutDiff++;
-        feedback.push(`Layout ${axis} title expected '${tAxisTitle}', but got '${sAxisTitle}'.`);
       }
     }
   });
@@ -283,19 +287,12 @@ export function comparePlotly(target, student) {
     layoutScore = 1 - layoutDiff / layoutCount;
   }
 
-  const rawScore = traceScore * 0.3 + dataScore * 0.4 + styleScore * 0.2 + layoutScore * 0.1;
-  let score = Math.round(rawScore * 100) / 100;
-  if (feedback.length > 0 && score === 1.0) {
-    score = 0.99;
-  }
-  if (score === 1.0 && feedback.length === 0) {
-    feedback.push("Excellent recreation!");
-  }
+  const rawScore = traceScore * w.trace + dataScore * w.data + styleScore * w.style + layoutScore * w.layout;
+  const score = Math.round(rawScore * 100) / 100;
 
   return {
     score,
-    categories: { traceScore, dataScore, styleScore, layoutScore },
-    feedback
+    categories: { traceScore, dataScore, styleScore, layoutScore }
   };
 }
 

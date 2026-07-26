@@ -17,12 +17,7 @@ export class WebRAdapter {
       await this.webR.evalRVoid(`local({
         if (file.exists("/tmp/plotcat-plotly.json")) file.remove("/tmp/plotcat-plotly.json");
         if (!requireNamespace("svglite", quietly = TRUE)) {
-          stop(
-            paste(
-              "PlotCat requires the R package 'svglite'.",
-              "Add it under format.live-html.webr.packages."
-            )
-          )
+          stop("PlotCat requires the R package 'svglite'. Add it under format.live-html.webr.packages.")
         }
         svglite::svglite(${JSON.stringify(path)}, width = ${width}, height = ${height});
         sink(${JSON.stringify(outputPath)});
@@ -38,35 +33,31 @@ export class WebRAdapter {
           }
         }
       })`);
+
+      let plotlyBytes;
       try {
-        const bytes = await this.webR.FS.readFile('/tmp/plotcat-plotly.json');
-        return new TextDecoder().decode(bytes);
-      } catch (e) {
-        const bytes = await this.webR.FS.readFile(path);
-        const svg = new TextDecoder().decode(bytes);
-        if (!/<(?:circle|line|path|polygon|polyline|rect|text|image|use)\b/.test(svg)) {
-          const output = new TextDecoder().decode(await this.webR.FS.readFile(outputPath));
-          const error = new Error('R code did not produce a plot.');
-          error.output = output;
-          throw error;
-        }
-        return svg;
+        plotlyBytes = await this.webR.FS.readFile('/tmp/plotcat-plotly.json');
+      } catch {}
+
+      if (plotlyBytes) {
+        const raw = new TextDecoder().decode(plotlyBytes);
+        return { kind: 'plotly', figure: JSON.parse(raw).data, stdout: [], warnings: [] };
       }
+
+      const svgBytes = await this.webR.FS.readFile(path);
+      const svg = new TextDecoder().decode(svgBytes);
+      if (!/<(?:circle|line|path|polygon|polyline|rect|text|image|use)\b/.test(svg)) {
+        return { kind: 'no-plot', message: 'R code did not produce a plot.' };
+      }
+      return { kind: 'svg', svg, stdout: [], warnings: [] };
     } catch (error) {
-      if (error?.output !== undefined) throw error;
-      throw new Error(`R error: ${error instanceof Error ? error.message : error}`);
+      let traceback = '';
+      try { traceback = new TextDecoder().decode(await this.webR.FS.readFile(outputPath)); } catch {}
+      return { kind: 'error', message: error instanceof Error ? error.message : String(error), traceback };
     } finally {
       if (this.webR?.FS?.unlink) {
-        for (const file of [
-          path,
-          outputPath,
-          '/tmp/plotcat-plotly.json'
-        ]) {
-          try {
-            await this.webR.FS.unlink(file);
-          } catch {
-            // File was not created or was already removed.
-          }
+        for (const file of [path, outputPath, '/tmp/plotcat-plotly.json']) {
+          try { await this.webR.FS.unlink(file); } catch {}
         }
       }
     }

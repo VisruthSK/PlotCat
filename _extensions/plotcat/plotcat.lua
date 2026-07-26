@@ -132,8 +132,9 @@ function Div(div)
   if #chunks == 2 and chunks[2].produced_output then fail("'" .. id .. "' starter chunk executed; add #| eval: false to the starter chunk"); return div end
   local starter = #chunks == 2 and chunks[2].block.text or ""
 
-  if not quarto.doc.is_format("live-html") then
-    fail("PlotCat only supports format: live-html (add `format: live-html` and install Quarto Live)")
+  if not quarto.doc.is_format("html") then return nil end
+  if not quarto.metadata.get("ojs-engine") then
+    fail("PlotCat requires format: live-html (add `format: live-html` and install Quarto Live)")
     return div
   end
 

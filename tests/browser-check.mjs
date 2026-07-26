@@ -64,7 +64,7 @@ try {
     root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
     const calls = [];
     const manager = {
-      get: async engine => { calls.push({ engine }); return { renderSvg: async () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>bad()</script><circle fill="red"/></svg>` }; },
+      get: async engine => { calls.push({ engine }); return { renderSvg: async () => ({ kind: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>bad()</script><circle fill="red"/></svg>' }) }; },
       run: async (_engine, task) => task()
     };
     window.plotcatUi.mountPlotCat(root, manager);
@@ -95,7 +95,7 @@ try {
     const calls = [];
     runtimeManager.get = async engine => {
       calls.push({ engine });
-      return { renderSvg: async () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg>` };
+      return { renderSvg: async () => ({ kind: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg>' }) };
     };
     runtimeManager.run = async (_engine, task) => task();
 

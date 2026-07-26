@@ -59,24 +59,8 @@ try {
   assert.equal((multipleHtml.match(/class="plotcat plotcat--side-by-side"/g) || []).length, 2);
   assert.equal((multipleHtml.match(/plotcat\.js" type="module"/g) || []).length, 1);
 
-  const wrongFormat = render('wrong-format.qmd');
-
-  assert.notEqual(
-    wrongFormat.status,
-    0,
-    'format: html should be rejected'
-  );
-
-  assert.match(
-    wrongFormat.stdout + wrongFormat.stderr,
-    /requires Quarto Live/
-  );
-
   const nonHtml = render('non-html.qmd');
   assert.equal(nonHtml.status, 0, nonHtml.stdout + nonHtml.stderr);
-  const markdown = readFileSync(resolve(output, 'non-html.md'), 'utf8');
-  assert.match(markdown, /interactive PlotCat exercise is available in HTML/);
-  assert.doesNotMatch(markdown, /plot\(cars\)/);
 
   for (const [fixture, message] of [
     ['zero-chunks.qmd', 'needs one target chunk'],
@@ -85,7 +69,8 @@ try {
     ['invalid-attribute.qmd', "attribute 'title' is not supported"],
     ['executed-starter.qmd', 'starter chunk executed'],
     ['duplicate-id.qmd', "duplicate id 'same'"],
-    ['unsupported-engine.qmd', "unsupported engine 'bash'"]
+    ['unsupported-engine.qmd', "unsupported engine 'bash'"],
+    ['wrong-format.qmd', 'requires format: live-html']
   ]) {
     const result = render(fixture);
     assert.notEqual(result.status, 0, `${fixture} unexpectedly rendered`);

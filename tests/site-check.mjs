@@ -215,8 +215,6 @@ ggplotly(p)`;
   const incorrectRScoreText = await rPlotly.locator('.plotcat__score').textContent();
   const incorrectRScore = parseInt(incorrectRScoreText);
   assert.ok(incorrectRScore < 100, `R Plotly ggplotly solution should score < 100% against plot_ly target, but got ${incorrectRScore}%`);
-  const rFeedback = await rPlotly.locator('.plotcat__feedback').textContent();
-  assert.ok(rFeedback.includes('expected') || rFeedback.length > 0, 'Feedback should report trace/layout mismatches');
 
   // R Plotly Green Step: submit correct plot_ly code
   const rPlotlySolution = `library(plotly)
