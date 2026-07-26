@@ -103,11 +103,11 @@
 .plotcat__editor .exercise-editor-header,
 .plotcat__editor .card.exercise-editor > .card-header,
 .plotcat__editor .exercise-cell-output {
-  display: none !important;
+  display: none;
 }
 
 #exercise-loading-indicator {
-  display: none !important;
+  display: none;
 }
 
 .plotcat__editor .cm-editor {
@@ -241,14 +241,14 @@
 }
 
 .plotcat--error .plotcat__status {
-  display: block !important;
-  color: var(--bs-danger, #dc3545) !important;
+  display: block;
+  color: var(--bs-danger, #dc3545);
   font-weight: 600;
 }
 
 .plotcat--complete .plotcat__score {
   background: hsla(var(--plotcat-score-hue, 120), 85%, 50%, 0.1);
-  color: hsl(var(--plotcat-score-hue, 120), 100%, 35%) !important;
+  color: hsl(var(--plotcat-score-hue, 120), 100%, 35%);
   border: 1px solid hsla(var(--plotcat-score-hue, 120), 85%, 50%, 0.2);
 }
 

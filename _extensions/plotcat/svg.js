@@ -86,9 +86,17 @@ function extractFeaturesFromDoc(doc) {
   }
   geometry.sort();
   styles.sort();
+
+  const viewBoxStr = root.getAttribute('viewBox') || '';
+  const vbValues = viewBoxStr ? viewBoxStr.split(/\s+/).map(Number) : [];
+  const aspect = vbValues.length === 4 && vbValues[3] > 0 ? vbValues[2] / vbValues[3] : null;
+  const scale = vbValues.length === 4 && Math.max(vbValues[2], vbValues[3]) > 0 ? Math.max(vbValues[2], vbValues[3]) : 100;
+
   return {
-    viewBox: root.getAttribute('viewBox') || '',
+    viewBox: viewBoxStr,
     dimensions: [root.getAttribute('width') || '', root.getAttribute('height') || ''],
+    aspect,
+    scale,
     counts,
     geometry,
     text: texts,
@@ -139,22 +147,16 @@ function bagOverlap(a, b) {
 }
 
 function coarseGeometry(features) {
-  const viewBox = features.viewBox.split(/\s+/).map(Number);
-  const scale = viewBox.length === 4 && Math.max(viewBox[2], viewBox[3]) > 0 ? Math.max(viewBox[2], viewBox[3]) : 100;
+  const scale = features.scale || 100;
   return features.geometry.map(value => value.replace(/-?\d*\.?\d+(?:e[-+]?\d+)?/gi, number => {
     const normalized = Math.round((Number(number) / scale) * 1000) / 1000;
     return String(Object.is(normalized, -0) ? 0 : normalized);
   }));
 }
 
-function viewBoxAspect(features) {
-  const values = features.viewBox.split(/\s+/).map(Number);
-  return values.length === 4 && values[3] > 0 ? values[2] / values[3] : null;
-}
-
-function frameSimilarity(aLeft, aRight, dimA, dimB) {
-  if (aLeft === null || aRight === null) return dimA.join('|') === dimB.join('|') ? 1 : 0;
-  return Math.abs(aLeft - aRight) / Math.max(aLeft, aRight) <= 0.01 ? 1 : 0;
+function frameSimilarity(aAspect, bAspect, dimA, dimB) {
+  if (aAspect === null || bAspect === null) return dimA.join('|') === dimB.join('|') ? 1 : 0;
+  return Math.abs(aAspect - bAspect) / Math.max(aAspect, bAspect) <= 0.01 ? 1 : 0;
 }
 
 export function compareSvgFeatures(target, student, weights = {}) {
@@ -167,7 +169,7 @@ export function compareSvgFeatures(target, student, weights = {}) {
   const coarse = bagOverlap(coarseGeometry(target), coarseGeometry(student));
   const text = bagOverlap(target.text, student.text);
   const style = bagOverlap(target.styles, student.styles);
-  const frame = frameSimilarity(viewBoxAspect(target), viewBoxAspect(student), target.dimensions, student.dimensions);
+  const frame = frameSimilarity(target.aspect, student.aspect, target.dimensions, student.dimensions);
   const rawScore = coarse * w.geometry + text * w.text + style * w.style + frame * w.frame;
   const score = Math.round(rawScore * 1e6) / 1e6;
   return { score, categories: { geometry: coarse, text, style, frame } };
@@ -317,4 +319,3 @@ export function comparePlotly(target, student, weights = {}) {
     categories: { traceScore, dataScore, styleScore, layoutScore }
   };
 }
-

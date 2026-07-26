@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
-import { startStaticServer } from './static-server.mjs';
+import { setupBrowserTest } from './playwright-helper.mjs';
 
-const server = await startStaticServer('.');
-const browser = await chromium.launch();
-const page = await browser.newPage();
+const { server, page, teardown } = await setupBrowserTest('.');
 const fixture = `${server.origin}/tests/fixtures/browser.html`;
 
 async function load() {
@@ -76,12 +73,11 @@ try {
   const successfulRun = await page.evaluate(async () => {
     const root = document.querySelector('.plotcat');
     root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
+    const { runtimeManager } = await import('../../_extensions/plotcat/runtime-manager.js');
     const calls = [];
-    const manager = {
-      get: async engine => { calls.push({ engine }); return { renderSvg: async () => ({ kind: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>bad()</script><circle fill="red"/></svg>' }) }; },
-      run: async (_engine, task) => task()
-    };
-    window.plotcatUi.mountPlotCat(root, manager);
+    runtimeManager.get = async engine => { calls.push({ engine }); return { renderSvg: async () => ({ kind: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>bad()</script><circle fill="red"/></svg>' }) }; };
+    runtimeManager.run = async (_engine, task) => task();
+    window.plotcatUi.mountPlotCat(root);
     const wipeMode = root.querySelector('input[value=wipe]'); wipeMode.click();
     const handle = root.querySelector('[data-plotcat-wipe-handle]');
     handle.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
@@ -137,6 +133,5 @@ try {
   });
   assert.deepEqual(failedRun, { status: 'R package tinyplot is unavailable.', error: true, enabled: true });
 } finally {
-  await browser.close();
-  await server.close();
+  await teardown();
 }

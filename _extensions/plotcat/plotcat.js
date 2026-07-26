@@ -1,6 +1,6 @@
 import { compareSvgFeatures, comparePlotly, prepareSvg } from './svg.js';
 import { withRetry, errorMessage } from './utils.js';
-import { runtimeManager } from './runtime-runtimeManager.js';
+import { runtimeManager } from './runtime-manager.js';
 
 let plotlyPromise;
 
@@ -93,9 +93,10 @@ function renderPlotly(target, figure) {
   return Plotly.newPlot(div, figure.data, figure.layout, { responsive: true, displayModeBar: false });
 }
 
-export function mountPlotCat(root) {
+export function mountPlotCat(root, manager) {
+  const mgr = (manager && typeof manager.get === 'function') ? manager : runtimeManager;
   const manifest = JSON.parse(root.dataset.plotcatManifest);
-  const adapterPromise = runtimeManager.get(manifest.engine);
+  const adapterPromise = mgr.get(manifest.engine);
   adapterPromise.catch(() => {});
 
   const weights = JSON.parse(atob(root.dataset.plotcatWeights));
@@ -120,7 +121,7 @@ export function mountPlotCat(root) {
     const adapter = await adapterPromise;
 
     status.textContent = 'Rendering target…';
-    const result = await runtimeManager.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height }));
+    const result = await mgr.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height }));
 
     if (result.kind === 'plotly') {
       outputType = 'plotly';
@@ -219,8 +220,8 @@ export function mountPlotCat(root) {
     run.disabled = true;
     status.textContent = 'Running…';
     try {
-      const adapter = await runtimeManager.get(manifest.engine);
-      const result = await runtimeManager.run(manifest.engine, () => adapter.renderSvg(studentCode(root), { width, height }));
+      const adapter = await mgr.get(manifest.engine);
+      const result = await mgr.run(manifest.engine, () => adapter.renderSvg(studentCode(root), { width, height }));
 
       let score;
       if (result.kind === 'plotly') {

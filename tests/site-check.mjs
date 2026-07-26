@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
-import { startStaticServer } from './static-server.mjs';
+import { setupBrowserTest } from './playwright-helper.mjs';
 
-const server = await startStaticServer('website/_site');
-const browser = await chromium.launch();
-const page = await browser.newPage();
+const { server, page, teardown } = await setupBrowserTest('website/_site');
 page.setDefaultTimeout(180_000);
 const requests = [];
 const failedRequests = [];
@@ -268,6 +265,5 @@ fig`;
     assert.equal(await widget.evaluate(node => node.classList.contains('plotcat--side-by-side')), true, `${label} should use side-by-side comparison`);
   }
 } finally {
-  await browser.close();
-  await server.close();
+  await teardown();
 }
