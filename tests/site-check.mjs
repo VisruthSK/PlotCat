@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { setupBrowserTest } from './playwright-helper.mjs';
 
-const { server, page, teardown } = await setupBrowserTest('website/_site');
+import { existsSync } from 'node:fs';
+
+const { server, page, teardown } = await setupBrowserTest(existsSync('_site') ? '_site' : 'website/_site');
 page.setDefaultTimeout(180_000);
 const requests = [];
 const failedRequests = [];

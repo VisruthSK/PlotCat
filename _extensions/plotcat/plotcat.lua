@@ -235,7 +235,7 @@ function Div(div)
     version = "0.3.0",
     scripts = {{path = "plotcat.js", attribs = {type = "module"}}},
     stylesheets = {"plotcat.css"},
-    resources = {"svg.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js"},
+    resources = {"svg.js", "plotly-compare.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js", "quarto-live-bridge.js", "utils.js"},
     head = '<link rel="preconnect" href="https://cdn.plot.ly" crossorigin><link rel="dns-prefetch" href="https://webr.r-wasm.org"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net">'
   })
 
