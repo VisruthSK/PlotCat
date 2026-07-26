@@ -114,6 +114,11 @@ local function parse_attributes(attrs, yaml_meta)
     end
   end
 
+  local svg_sum = weights.svg.geometry + weights.svg.text + weights.svg.style + weights.svg.frame
+  if math.abs(svg_sum - 1.0) > 1e-3 then
+    fail("SVG weights must sum to 1.0, got " .. string.format("%.4g", svg_sum))
+  end
+
   return weights, dims, heading
 end
 

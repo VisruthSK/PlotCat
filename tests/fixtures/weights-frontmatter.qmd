@@ -5,8 +5,8 @@ filters:
 plotcat:
   weights:
     svg:
-      geometry: 0.7
-      text: 0.2
+      geometry: 0.65
+      text: 0.1
 ---
 
 ::: {.plotcat id="fm-weights"}

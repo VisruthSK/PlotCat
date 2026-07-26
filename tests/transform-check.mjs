@@ -73,8 +73,8 @@ try {
 
   assertRendered('non-html.qmd');
 
-  assertWeights('weights.qmd', { geometry: 0.3, text: 0.5, style: 0.1, frame: 0.15 });
-  assertWeights('weights-frontmatter.qmd', { geometry: 0.7, text: 0.2, style: 0.1 });
+  assertWeights('weights.qmd', { geometry: 0.35, text: 0.4, style: 0.1, frame: 0.15 });
+  assertWeights('weights-frontmatter.qmd', { geometry: 0.65, text: 0.1, style: 0.1 });
 
   for (const [fixture, message] of [
     ['zero-chunks.qmd', 'needs one target chunk'],
@@ -84,7 +84,8 @@ try {
     ['executed-starter.qmd', 'starter chunk executed'],
     ['duplicate-id.qmd', "duplicate id 'same'"],
     ['unsupported-engine.qmd', "unsupported engine 'bash'"],
-    ['wrong-format.qmd', 'requires format: live-html']
+    ['wrong-format.qmd', 'requires format: live-html'],
+    ['invalid-weight-sum.qmd', 'SVG weights must sum to 1.0']
   ]) {
     const result = render(fixture);
     assert.notEqual(result.status, 0, `${fixture} unexpectedly rendered`);
