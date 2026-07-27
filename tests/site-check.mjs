@@ -154,6 +154,16 @@ ax.set_ylabel("Petal length (cm)")`;
   // Plotnine
   const tk2 = performance.now();
   const plotnine = page.locator('#plotcat-exercise-6');
+  const plotnineSolution = `from plotnine import ggplot, aes, geom_point, labs, theme_minimal
+from plotnine.data import mtcars
+plot = (
+  ggplot(mtcars, aes("wt", "mpg", color="factor(cyl)"))
+  + geom_point(size=3)
+  + labs(title="Fuel economy by weight", x="Weight", y="Miles per gallon", color="Cylinders")
+  + theme_minimal()
+)
+plot.show()`;
+  await fillEditor(plotnine, plotnineSolution);
   await plotnine.locator('[data-plotcat-run]').click();
   await expectRendered(plotnine, 'Plotnine');
   assert.equal(await plotnine.locator('.plotcat__student svg').count(), 1);
@@ -198,6 +208,8 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
   // tinyplot
   const tk4 = performance.now();
   const tinyplot = page.locator('#plotcat-exercise-2');
+  const tinyplotSolution = `tinyplot::tinyplot(dist ~ speed, data = cars, main = "Stopping distance by speed", xlab = "Speed", ylab = "Stopping distance")`;
+  await fillEditor(tinyplot, tinyplotSolution);
   await tinyplot.locator('[data-plotcat-run]').click();
   await expectRendered(tinyplot, 'tinyplot');
   assert.equal(await tinyplot.locator('.plotcat__student svg').count(), 1);
