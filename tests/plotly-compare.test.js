@@ -22,6 +22,16 @@ test('2. An extra student object property is ignored', () => {
   assert.equal(res.mismatchCount, 0);
 });
 
+test('different coordinates score below 100', () => {
+  const target = {
+    data: [{ type: 'scatter', x: [1, 2, 3], y: [4, 5, 6] }]
+  };
+  const student = {
+    data: [{ type: 'scatter', x: [1, 2, 9], y: [4, 5, 6] }]
+  };
+  assert.ok(comparePlotly(target, student).score < 100);
+});
+
 test('3. A missing target property fails', () => {
   const target = { layout: { title: { text: 'Title' } } };
   const student = { layout: {} };
