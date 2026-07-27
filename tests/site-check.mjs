@@ -134,6 +134,16 @@ try {
   // Matplotlib
   const tk1 = performance.now();
   const matplotlib = page.locator('#plotcat-exercise-5');
+  const matplotlibSolution = `import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+iris = load_iris()
+data = iris.data
+fig, ax = plt.subplots()
+ax.scatter(data[:, 0], data[:, 2])
+ax.set_title("Iris sepal and petal length")
+ax.set_xlabel("Sepal length (cm)")
+ax.set_ylabel("Petal length (cm)")`;
+  await fillEditor(matplotlib, matplotlibSolution);
   await matplotlib.locator('[data-plotcat-run]').click();
   await expectRendered(matplotlib, 'Matplotlib');
   assert.equal(await matplotlib.locator('.plotcat__student svg').count(), 1);
