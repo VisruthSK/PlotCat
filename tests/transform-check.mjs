@@ -26,14 +26,30 @@ function spawnQuarto(args, cwd) {
   return spawnSync(executable, args, { encoding: 'utf8', cwd, shell: windows });
 }
 
+async function runWithConcurrency(tasks, limit) {
+  const results = new Array(tasks.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= tasks.length) return;
+      results[index] = await tasks[index]();
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, tasks.length) }, () => worker())
+  );
+
+  return results;
+}
+
 try {
   mkdirSync(output, { recursive: true });
 
-  // ── Batch successful fixtures ──────────────────────────────────
+  // ── Batch successful fixtures (concurrent individual renders) ──
   const t0 = performance.now();
-  const successDir = resolve(output, 'success');
-  mkdirSync(successDir, { recursive: true });
-  copyExtensions(successDir);
 
   const successFixtures = [
     'minimal.qmd',
@@ -44,33 +60,31 @@ try {
     'weights-frontmatter.qmd'
   ];
 
-  for (const fixture of successFixtures) {
-    writeFileSync(resolve(successDir, fixture), readFixture(fixture));
+  const successDirs = {};
+  function renderSuccess(fixture) {
+    const dir = resolve(output, `success-${fixture.replace(/\.qmd$/, '')}`);
+    mkdirSync(dir, { recursive: true });
+    copyExtensions(dir);
+    writeFileSync(resolve(dir, fixture), readFixture(fixture));
+    writeFileSync(resolve(dir, '_quarto.yml'), 'format:\n  live-html:\n    toc: true\n');
+    const result = spawnQuarto(['render', fixture, '--to', 'live-html'], dir);
+    assert.equal(result.status, 0, `Render of ${fixture} failed: ${result.stdout + result.stderr}`);
+    successDirs[fixture] = dir;
   }
 
-  writeFileSync(resolve(successDir, '_quarto.yml'), `project:
-  type: default
-  output-dir: _output
-  render:
-${successFixtures.map(f => `    - ${f}`).join('\n')}
+  const successResults = await runWithConcurrency(
+    successFixtures.map(f => () => renderSuccess(f)),
+    2
+  );
+  assert.equal(successResults.length, successFixtures.length);
 
-format:
-  live-html:
-    toc: true
-`);
-
-  console.log(`TIMING: setup ${secondsSince(t0)}s`);
-
-  const t1 = performance.now();
-  const batchResult = spawnQuarto(['render', '--quiet'], successDir);
-  assert.equal(batchResult.status, 0, `Batch render failed: ${batchResult.stdout + batchResult.stderr}`);
-  console.log(`TIMING: batch render ${secondsSince(t1)}s`);
+  console.log(`TIMING: batch render ${secondsSince(t0)}s`);
 
   const assertionsStarted = performance.now();
 
   function readGenerated(fixture) {
     const htmlFile = fixture.replace(/\.qmd$/, '.html');
-    return readFileSync(resolve(successDir, '_output', htmlFile), 'utf8');
+    return readFileSync(resolve(successDirs[fixture], htmlFile), 'utf8');
   }
 
   function assertWeights(html, expected) {
@@ -167,25 +181,6 @@ format:
         reject(new Error(`${fixture}: failed to start Quarto: ${error.message}`, { cause: error }));
       });
     });
-  }
-
-  async function runWithConcurrency(tasks, limit) {
-    const results = new Array(tasks.length);
-    let nextIndex = 0;
-
-    async function worker() {
-      while (true) {
-        const index = nextIndex++;
-        if (index >= tasks.length) return;
-        results[index] = await tasks[index]();
-      }
-    }
-
-    await Promise.all(
-      Array.from({ length: Math.min(limit, tasks.length) }, () => worker())
-    );
-
-    return results;
   }
 
   const invalidResults = await runWithConcurrency(

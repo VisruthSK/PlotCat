@@ -26,7 +26,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: "lts/*"
+          node-version: "25.2.1"
           cache: pnpm
 
       - uses: quarto-dev/quarto-actions/setup@v2
