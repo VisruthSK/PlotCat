@@ -10,6 +10,32 @@ async function load() {
   await page.waitForFunction(() => window.fixtureReady === true);
 }
 
+async function runWithDifferentOutputTypes(targetResult, studentResult) {
+  await load();
+  return page.evaluate(async ({ targetResult, studentResult }) => {
+    const root = document.querySelector('.plotcat');
+    root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
+    root.dataset.plotcatTargetCode = btoa('target');
+    window.Plotly = { newPlot: async () => {}, addFrames: async () => {}, purge: () => {} };
+    const results = [targetResult, studentResult];
+    window.plotcatUi.mountPlotCat(root, {
+      get: async () => ({ renderSvg: async () => results.shift() }),
+      run: async (_engine, task) => task()
+    });
+    const run = root.querySelector('[data-plotcat-run]');
+    await new Promise(resolve => {
+      const poll = () => run.disabled ? setTimeout(poll, 0) : resolve();
+      poll();
+    });
+    run.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    return {
+      status: root.querySelector('.plotcat__status').textContent,
+      complete: root.classList.contains('plotcat--complete')
+    };
+  }, { targetResult, studentResult });
+}
+
 try {
   await load();
   const sanitized = await page.evaluate(() => window.plotcatSvg.sanitizeSvg(`<svg xmlns="http://www.w3.org/2000/svg"><!-- note --><metadata>private</metadata><script>alert(1)</script><foreignObject>bad</foreignObject><rect onclick="bad()" fill="url(https://bad.test/a)"/><image href="data:image/png;base64,abc"/><use href="#safe"/></svg>`));
@@ -307,6 +333,32 @@ try {
     return { status: root.querySelector('.plotcat__status').textContent, error: root.classList.contains('plotcat--error'), enabled: !root.querySelector('[data-plotcat-run]').disabled };
   });
   assert.deepEqual(failedRun, { status: 'R package tinyplot is unavailable.', error: true, enabled: true });
+
+  await load();
+  const failedTarget = await page.evaluate(async () => {
+    const root = document.querySelector('.plotcat');
+    root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
+    root.dataset.plotcatTargetCode = btoa('target');
+    window.plotcatUi.mountPlotCat(root, {
+      get: async () => { throw new Error('target failed'); },
+      run: async () => {}
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    return {
+      status: root.querySelector('.plotcat__status').textContent,
+      enabled: !root.querySelector('[data-plotcat-run]').disabled
+    };
+  });
+  assert.deepEqual(failedTarget, { status: 'Error rendering target: target failed', enabled: true });
+
+  const svg = { kind: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg"><circle/></svg>' };
+  const plotly = { kind: 'plotly', figure: { data: [] } };
+  for (const [target, student] of [[svg, plotly], [plotly, svg]]) {
+    assert.deepEqual(
+      await runWithDifferentOutputTypes(target, student),
+      { status: 'Student output must use the same plot type as the target.', complete: false }
+    );
+  }
 } finally {
   await teardown();
 }
