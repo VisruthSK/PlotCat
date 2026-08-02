@@ -85,6 +85,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/bootstrap/bootstrap-6ac2aec46ad7f46b16024ee4409aa65c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="site_libs/bootstrap/bootstrap-dark-8a591ff59271d21f6a5d1e80b3747fb5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <link href="site_libs/bootstrap/bootstrap-6ac2aec46ad7f46b16024ee4409aa65c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/plotcat-0.3.0/plotcat.js" type="module"></script>
+<link href="site_libs/quarto-contrib/plotcat-0.3.0/plotcat.css" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.plot.ly" crossorigin="">
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="site_libs/quarto-contrib/live-runtime/live-runtime.js" type="module"></script>
 <link href="site_libs/quarto-contrib/live-runtime/live-runtime.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
@@ -334,6 +338,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#markup-rules" id="toc-markup-rules" class="nav-link" data-scroll-target="#markup-rules">Markup Rules</a></li>
   </ul></li>
+  <li><a href="#comparison-modes" id="toc-comparison-modes" class="nav-link" data-scroll-target="#comparison-modes">Comparison Modes</a></li>
+  <li><a href="#scoring-comparison" id="toc-scoring-comparison" class="nav-link" data-scroll-target="#scoring-comparison">Scoring &amp; Comparison</a>
+  <ul class="collapse">
+  <li><a href="#svg-weights" id="toc-svg-weights" class="nav-link" data-scroll-target="#svg-weights">SVG Weights</a></li>
+  <li><a href="#plotly-figures" id="toc-plotly-figures" class="nav-link" data-scroll-target="#plotly-figures">Plotly figures</a></li>
+  </ul></li>
+  <li><a href="#dimensions" id="toc-dimensions" class="nav-link" data-scroll-target="#dimensions">Dimensions</a></li>
+  <li><a href="#heading" id="toc-heading" class="nav-link" data-scroll-target="#heading">Heading</a></li>
   <li><a href="#css-variables" id="toc-css-variables" class="nav-link" data-scroll-target="#css-variables">CSS Variables</a>
   <ul class="collapse">
   <li><a href="#bootstrap-variable-integration" id="toc-bootstrap-variable-integration" class="nav-link" data-scroll-target="#bootstrap-variable-integration">Bootstrap Variable Integration</a></li>
@@ -369,6 +381,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<style>
+.plotcat.accent-green {
+  --plotcat-accent: #059669;
+  --plotcat-accent-rgb: 5, 150, 105;
+}
+
+.plotcat.custom-card {
+  --plotcat-bg: #fffbeb;
+  --plotcat-border: #f59e0b;
+  --plotcat-accent: #d97706;
+  --plotcat-accent-rgb: 217, 119, 6;
+}
+</style>
 <p>Configuration options, chunk markup syntax, and CSS theme variables for the <code>plotcat</code> extension.</p>
 <section id="document-setup" class="level2">
 <h2 class="anchored" data-anchor-id="document-setup">Document Setup</h2>
@@ -380,23 +405,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">filters</span><span class="kw">:</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> plotcat</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>R pages must declare the <code>svglite</code> package under <code>format.live-html.webr.packages</code>. List every non-base R or Python package used by target or starter code. PlotCat does not infer or install runtime packages; configure them through Quarto Live.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">live-html</span><span class="kw">:</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">webr</span><span class="kw">:</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">packages</span><span class="kw">:</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="kw">-</span><span class="at"> svglite</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="kw">-</span><span class="at"> ggplot2</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">pyodide</span><span class="kw">:</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">packages</span><span class="kw">:</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="kw">-</span><span class="at"> matplotlib</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="exercise-markup" class="level2">
 <h2 class="anchored" data-anchor-id="exercise-markup">Exercise Markup</h2>
-<p>Write the target plot as the first chunk inside a <code>.plotcat</code> Div. Set <code>#| eval: false</code>: PlotCat renders both the target and a student’s submission in the browser.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat}</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>tinyplot<span class="sc">::</span><span class="fu">tinyplot</span>(</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  dist <span class="sc">~</span> speed,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cars,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Stopping distance by speed"</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">"Speed"</span>,</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">"Stopping distance"</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Add a second chunk to give students starter code. Also set <code>#| eval: false</code> on the starter chunk.</p>
+<p>Write the target plot as the first chunk inside a <code>.plotcat</code> Div. Set <code>#| eval: false</code> so Quarto leaves it for the browser runtime.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat}</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
@@ -408,25 +430,178 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">"Stopping distance"</span></span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>tinyplot<span class="sc">::</span><span class="fu">tinyplot</span>(</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  dist <span class="sc">~</span> speed,</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cars</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Add a second chunk for starter code. Set <code>#| eval: false</code> on the starter chunk.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat}</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>tinyplot<span class="sc">::</span><span class="fu">tinyplot</span>(</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  dist <span class="sc">~</span> speed,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cars,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Stopping distance by speed"</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">"Speed"</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">"Stopping distance"</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>tinyplot<span class="sc">::</span><span class="fu">tinyplot</span>(</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  dist <span class="sc">~</span> speed,</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cars</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <section id="markup-rules" class="level3">
 <h3 class="anchored" data-anchor-id="markup-rules">Markup Rules</h3>
 <ul>
-<li>Set <code>#| eval: false</code> on both chunks. PlotCat executes R and Python code in the browser rather than during document rendering.</li>
-<li>The first chunk defines the target plot. PlotCat renders it in WebR or Pyodide and encrypts the target code in the HTML.</li>
-<li>The second chunk populates the student code editor. If omitted, the editor starts blank.</li>
+<li>Both chunks need <code>#| eval: false</code>. PlotCat executes code in the browser, not during document rendering.</li>
+<li>The first chunk becomes the browser-rendered target. Its source is obfuscated in the HTML. The obfuscation discourages casual inspection but is not a security boundary.</li>
+<li>The second chunk populates the student code editor. Omit it for a blank editor.</li>
 <li>Both chunks in an exercise must use the same language. Use <code>{r}</code> or <code>{webr}</code> for R, and <code>{python}</code> or <code>{pyodide}</code> for Python. PlotCat normalizes the student editor to Quarto Live’s native <code>webr</code> or <code>pyodide</code> cell.</li>
-<li>Assign custom exercise IDs on the container div: <code>::: {.plotcat #scatter-exercise}</code>. If omitted, PlotCat auto-generates IDs (<code>exercise-1</code>, <code>exercise-2</code>).</li>
+<li>Assign custom exercise IDs on the container div: <code>::: {.plotcat #scatter-exercise}</code>. Auto-generated IDs are <code>exercise-1</code>, <code>exercise-2</code>, etc.</li>
+<li>Extra classes on the <code>.plotcat</code> Div are forwarded to the widget container for scoped styling.</li>
 </ul>
 </section>
+</section>
+<section id="comparison-modes" class="level2">
+<h2 class="anchored" data-anchor-id="comparison-modes">Comparison Modes</h2>
+<p>SVG plots support three comparison modes. Plotly charts use side-by-side comparison; overlay and wipe are unavailable.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Side by side</strong> (default)</td>
+<td>Target and student plots rendered in a two-column grid. Stacks to single column below 48rem.</td>
+</tr>
+<tr class="even">
+<td><strong>Overlay</strong></td>
+<td>Student plot rendered on top of the target at 50% opacity.</td>
+</tr>
+<tr class="odd">
+<td><strong>Wipe</strong></td>
+<td>A draggable vertical slider reveals the target on the left and the student plot on the right. Keyboard: Arrow keys, Home, End.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="scoring-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="scoring-comparison">Scoring &amp; Comparison</h2>
+<p>PlotCat compares SVG plots using feature weights and Plotly figures using an explicit target contract.</p>
+<section id="svg-weights" class="level3">
+<h3 class="anchored" data-anchor-id="svg-weights">SVG Weights</h3>
+<p>Set per-exercise weight overrides as Div attributes:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat id="scatter"</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    svg-geometry="0.4"</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    svg-text="0.4"}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Set document-wide defaults under <code>plotcat.weights.svg</code> in YAML frontmatter:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcat</span><span class="kw">:</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">weights</span><span class="kw">:</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">svg</span><span class="kw">:</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">geometry</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">text</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.25</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Attribute</th>
+<th>Default</th>
+<th>Controls</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>svg-geometry</code></td>
+<td>0.6</td>
+<td>Element positions (bag overlap of coarse geometry, coordinates rounded to ~0.1% relative precision)</td>
+</tr>
+<tr class="even">
+<td><code>svg-text</code></td>
+<td>0.15</td>
+<td>Text content match (bag overlap of visible <code>&lt;text&gt;</code> strings)</td>
+</tr>
+<tr class="odd">
+<td><code>svg-style</code></td>
+<td>0.1</td>
+<td>Fill, stroke, opacity attributes on geometry elements</td>
+</tr>
+<tr class="even">
+<td><code>svg-frame</code></td>
+<td>0.15</td>
+<td>Aspect ratio from viewBox or explicit dimensions (pass/fail, not proportional)</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="plotly-figures" class="level3">
+<h3 class="anchored" data-anchor-id="plotly-figures">Plotly figures</h3>
+<p>PlotCat compares the target and student figure JSON, rather than the rendered pixels or source code. It reads four top-level fields:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>What PlotCat can compare</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>data</code></td>
+<td>Trace type and order, coordinates, <code>customdata</code>, hover text, marker and line properties, and other serialized trace settings</td>
+</tr>
+<tr class="even">
+<td><code>layout</code></td>
+<td>Titles, axes, ranges, legends, annotations, shapes, margins, and other serialized layout settings</td>
+</tr>
+<tr class="odd">
+<td><code>frames</code></td>
+<td>Names, data, and layout stored in animation frames</td>
+</tr>
+<tr class="even">
+<td><code>config</code></td>
+<td>Configuration values included by the browser runtime</td>
+</tr>
+</tbody>
+</table>
+<p>PlotCat grades each property present in the target. Set a title, color, range, hover template, or similar property in the target code when it should affect the score. Plotly defaults that do not appear in the target JSON are not graded.</p>
+<p>Arrays are positional. Missing, reordered, or extra traces, points, annotations, and shapes reduce the score. Extra properties inside a student object are ignored, so students may add settings that the target does not require.</p>
+<p>PlotCat ignores generated <code>uid</code> values and keys that begin with <code>_</code>. It allows small floating-point differences. In text properties, <code>&lt;b&gt;</code> and <code>&lt;strong&gt;</code> are equivalent, as are <code>&lt;i&gt;</code> and <code>&lt;em&gt;</code> and common forms of <code>&lt;br&gt;</code>.</p>
+<p>Functions, callbacks, and settings omitted from the serialized figure cannot be compared. Plotly exercises use side-by-side mode because overlay and wipe are unavailable for Plotly charts.</p>
+</section>
+</section>
+<section id="dimensions" class="level2">
+<h2 class="anchored" data-anchor-id="dimensions">Dimensions</h2>
+<p>Override plot dimensions per exercise. Default is 7 inches wide by 5 inches tall for both R and Python.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat id="tall-plot" plotcat-width="4" plotcat-height="6"}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Set document-wide defaults under <code>plotcat.dimensions</code> in YAML frontmatter.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcat</span><span class="kw">:</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">dimensions</span><span class="kw">:</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">width</span><span class="kw">:</span><span class="at"> </span><span class="dv">8</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">height</span><span class="kw">:</span><span class="at"> </span><span class="dv">6</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="heading" class="level2">
+<h2 class="anchored" data-anchor-id="heading">Heading</h2>
+<p>Override the heading text per exercise. Defaults to “Recreate this plot”.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat id="labeled" plotcat-heading="Reproduce the graphic"}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Set the heading in YAML frontmatter for a document-wide default.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcat</span><span class="kw">:</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">heading</span><span class="kw">:</span><span class="at"> </span><span class="st">"Reproduce the graphic"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="css-variables" class="level2">
 <h2 class="anchored" data-anchor-id="css-variables">CSS Variables</h2>
@@ -439,56 +614,56 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Variable</th>
-<th style="text-align: left;">Default Value</th>
-<th style="text-align: left;">Description</th>
+<th>Variable</th>
+<th>Default</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><code>--plotcat-border</code></td>
-<td style="text-align: left;"><code>color-mix(in srgb, var(--bs-body-color, #212529) 20%, var(--bs-body-bg, #ffffff))</code></td>
-<td style="text-align: left;">Outer border color for the exercise card and internal divider lines.</td>
+<td><code>--plotcat-border</code></td>
+<td><code>color-mix(in srgb, var(--bs-body-color, #212529) 20%, var(--bs-body-bg, #ffffff))</code></td>
+<td>Border color for the exercise card and internal dividers</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>--plotcat-accent</code></td>
-<td style="text-align: left;"><code>var(--bs-primary, #0d6efd)</code></td>
-<td style="text-align: left;">Primary brand color used for action buttons, focus highlights, score badges, active mode toggles, and the wipe slider handle.</td>
+<td><code>--plotcat-accent</code></td>
+<td><code>var(--bs-primary, #0d6efd)</code></td>
+<td>Brand color for buttons, focus highlights, score badges, active mode toggles, and the wipe handle</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><code>--plotcat-accent-rgb</code></td>
-<td style="text-align: left;"><code>var(--bs-primary-rgb, 13, 110, 253)</code></td>
-<td style="text-align: left;">Space-separated RGB values of <code>--plotcat-accent</code>, used for focus ring and badge background opacity channels.</td>
+<td><code>--plotcat-accent-rgb</code></td>
+<td><code>var(--bs-primary-rgb, 13, 110, 253)</code></td>
+<td>Space-separated RGB values used for focus ring and badge background opacity channels</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>--plotcat-bg</code></td>
-<td style="text-align: left;"><code>var(--bs-body-bg, #ffffff)</code></td>
-<td style="text-align: left;">Card background color and target/student plot container background.</td>
+<td><code>--plotcat-bg</code></td>
+<td><code>var(--bs-body-bg, #ffffff)</code></td>
+<td>Card and plot container background</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><code>--plotcat-nested-bg</code></td>
-<td style="text-align: left;"><code>color-mix(in srgb, var(--bs-body-color, #212529) 6%, var(--bs-body-bg, #ffffff))</code></td>
-<td style="text-align: left;">Surface color for the code editor surface and the comparison control bar.</td>
+<td><code>--plotcat-nested-bg</code></td>
+<td><code>color-mix(in srgb, var(--bs-body-color, #212529) 6%, var(--bs-body-bg, #ffffff))</code></td>
+<td>Surface color for the code editor and comparison control bar</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>--plotcat-shadow-color</code></td>
-<td style="text-align: left;"><code>rgb(var(--bs-emphasis-color-rgb, 0, 0, 0))</code></td>
-<td style="text-align: left;">Base shadow color used for card drop shadows and handle depth.</td>
+<td><code>--plotcat-shadow-color</code></td>
+<td><code>rgb(var(--bs-emphasis-color-rgb, 0, 0, 0))</code></td>
+<td>Tint for card drop shadows and handle depth</td>
 </tr>
 </tbody>
 </table>
 <section id="bootstrap-variable-integration" class="level3">
 <h3 class="anchored" data-anchor-id="bootstrap-variable-integration">Bootstrap Variable Integration</h3>
-<p>PlotCat automatically inherits global colors from Quarto Bootstrap themes:</p>
+<p>PlotCat inherits global colors from Quarto Bootstrap themes.</p>
 <ul>
-<li><code>--bs-body-color</code>: Primary body text color applied to text, labels, and editor code.</li>
-<li><code>--bs-body-bg</code>: Background color used as the baseline for card and plot surfaces.</li>
-<li><code>--bs-primary</code>: Main theme brand color mapped to <code>--plotcat-accent</code>.</li>
-<li><code>--bs-primary-rgb</code>: RGB tuple mapped to <code>--plotcat-accent-rgb</code>.</li>
-<li><code>--bs-font-monospace</code>: Font stack used inside the code editor block.</li>
-<li><code>--bs-body-font-family</code>: Font stack used for headers, labels, and buttons.</li>
-<li><code>--bs-secondary-color</code>: Text color for muted comparison labels and status messages.</li>
-<li><code>--bs-danger</code>: Text color applied when code execution returns an error.</li>
+<li><code>--bs-body-color</code>: Primary text color for labels, status messages, and editor code.</li>
+<li><code>--bs-body-bg</code>: Baseline for card and plot surfaces.</li>
+<li><code>--bs-primary</code>: Mapped to <code>--plotcat-accent</code>.</li>
+<li><code>--bs-primary-rgb</code>: Mapped to <code>--plotcat-accent-rgb</code>.</li>
+<li><code>--bs-font-monospace</code>: Font stack for the code editor.</li>
+<li><code>--bs-body-font-family</code>: Font stack for headers, labels, and buttons.</li>
+<li><code>--bs-secondary-color</code>: Color for muted comparison labels and idle status text.</li>
+<li><code>--bs-danger</code>: Color for execution error messages.</li>
 </ul>
 </section>
 </section>
@@ -496,27 +671,88 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="custom-styling-examples">Custom Styling Examples</h2>
 <section id="theme-accent-override" class="level3">
 <h3 class="anchored" data-anchor-id="theme-accent-override">Theme Accent Override</h3>
-<p>Change PlotCat accent color globally in a custom CSS file:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode css code-with-copy"><code class="sourceCode css"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.plotcat</span> {</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-accent</span><span class="ch">:</span> <span class="cn">#059669</span><span class="op">;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-accent-rgb</span><span class="ch">:</span> <span class="dv">5</span><span class="op">,</span> <span class="dv">150</span><span class="op">,</span> <span class="dv">105</span><span class="op">;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode css code-with-copy"><code class="sourceCode css"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.plotcat.accent-green</span> {</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-accent</span><span class="ch">:</span> <span class="cn">#059669</span><span class="op">;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-accent-rgb</span><span class="ch">:</span> <span class="dv">5</span><span class="op">,</span> <span class="dv">150</span><span class="op">,</span> <span class="dv">105</span><span class="op">;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section class="plotcat plotcat--side-by-side accent-green" id="plotcat-exercise-1" data-plotcat-manifest="{&quot;engine&quot;:&quot;r&quot;,&quot;id&quot;:&quot;exercise-1&quot;}" data-plotcat-target-code="dGlueXBsb3Q6OnRpbnlwbG90KGRpc3QgfiBzcGVlZCwgZGF0YSA9IGNhcnMsIG1haW4gPSAiU3RvcHBpbmcgZGlzdGFuY2UgYnkgc3BlZWQiLCB4bGFiID0gIlNwZWVkIiwgeWxhYiA9ICJTdG9wcGluZyBkaXN0YW5jZSIp" data-plotcat-weights="eyJwbG90bHkiOnsiZGF0YSI6MC40LCJsYXlvdXQiOjAuMSwic3R5bGUiOjAuMiwidHJhY2UiOjAuM30sInN2ZyI6eyJmcmFtZSI6MC4xNSwiZ2VvbWV0cnkiOjAuNiwic3R5bGUiOjAuMSwidGV4dCI6MC4xNX19">
+  <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
+  <div class="plotcat__body">
+    <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
+    <figure class="plotcat__plot plotcat__student figure" data-plotcat-student="" aria-label="Your plot"></figure>
+    <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle="" role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
+  </div>
+  <div class="plotcat-editor-container"><div class="plotcat__editor" id="plotcat-exercise-1-editor">
+
+<div>
+<div id="webr-1" class="exercise-cell">
+
+</div>
+<script type="webr-1-contents">
+eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2V9LCJjb2RlIjoidGlueXBsb3Q6OnRpbnlwbG90KGRpc3QgfiBzcGVlZCwgZGF0YSA9IGNhcnMpIn0=
+</script>
+</div>
+  </div></div>
+  <div class="plotcat__actions">
+    <button class="plotcat__button" type="button" data-plotcat-run="">Run</button>
+    <div class="plotcat__compare plotcat__controls"><span class="plotcat__compare-label">Compare</span>
+      <div class="plotcat__compare-options">
+        <label><input type="radio" name="plotcat-exercise-1-mode" value="side-by-side" checked=""> Side by side</label>
+        <label><input type="radio" name="plotcat-exercise-1-mode" value="overlay"> Overlay</label>
+        <label><input type="radio" name="plotcat-exercise-1-mode" value="wipe"> Wipe</label>
+      </div>
+    </div>
+  </div>
+  <div class="plotcat__status" role="status" aria-live="polite"></div>
+</section>
 </section>
 <section id="scoped-container-styling" class="level3">
 <h3 class="anchored" data-anchor-id="scoped-container-styling">Scoped Container Styling</h3>
-<p>Adjust code editor height or card layout for specific exercise blocks:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode css code-with-copy"><code class="sourceCode css"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#scatter-exercise</span> <span class="fu">.plotcat__editor</span> {</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">height</span><span class="ch">:</span> <span class="dv">16</span><span class="dt">rem</span><span class="op">;</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">.plotcat.custom-card</span> {</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-bg</span><span class="ch">:</span> <span class="cn">#f8fafc</span><span class="op">;</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-border</span><span class="ch">:</span> <span class="cn">#cbd5e1</span><span class="op">;</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="custom-card" class="level4">
+<h4 class="anchored" data-anchor-id="custom-card">Custom card</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode css code-with-copy"><code class="sourceCode css"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.plotcat.custom-card</span> {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-bg</span><span class="ch">:</span> <span class="cn">#fffbeb</span><span class="op">;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-border</span><span class="ch">:</span> <span class="cn">#f59e0b</span><span class="op">;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-accent</span><span class="ch">:</span> <span class="cn">#d97706</span><span class="op">;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="va">--plotcat-accent-rgb</span><span class="ch">:</span> <span class="dv">217</span><span class="op">,</span> <span class="dv">119</span><span class="op">,</span> <span class="dv">6</span><span class="op">;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section class="plotcat plotcat--side-by-side custom-card" id="plotcat-exercise-2" data-plotcat-manifest="{&quot;engine&quot;:&quot;r&quot;,&quot;id&quot;:&quot;exercise-2&quot;}" data-plotcat-target-code="bGlicmFyeShsYXR0aWNlKQp4eXBsb3QobXBnIH4gd3QsIGRhdGEgPSBtdGNhcnMsIG1haW4gPSAiTVBHIHZzIFdlaWdodCIsIHhsYWIgPSAiV2VpZ2h0IiwgeWxhYiA9ICJNUEciKQ==" data-plotcat-weights="eyJwbG90bHkiOnsiZGF0YSI6MC40LCJsYXlvdXQiOjAuMSwic3R5bGUiOjAuMiwidHJhY2UiOjAuM30sInN2ZyI6eyJmcmFtZSI6MC4xNSwiZ2VvbWV0cnkiOjAuNiwic3R5bGUiOjAuMSwidGV4dCI6MC4xNX19">
+  <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
+  <div class="plotcat__body">
+    <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
+    <figure class="plotcat__plot plotcat__student figure" data-plotcat-student="" aria-label="Your plot"></figure>
+    <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle="" role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
+  </div>
+  <div class="plotcat-editor-container"><div class="plotcat__editor" id="plotcat-exercise-2-editor">
+
+<div>
+<div id="webr-2" class="exercise-cell">
+
+</div>
+<script type="webr-2-contents">
+eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2V9LCJjb2RlIjoibGlicmFyeShsYXR0aWNlKVxueHlwbG90KG1wZyB+IHd0LCBkYXRhID0gbXRjYXJzKSJ9
+</script>
+</div>
+  </div></div>
+  <div class="plotcat__actions">
+    <button class="plotcat__button" type="button" data-plotcat-run="">Run</button>
+    <div class="plotcat__compare plotcat__controls"><span class="plotcat__compare-label">Compare</span>
+      <div class="plotcat__compare-options">
+        <label><input type="radio" name="plotcat-exercise-2-mode" value="side-by-side" checked=""> Side by side</label>
+        <label><input type="radio" name="plotcat-exercise-2-mode" value="overlay"> Overlay</label>
+        <label><input type="radio" name="plotcat-exercise-2-mode" value="wipe"> Wipe</label>
+      </div>
+    </div>
+  </div>
+  <div class="plotcat__status" role="status" aria-live="polite"></div>
+</section>
 
 
+<script type="webr-data">
+eyJvcHRpb25zIjp7ImJhc2VVcmwiOiJodHRwczovL3dlYnIuci13YXNtLm9yZy92MC42LjAvIn0sInBhY2thZ2VzIjp7InBrZ3MiOlsiZXZhbHVhdGUiLCJrbml0ciIsImh0bWx0b29scyIsInN2Z2xpdGUiLCJnZ3Bsb3QyIiwidGlueXBsb3QiLCJsYXR0aWNlIiwicGxvdGx5Il0sInJlcG9zIjpbXX0sInJlbmRlcl9kZiI6ImRlZmF1bHQifQ==
+</script>
 <script type="ojs-module-contents">
-eyJjb250ZW50cyI6W119
+eyJjb250ZW50cyI6W3siY2VsbE5hbWUiOiJ3ZWJyLXdpZGdldC0yIiwiaW5saW5lIjpmYWxzZSwibWV0aG9kTmFtZSI6ImludGVycHJldFF1aWV0Iiwic291cmNlIjoie1xuICAvLyBXYWl0IGZvciBvdXRwdXQgdG8gYmUgd3JpdHRlbiB0byB0aGUgRE9NLCB0aGVuIHRyaWdnZXIgd2lkZ2V0IHJlbmRlcmluZ1xuICBhd2FpdCBfd2Vicl92YWx1ZV8yO1xuICBpZiAod2luZG93LkhUTUxXaWRnZXRzKSB7XG4gICAgd2luZG93LkhUTUxXaWRnZXRzLnN0YXRpY1JlbmRlcigpO1xuICB9XG4gIGlmICh3aW5kb3cuUGFnZWRUYWJsZURvYykge1xuICAgIHdpbmRvdy5QYWdlZFRhYmxlRG9jLmluaXRBbGwoKTtcbiAgfVxufVxuIn0seyJjZWxsTmFtZSI6IndlYnItMiIsImlubGluZSI6ZmFsc2UsIm1ldGhvZE5hbWUiOiJpbnRlcnByZXQiLCJzb3VyY2UiOiJ2aWV3b2YgX3dlYnJfZWRpdG9yXzIgPSB7XG4gIGNvbnN0IHsgV2ViUkV4ZXJjaXNlRWRpdG9yLCBiNjREZWNvZGUgfSA9IHdpbmRvdy5fZXhlcmNpc2Vfb2pzX3J1bnRpbWU7XG4gIGNvbnN0IHNjcmlwdENvbnRlbnQgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKGBzY3JpcHRbdHlwZT1cXFwid2Vici0yLWNvbnRlbnRzXFxcIl1gKS50ZXh0Q29udGVudDtcbiAgY29uc3QgYmxvY2sgPSBKU09OLnBhcnNlKGI2NERlY29kZShzY3JpcHRDb250ZW50KSk7XG5cbiAgY29uc3Qgb3B0aW9ucyA9IE9iamVjdC5hc3NpZ24oeyBpZDogYHdlYnItMi1jb250ZW50c2AgfSwgYmxvY2suYXR0cik7XG4gIGNvbnN0IGVkaXRvciA9IG5ldyBXZWJSRXhlcmNpc2VFZGl0b3Iod2ViUk9qcy53ZWJSUHJvbWlzZSwgYmxvY2suY29kZSwgb3B0aW9ucyk7XG5cbiAgcmV0dXJuIGVkaXRvci5jb250YWluZXI7XG59XG5fd2Vicl92YWx1ZV8yID0gd2ViUk9qcy5wcm9jZXNzKF93ZWJyX2VkaXRvcl8yLCB7fSk7XG4ifSx7ImNlbGxOYW1lIjoid2Vici13aWRnZXQtMSIsImlubGluZSI6ZmFsc2UsIm1ldGhvZE5hbWUiOiJpbnRlcnByZXRRdWlldCIsInNvdXJjZSI6IntcbiAgLy8gV2FpdCBmb3Igb3V0cHV0IHRvIGJlIHdyaXR0ZW4gdG8gdGhlIERPTSwgdGhlbiB0cmlnZ2VyIHdpZGdldCByZW5kZXJpbmdcbiAgYXdhaXQgX3dlYnJfdmFsdWVfMTtcbiAgaWYgKHdpbmRvdy5IVE1MV2lkZ2V0cykge1xuICAgIHdpbmRvdy5IVE1MV2lkZ2V0cy5zdGF0aWNSZW5kZXIoKTtcbiAgfVxuICBpZiAod2luZG93LlBhZ2VkVGFibGVEb2MpIHtcbiAgICB3aW5kb3cuUGFnZWRUYWJsZURvYy5pbml0QWxsKCk7XG4gIH1cbn1cbiJ9LHsiY2VsbE5hbWUiOiJ3ZWJyLTEiLCJpbmxpbmUiOmZhbHNlLCJtZXRob2ROYW1lIjoiaW50ZXJwcmV0Iiwic291cmNlIjoidmlld29mIF93ZWJyX2VkaXRvcl8xID0ge1xuICBjb25zdCB7IFdlYlJFeGVyY2lzZUVkaXRvciwgYjY0RGVjb2RlIH0gPSB3aW5kb3cuX2V4ZXJjaXNlX29qc19ydW50aW1lO1xuICBjb25zdCBzY3JpcHRDb250ZW50ID0gZG9jdW1lbnQucXVlcnlTZWxlY3Rvcihgc2NyaXB0W3R5cGU9XFxcIndlYnItMS1jb250ZW50c1xcXCJdYCkudGV4dENvbnRlbnQ7XG4gIGNvbnN0IGJsb2NrID0gSlNPTi5wYXJzZShiNjREZWNvZGUoc2NyaXB0Q29udGVudCkpO1xuXG4gIGNvbnN0IG9wdGlvbnMgPSBPYmplY3QuYXNzaWduKHsgaWQ6IGB3ZWJyLTEtY29udGVudHNgIH0sIGJsb2NrLmF0dHIpO1xuICBjb25zdCBlZGl0b3IgPSBuZXcgV2ViUkV4ZXJjaXNlRWRpdG9yKHdlYlJPanMud2ViUlByb21pc2UsIGJsb2NrLmNvZGUsIG9wdGlvbnMpO1xuXG4gIHJldHVybiBlZGl0b3IuY29udGFpbmVyO1xufVxuX3dlYnJfdmFsdWVfMSA9IHdlYlJPanMucHJvY2Vzcyhfd2Vicl9lZGl0b3JfMSwge30pO1xuIn0seyJjZWxsTmFtZSI6IndlYnItcHJlbHVkZSIsImlubGluZSI6ZmFsc2UsIm1ldGhvZE5hbWUiOiJpbnRlcnByZXRRdWlldCIsInNvdXJjZSI6IndlYlJPanMgPSB7XG4gIGNvbnN0IHsgV2ViUiwgQ2hhbm5lbFR5cGUgfSA9IHdpbmRvdy5fZXhlcmNpc2Vfb2pzX3J1bnRpbWUuV2ViUjtcbiAgY29uc3Qge1xuICAgIFdlYlJFdmFsdWF0b3IsXG4gICAgV2ViUkVudmlyb25tZW50TWFuYWdlcixcbiAgICBzZXR1cFIsXG4gICAgYjY0RGVjb2RlLFxuICAgIGNvbGxhcHNlUGF0aFxuICB9ID0gd2luZG93Ll9leGVyY2lzZV9vanNfcnVudGltZTtcblxuICBjb25zdCBzdGF0dXNDb250YWluZXIgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZChcImV4ZXJjaXNlLWxvYWRpbmctc3RhdHVzXCIpO1xuICBjb25zdCBpbmRpY2F0b3JDb250YWluZXIgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZChcImV4ZXJjaXNlLWxvYWRpbmctaW5kaWNhdG9yXCIpO1xuICBpbmRpY2F0b3JDb250YWluZXIuY2xhc3NMaXN0LnJlbW92ZShcImQtbm9uZVwiKTtcblxuICBsZXQgc3RhdHVzVGV4dCA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoXCJkaXZcIilcbiAgc3RhdHVzVGV4dC5jbGFzc0xpc3QgPSBcImV4ZXJjaXNlLWxvYWRpbmctZGV0YWlsc1wiO1xuICBzdGF0dXNUZXh0ID0gc3RhdHVzQ29udGFpbmVyLmFwcGVuZENoaWxkKHN0YXR1c1RleHQpO1xuICBzdGF0dXNUZXh0LnRleHRDb250ZW50ID0gYEluaXRpYWxpc2VgO1xuXG4gIC8vIEhvaXN0IGluZGljYXRvciBvdXQgZnJvbSBmaW5hbCBzbGlkZSB3aGVuIHJ1bm5pbmcgdW5kZXIgcmV2ZWFsXG4gIGNvbnN0IHJldmVhbFN0YXR1cyA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoXCIucmV2ZWFsIC5leGVyY2lzZS1sb2FkaW5nLWluZGljYXRvclwiKTtcbiAgaWYgKHJldmVhbFN0YXR1cykge1xuICAgIHJldmVhbFN0YXR1cy5yZW1vdmUoKTtcbiAgICBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKFwiLnJldmVhbCA+IC5zbGlkZXNcIikuYXBwZW5kQ2hpbGQocmV2ZWFsU3RhdHVzKTtcbiAgfVxuXG4gIC8vIE1ha2UgYW55IHJldmVhbCBzbGlkZXMgd2l0aCBsaXZlIGNlbGxzIHNjcm9sbGFibGVcbiAgZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbChcIi5yZXZlYWwgLmV4ZXJjaXNlLWNlbGxcIikuZm9yRWFjaCgoZWwpID0+IHtcbiAgICBlbC5jbG9zZXN0KCdzZWN0aW9uLnNsaWRlJykuY2xhc3NMaXN0LmFkZChcInNjcm9sbGFibGVcIik7XG4gIH0pXG5cbiAgLy8gd2ViUiBzdXBwbGVtZW50YWwgZGF0YSBhbmQgb3B0aW9uc1xuICBjb25zdCBkYXRhQ29udGVudCA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoYHNjcmlwdFt0eXBlPVxcXCJ3ZWJyLWRhdGFcXFwiXWApLnRleHRDb250ZW50O1xuICBjb25zdCBkYXRhID0gSlNPTi5wYXJzZShiNjREZWNvZGUoZGF0YUNvbnRlbnQpKTtcblxuICAvLyBHcmFiIGxpc3Qgb2YgcmVzb3VyY2VzIHRvIGJlIGRvd25sb2FkZWRcbiAgY29uc3QgZmlsZXNDb250ZW50ID0gZG9jdW1lbnQucXVlcnlTZWxlY3Rvcihgc2NyaXB0W3R5cGU9XFxcInZmcy1maWxlXFxcIl1gKS50ZXh0Q29udGVudDtcbiAgY29uc3QgZmlsZXMgPSBKU09OLnBhcnNlKGI2NERlY29kZShmaWxlc0NvbnRlbnQpKTtcblxuICAvLyBJbml0aWFsaXNlIHdlYlIgYW5kIHNldHVwIGZvciBSIGNvZGUgZXZhbHVhdGlvblxuICBsZXQgd2ViUlByb21pc2UgPSAoYXN5bmMgKHdlYlIpID0+IHtcbiAgICBzdGF0dXNUZXh0LnRleHRDb250ZW50ID0gYERvd25sb2FkaW5nIHdlYlJgO1xuICAgIGF3YWl0IHdlYlIuaW5pdCgpO1xuXG4gICAgLy8gSW5zdGFsbCBwcm92aWRlZCBsaXN0IG9mIHBhY2thZ2VzXG4gICAgLy8gRW5zdXJlIHdlYlIgZGVmYXVsdCByZXBvIGlzIGluY2x1ZGVkXG4gICAgZGF0YS5wYWNrYWdlcy5yZXBvcy5wdXNoKFwiaHR0cHM6Ly9yZXBvLnItd2FzbS5vcmdcIilcbiAgICBhd2FpdCBkYXRhLnBhY2thZ2VzLnBrZ3MubWFwKChwa2cpID0+ICgpID0+IHtcbiAgICAgIHN0YXR1c1RleHQudGV4dENvbnRlbnQgPSBgRG93bmxvYWRpbmcgcGFja2FnZTogJHtwa2d9YDtcbiAgICAgIHJldHVybiB3ZWJSLmV2YWxSVm9pZChgXG4gICAgICAgIHdlYnI6Omluc3RhbGwocGtnLCByZXBvcyA9IHJlcG9zKVxuICAgICAgICBsaWJyYXJ5KHBrZywgY2hhcmFjdGVyLm9ubHkgPSBUUlVFKVxuICAgICAgYCwgeyBlbnY6IHtcbiAgICAgICAgcGtnOiBwa2csXG4gICAgICAgIHJlcG9zOiBkYXRhLnBhY2thZ2VzLnJlcG9zLFxuICAgICAgfX0pO1xuICAgIH0pLnJlZHVjZSgoY3VyLCBuZXh0KSA9PiBjdXIudGhlbihuZXh0KSwgUHJvbWlzZS5yZXNvbHZlKCkpO1xuXG4gICAgLy8gRG93bmxvYWQgYW5kIGluc3RhbGwgcmVzb3VyY2VzXG4gICAgYXdhaXQgZmlsZXMubWFwKChmaWxlKSA9PiBhc3luYyAoKSA9PiB7XG4gICAgICBjb25zdCBuYW1lID0gZmlsZS5zdWJzdHJpbmcoZmlsZS5sYXN0SW5kZXhPZignLycpICsgMSk7XG4gICAgICBzdGF0dXNUZXh0LnRleHRDb250ZW50ID0gYERvd25sb2FkaW5nIHJlc291cmNlOiAke25hbWV9YDtcbiAgICAgIGNvbnN0IHJlc3BvbnNlID0gYXdhaXQgZmV0Y2goZmlsZSk7XG4gICAgICBpZiAoIXJlc3BvbnNlLm9rKSB7XG4gICAgICAgIHRocm93IG5ldyBFcnJvcihgQ2FuJ3QgZG93bmxvYWQgXFxgJHtmaWxlfVxcYC4gRXJyb3IgJHtyZXNwb25zZS5zdGF0dXN9OiBcIiR7cmVzcG9uc2Uuc3RhdHVzVGV4dH1cIi5gKTtcbiAgICAgIH1cbiAgICAgIGNvbnN0IGRhdGEgPSBhd2FpdCByZXNwb25zZS5hcnJheUJ1ZmZlcigpO1xuXG4gICAgICAvLyBTdG9yZSBVUkxzIGluIHRoZSBjd2Qgd2l0aG91dCBhbnkgc3ViZGlyZWN0b3J5IHN0cnVjdHVyZVxuICAgICAgaWYgKGZpbGUuaW5jbHVkZXMoXCI6Ly9cIikpIHtcbiAgICAgICAgZmlsZSA9IG5hbWU7XG4gICAgICB9XG5cbiAgICAgIC8vIENvbGxhcHNlIGhpZ2hlciBkaXJlY3Rvcnkgc3RydWN0dXJlXG4gICAgICBmaWxlID0gY29sbGFwc2VQYXRoKGZpbGUpO1xuXG4gICAgICAvLyBDcmVhdGUgZGlyZWN0b3J5IHRyZWUsIGlnbm9yaW5nIFwiZGlyZWN0b3J5IGV4aXN0c1wiIFZGUyBlcnJvcnNcbiAgICAgIGNvbnN0IHBhcnRzID0gZmlsZS5zcGxpdCgnLycpLnNsaWNlKDAsIC0xKTtcbiAgICAgIGxldCBwYXRoID0gJyc7XG4gICAgICB3aGlsZSAocGFydHMubGVuZ3RoID4gMCkge1xuICAgICAgICBwYXRoICs9IHBhcnRzLnNoaWZ0KCkgKyAnLyc7XG4gICAgICAgIGNvbnN0IGFuYWx5c2lzID0gYXdhaXQgd2ViUi5GUy5hbmFseXplUGF0aChwYXRoKTtcbiAgICAgICAgaWYgKCFhbmFseXNpcy5leGlzdHMpIHtcbiAgICAgICAgICB0cnkge1xuICAgICAgICAgICAgYXdhaXQgd2ViUi5GUy5ta2RpcihwYXRoKTtcbiAgICAgICAgICB9IGNhdGNoIChlKSB7XG4gICAgICAgICAgICB0aHJvdyBuZXcgRXJyb3IoYEZpbGVzeXN0ZW0gRXJyb3I6IFwiJHtlLm1lc3NhZ2V9XCIuYCk7XG4gICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICB9XG5cbiAgICAgIC8vIFdyaXRlIHRoaXMgZmlsZSB0byB0aGUgVkZTXG4gICAgICByZXR1cm4gYXdhaXQgd2ViUi5GUy53cml0ZUZpbGUoZmlsZSwgbmV3IFVpbnQ4QXJyYXkoZGF0YSkpO1xuICAgIH0pLnJlZHVjZSgoY3VyLCBuZXh0KSA9PiBjdXIudGhlbihuZXh0KSwgUHJvbWlzZS5yZXNvbHZlKCkpO1xuXG4gICAgc3RhdHVzVGV4dC50ZXh0Q29udGVudCA9IGBJbnN0YWxsaW5nIHdlYlIgc2hpbXNgO1xuICAgIGF3YWl0IHdlYlIuZXZhbFJWb2lkKGB3ZWJyOjpzaGltX2luc3RhbGwoKWApO1xuXG4gICAgc3RhdHVzVGV4dC50ZXh0Q29udGVudCA9IGBXZWJSIGVudmlyb25tZW50IHNldHVwYDtcbiAgICBhd2FpdCBzZXR1cFIod2ViUiwgZGF0YSk7XG5cbiAgICBzdGF0dXNUZXh0LnJlbW92ZSgpO1xuICAgIGlmIChzdGF0dXNDb250YWluZXIuY2hpbGRyZW4ubGVuZ3RoID09IDApIHtcbiAgICAgIHN0YXR1c0NvbnRhaW5lci5wYXJlbnROb2RlLnJlbW92ZSgpO1xuICAgIH1cbiAgICByZXR1cm4gd2ViUjtcbiAgfSkobmV3IFdlYlIoZGF0YS5vcHRpb25zKSk7XG5cbiAgLy8gS2VlcCB0cmFjayBvZiBpbml0aWFsIE9KUyBibG9jayByZW5kZXJcbiAgY29uc3QgcmVuZGVyZWRPanMgPSB7fTtcblxuICBjb25zdCBwcm9jZXNzID0gYXN5bmMgKGNvbnRleHQsIGlucHV0cykgPT4ge1xuICAgIGNvbnN0IHdlYlIgPSBhd2FpdCB3ZWJSUHJvbWlzZTtcbiAgICBjb25zdCBldmFsdWF0b3IgPSBuZXcgV2ViUkV2YWx1YXRvcih3ZWJSLCBjb250ZXh0KVxuICAgIGF3YWl0IGV2YWx1YXRvci5wcm9jZXNzKGlucHV0cyk7XG4gICAgcmV0dXJuIGV2YWx1YXRvci5jb250YWluZXI7XG4gIH1cblxuICByZXR1cm4ge1xuICAgIHByb2Nlc3MsXG4gICAgd2ViUlByb21pc2UsXG4gICAgcmVuZGVyZWRPanMsXG4gIH07XG59XG4ifV19
 </script>
 <div id="exercise-loading-indicator" class="exercise-loading-indicator d-none d-flex align-items-center gap-2">
 <div id="exercise-loading-status" class="d-flex gap-2">
@@ -529,6 +765,7 @@ eyJjb250ZW50cyI6W119
 <script type="vfs-file">
 W10=
 </script>
+</section>
 </section>
 </section>
 

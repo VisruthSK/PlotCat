@@ -50,8 +50,10 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/bootstrap/bootstrap-6ac2aec46ad7f46b16024ee4409aa65c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="site_libs/bootstrap/bootstrap-dark-8a591ff59271d21f6a5d1e80b3747fb5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <link href="site_libs/bootstrap/bootstrap-6ac2aec46ad7f46b16024ee4409aa65c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
-<script src="site_libs/quarto-contrib/plotcat-0.2.0/plotcat.js" type="module"></script>
-<link href="site_libs/quarto-contrib/plotcat-0.2.0/plotcat.css" rel="stylesheet">
+<script src="site_libs/quarto-contrib/plotcat-0.3.0/plotcat.js" type="module"></script>
+<link href="site_libs/quarto-contrib/plotcat-0.3.0/plotcat.css" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.plot.ly" crossorigin="">
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <script src="site_libs/quarto-contrib/live-runtime/live-runtime.js" type="module"></script>
 <link href="site_libs/quarto-contrib/live-runtime/live-runtime.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
@@ -340,14 +342,13 @@ ul.task-list li input[type="checkbox"] {
 <h1>R</h1>
 <section id="ggplot2" class="level2">
 <h2 class="anchored" data-anchor-id="ggplot2"><a href="https://ggplot2.tidyverse.org"><code>ggplot2</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-1" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-1&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;ggplot2&quot;]}" data-plotcat-target-code="080157f4df86587fcf3cbd5fa2243e7d1d718de35873b76adde24782b6a91863174415e7db870935c137a16ca1356278371983e84440bc7b85be028fbeb01e78164808a6cd844434c13ebe1ae470275e375b8de14772876e9afb4c98f9af1877014808a68cd80139c975bf5eed6d2c00452eafad0834d23ed5fe438ea2f47b2d444815f2d7804d328866ed119d356233621284a44a76b472d5f64b81b4b202640b0646a492fe0177887bb513f0702e167e1786a4447ab67981fa02c4bcb1582f486215a69ed45877957bef71a43c6074731e9af0403ff07398bb00c0dbfc512d440b5aead1815377957bef60bd356f3d7208c88e083ff13ede9802cca5b41460013758efd09d4c36c473e413e65a2c7463138fe94d37d23ed5b2029cb0b214614a0f47efdada4c3ec634bf13f070693872168fea5c40ba7294fc49c4f8f07b2d444815eadb934439cc75bd5cbe39783d7815cab9083dba7181e64d81f3d6512d4d" data-plotcat-salt="salt_4015e379d3f378cc84d6d605">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-1" data-plotcat-manifest="{&quot;engine&quot;:&quot;r&quot;,&quot;id&quot;:&quot;exercise-1&quot;}" data-plotcat-target-code="bGlicmFyeShnZ3Bsb3QyKQoKZ2dwbG90KHBlbmd1aW5zLCBhZXMoYmlsbF9sZW4sIGJpbGxfZGVwLCBjb2xvdXIgPSBzcGVjaWVzKSkgKwogIGdlb21fcG9pbnQoc2l6ZSA9IDIsIG5hLnJtID0gVFJVRSkgKwogIGxhYnMoCiAgICB0aXRsZSA9ICJQZW5ndWluIGJpbGwgZGltZW5zaW9ucyIsCiAgICB4ID0gIkJpbGwgbGVuZ3RoIChtbSkiLAogICAgeSA9ICJCaWxsIGRlcHRoIChtbSkiLAogICAgY29sb3VyID0gIlNwZWNpZXMiCiAgKSArCiAgdGhlbWVfbWluaW1hbCgpICsKICB0aGVtZSgKICAgIHBhbmVsLmdyaWQubWlub3IgPSBlbGVtZW50X2JsYW5rKCksCiAgICBsZWdlbmQucG9zaXRpb24gPSAiYm90dG9tIgogICk=" data-plotcat-weights="eyJwbG90bHkiOnsiZGF0YSI6MC40LCJsYXlvdXQiOjAuMSwic3R5bGUiOjAuMiwidHJhY2UiOjAuM30sInN2ZyI6eyJmcmFtZSI6MC4xNSwiZ2VvbWV0cnkiOjAuNiwic3R5bGUiOjAuMSwidGV4dCI6MC4xNX19">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
     <figure class="plotcat__plot plotcat__student figure" data-plotcat-student="" aria-label="Your plot"></figure>
     <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle="" role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
   </div>
-  <label for="plotcat-exercise-1-editor">Code</label>
   <div class="plotcat-editor-container"><div class="plotcat__editor" id="plotcat-exercise-1-editor">
 
 <div>
@@ -355,7 +356,7 @@ ul.task-list li input[type="checkbox"] {
 
 </div>
 <script type="webr-1-contents">
-eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2UsInJ1bmJ1dHRvbiI6ZmFsc2V9LCJjb2RlIjoibGlicmFyeShnZ3Bsb3QyKVxuXG5nZ3Bsb3QocGVuZ3VpbnMsIGFlcyhiaWxsX2xlbiwgYmlsbF9kZXAsIGNvbG91ciA9IHNwZWNpZXMpKSArXG4gIGdlb21fcG9pbnQobmEucm0gPSBUUlVFKSJ9
+eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2V9LCJjb2RlIjoibGlicmFyeShnZ3Bsb3QyKVxuXG5nZ3Bsb3QocGVuZ3VpbnMsIGFlcyhiaWxsX2xlbiwgYmlsbF9kZXAsIGNvbG91ciA9IHNwZWNpZXMpKSArXG4gIGdlb21fcG9pbnQobmEucm0gPSBUUlVFKSJ9
 </script>
 </div>
   </div></div>
@@ -370,19 +371,17 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
     </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite"></div>
-  <div class="plotcat__feedback"></div>
 </section>
 </section>
 <section id="tinyplot" class="level2">
 <h2 class="anchored" data-anchor-id="tinyplot"><a href="https://grantmcdermott.com/tinyplot/"><code>tinyplot</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-2" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-2&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;tinyplot&quot;]}" data-plotcat-target-code="18c7726d446dd2fb5ba6dd8d370da3364654705fa76f54f6611d866861aae3164cca7d60552180af02fddb977554be3b404e7806ee3e73a2704d85716aa8a75e05dd68755a62d8af03e589972911b63e0b0c7843a27d42f6221dd74b74aae25e4e823c6d5860dfaf5cbc8bb72d1ba32a404e3f1baa7553a27e53967d26e6" data-plotcat-salt="salt_bc282f18bd7bf18eac3eb0ae">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-2" data-plotcat-manifest="{&quot;engine&quot;:&quot;r&quot;,&quot;id&quot;:&quot;exercise-2&quot;}" data-plotcat-target-code="dGlueXBsb3Q6OnRpbnlwbG90KGRpc3QgfiBzcGVlZCwgZGF0YSA9IGNhcnMsIG1haW4gPSAiU3RvcHBpbmcgZGlzdGFuY2UgYnkgc3BlZWQiLCB4bGFiID0gIlNwZWVkIiwgeWxhYiA9ICJTdG9wcGluZyBkaXN0YW5jZSIp" data-plotcat-weights="eyJwbG90bHkiOnsiZGF0YSI6MC40LCJsYXlvdXQiOjAuMSwic3R5bGUiOjAuMiwidHJhY2UiOjAuM30sInN2ZyI6eyJmcmFtZSI6MC4xNSwiZ2VvbWV0cnkiOjAuNiwic3R5bGUiOjAuMSwidGV4dCI6MC4xNX19">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
     <figure class="plotcat__plot plotcat__student figure" data-plotcat-student="" aria-label="Your plot"></figure>
     <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle="" role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
   </div>
-  <label for="plotcat-exercise-2-editor">Code</label>
   <div class="plotcat-editor-container"><div class="plotcat__editor" id="plotcat-exercise-2-editor">
 
 <div>
@@ -390,7 +389,7 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
 
 </div>
 <script type="webr-2-contents">
-eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2UsInJ1bmJ1dHRvbiI6ZmFsc2V9LCJjb2RlIjoidGlueXBsb3Q6OnRpbnlwbG90KGRpc3QgfiBzcGVlZCwgZGF0YSA9IGNhcnMpIn0=
+eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2V9LCJjb2RlIjoidGlueXBsb3Q6OnRpbnlwbG90KGRpc3QgfiBzcGVlZCwgZGF0YSA9IGNhcnMpIn0=
 </script>
 </div>
   </div></div>
@@ -405,19 +404,17 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
     </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite"></div>
-  <div class="plotcat__feedback"></div>
 </section>
 </section>
 <section id="lattice" class="level2">
 <h2 class="anchored" data-anchor-id="lattice"><a href="https://lattice.r-forge.r-project.org/"><code>lattice</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-3" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-3&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;lattice&quot;]}" data-plotcat-target-code="c1ba79f6ef735df3f9bbdb571c8d822a325977cd15dc7e8b65c2ceee83f2c78381f37fe5fa6004e6b5b7db40149c942f184c6fd4179337832afff989dda4c3d7fab672e3e67506f7b5a2c34217ceda231a766bd41edb7e812492d0a29cb090ca8df156d4c9230d" data-plotcat-salt="salt_a2bd498b6d9adfdedc6d7ca7">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-3" data-plotcat-manifest="{&quot;engine&quot;:&quot;r&quot;,&quot;id&quot;:&quot;exercise-3&quot;}" data-plotcat-target-code="bGlicmFyeShsYXR0aWNlKQp4eXBsb3QobXBnIH4gd3QsIGRhdGEgPSBtdGNhcnMsIG1haW4gPSAiTVBHIHZzIFdlaWdodCIsIHhsYWIgPSAiV2VpZ2h0IiwgeWxhYiA9ICJNUEciKQ==" data-plotcat-weights="eyJwbG90bHkiOnsiZGF0YSI6MC40LCJsYXlvdXQiOjAuMSwic3R5bGUiOjAuMiwidHJhY2UiOjAuM30sInN2ZyI6eyJmcmFtZSI6MC4xNSwiZ2VvbWV0cnkiOjAuNiwic3R5bGUiOjAuMSwidGV4dCI6MC4xNX19">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
     <figure class="plotcat__plot plotcat__student figure" data-plotcat-student="" aria-label="Your plot"></figure>
     <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle="" role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
   </div>
-  <label for="plotcat-exercise-3-editor">Code</label>
   <div class="plotcat-editor-container"><div class="plotcat__editor" id="plotcat-exercise-3-editor">
 
 <div>
@@ -425,7 +422,7 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
 
 </div>
 <script type="webr-3-contents">
-eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2UsInJ1bmJ1dHRvbiI6ZmFsc2V9LCJjb2RlIjoibGlicmFyeShsYXR0aWNlKVxueHlwbG90KG1wZyB+IHd0LCBkYXRhID0gbXRjYXJzKSJ9
+eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2V9LCJjb2RlIjoibGlicmFyeShsYXR0aWNlKVxueHlwbG90KG1wZyB+IHd0LCBkYXRhID0gbXRjYXJzKSJ9
 </script>
 </div>
   </div></div>
@@ -440,19 +437,17 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
     </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite"></div>
-  <div class="plotcat__feedback"></div>
 </section>
 </section>
 <section id="plotly" class="level2">
 <h2 class="anchored" data-anchor-id="plotly"><a href="https://plotly.com/r/"><code>plotly</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-4" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-4&quot;,&quot;engine&quot;:&quot;r&quot;,&quot;packages&quot;:[&quot;plotly&quot;]}" data-plotcat-target-code="d0098cdb84176502b5a4ed63f4a67ebeb275f45ea841bd97b4901dfc379ace41ce099d85c51d3c17e5b6d172e8be3b9a8e7cf54d8345e89fa9d154bd69f78b5cdd0cc0e5800b7b5eade4a263e1af3294ff39bc59944cb0cbb5834eb137ca814cd940d389c2087d58aeadf064bff6" data-plotcat-salt="salt_daf0f4ed9f1bfa18443130af">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-4" data-plotcat-manifest="{&quot;engine&quot;:&quot;r&quot;,&quot;id&quot;:&quot;exercise-4&quot;}" data-plotcat-target-code="bGlicmFyeShwbG90bHkpCnBsb3RfbHkoCiAgZGF0YSA9IGlyaXMsCiAgeCA9IH5TZXBhbC5MZW5ndGgsCiAgeSA9IH5QZXRhbC5MZW5ndGgsCiAgdHlwZSA9ICdzY2F0dGVyJywKICBtb2RlID0gJ21hcmtlcnMnLAogIGhvdmVydGVtcGxhdGUgPSAnPGI+U2VwYWwgbGVuZ3RoOjwvYj4gJXt4fTxicj48Yj5QZXRhbCBsZW5ndGg6PC9iPiAle3l9PGV4dHJhPjwvZXh0cmE+Jwop" data-plotcat-weights="eyJwbG90bHkiOnsiZGF0YSI6MC40LCJsYXlvdXQiOjAuMSwic3R5bGUiOjAuMiwidHJhY2UiOjAuM30sInN2ZyI6eyJmcmFtZSI6MC4xNSwiZ2VvbWV0cnkiOjAuNiwic3R5bGUiOjAuMSwidGV4dCI6MC4xNX19">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
     <figure class="plotcat__plot plotcat__student figure" data-plotcat-student="" aria-label="Your plot"></figure>
     <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle="" role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
   </div>
-  <label for="plotcat-exercise-4-editor">Code</label>
   <div class="plotcat-editor-container"><div class="plotcat__editor" id="plotcat-exercise-4-editor">
 
 <div>
@@ -460,7 +455,7 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
 
 </div>
 <script type="webr-4-contents">
-eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2UsInJ1bmJ1dHRvbiI6ZmFsc2V9LCJjb2RlIjoibGlicmFyeShwbG90bHkpXG5wbG90X2x5KGRhdGEgPSBpcmlzLCB4ID0gflNlcGFsLkxlbmd0aCwgeSA9IH5QZXRhbC5MZW5ndGgsIHR5cGUgPSAnc2NhdHRlcicpIn0=
+eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2V9LCJjb2RlIjoibGlicmFyeShwbG90bHkpXG5wbG90X2x5KGRhdGEgPSBpcmlzLCB4ID0gflNlcGFsLkxlbmd0aCwgeSA9IH5QZXRhbC5MZW5ndGgsIHR5cGUgPSAnc2NhdHRlcicsIG1vZGUgPSAnbWFya2VycycpIn0=
 </script>
 </div>
   </div></div>
@@ -475,7 +470,6 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
     </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite"></div>
-  <div class="plotcat__feedback"></div>
 </section>
 </section>
 </section>
@@ -483,14 +477,13 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
 <h1>Python</h1>
 <section id="matplotlib" class="level2">
 <h2 class="anchored" data-anchor-id="matplotlib"><a href="https://matplotlib.org/"><code>matplotlib</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-5" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-5&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;matplotlib&quot;,&quot;sklearn&quot;]}" data-plotcat-target-code="ae0d2eefc917957832f3537452532c8f8b38ad531724c317cab96164afbfe9d5a11231ed9b10de7936e65176134321928865b85e1468c50e9ab76030ffbff2bea33f37f2d210bf7c21ee503800072c89887282431521df4bc3d27625abb2bde2e7092ce9c84dd17427e6297e54406cc6886efd174738c017c4ab6726afbff2abb448778ada1b9b6630e6576c585568828862bc715d648c53b7f43220bea7fc84fd4c7eb2e64abf742ba9507d4978348f9d7ab8024501de0a99f86121afb2f1ffa60e3aa0cb06c1743fa74f7d5340348ecb3fd74b1f66df069e876a28beb1f8b3ef420de5cb02d9353fe24d7f494f60ce8a7bf4084e42cd1bc4ab773080aaf1bea50532a89933d06132eb0374584927928136f5490a618e4a" data-plotcat-salt="salt_21055fe0d2b35b026e580976">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-5" data-plotcat-manifest="{&quot;engine&quot;:&quot;python&quot;,&quot;id&quot;:&quot;exercise-5&quot;}" data-plotcat-target-code="aW1wb3J0IG1hdHBsb3RsaWIucHlwbG90IGFzIHBsdApmcm9tIHNrbGVhcm4uZGF0YXNldHMgaW1wb3J0IGxvYWRfaXJpcwppcmlzID0gbG9hZF9pcmlzKCkKZGF0YSA9IGlyaXMuZGF0YQpmaWcsIGF4ID0gcGx0LnN1YnBsb3RzKCkKYXguc2NhdHRlcihkYXRhWzosIDBdLCBkYXRhWzosIDJdKQpheC5zZXRfdGl0bGUoIklyaXMgc2VwYWwgYW5kIHBldGFsIGxlbmd0aCIpCmF4LnNldF94bGFiZWwoIlNlcGFsIGxlbmd0aCAoY20pIikKYXguc2V0X3lsYWJlbCgiUGV0YWwgbGVuZ3RoIChjbSkiKQ==" data-plotcat-weights="eyJwbG90bHkiOnsiZGF0YSI6MC40LCJsYXlvdXQiOjAuMSwic3R5bGUiOjAuMiwidHJhY2UiOjAuM30sInN2ZyI6eyJmcmFtZSI6MC4xNSwiZ2VvbWV0cnkiOjAuNiwic3R5bGUiOjAuMSwidGV4dCI6MC4xNX19">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
     <figure class="plotcat__plot plotcat__student figure" data-plotcat-student="" aria-label="Your plot"></figure>
     <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle="" role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
   </div>
-  <label for="plotcat-exercise-5-editor">Code</label>
   <div class="plotcat-editor-container"><div class="plotcat__editor" id="plotcat-exercise-5-editor">
 
 <div>
@@ -498,7 +491,7 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
 
 </div>
 <script type="pyodide-5-contents">
-eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2UsInJ1bmJ1dHRvbiI6ZmFsc2V9LCJjb2RlIjoiaW1wb3J0IG1hdHBsb3RsaWIucHlwbG90IGFzIHBsdFxuZnJvbSBza2xlYXJuLmRhdGFzZXRzIGltcG9ydCBsb2FkX2lyaXNcbmlyaXMgPSBsb2FkX2lyaXMoKVxuZGF0YSA9IGlyaXMuZGF0YVxuZmlnLCBheCA9IHBsdC5zdWJwbG90cygpXG5heC5zY2F0dGVyKGRhdGFbOiwgMF0sIGRhdGFbOiwgMl0pIn0=
+eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2V9LCJjb2RlIjoiaW1wb3J0IG1hdHBsb3RsaWIucHlwbG90IGFzIHBsdFxuZnJvbSBza2xlYXJuLmRhdGFzZXRzIGltcG9ydCBsb2FkX2lyaXNcbmlyaXMgPSBsb2FkX2lyaXMoKVxuZGF0YSA9IGlyaXMuZGF0YVxuZmlnLCBheCA9IHBsdC5zdWJwbG90cygpXG5heC5zY2F0dGVyKGRhdGFbOiwgMF0sIGRhdGFbOiwgMl0pIn0=
 </script>
 </div>
   </div></div>
@@ -513,19 +506,17 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
     </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite"></div>
-  <div class="plotcat__feedback"></div>
 </section>
 </section>
 <section id="plotnine" class="level2">
 <h2 class="anchored" data-anchor-id="plotnine"><a href="https://plotnine.org/"><code>plotnine</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-6" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-6&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;plotnine&quot;]}" data-plotcat-target-code="2af62f95ff85d7c5282dab978e8cecc7f07c15a2655138d34eed9e08a437ad8760a4279db098e4da332aac8dc78ce9cbe2604bf6315e3ace47dd874dea3fa595208e268ab0989bda302cb69782c2e084e47213b7655f32d34df09e04e922ab953ef74a88b39acf8a6163eaf3cb8ce2cdf07f08a26d5b2bc043f09908a437ad8764a6378cfdd99b883133a5dbc78ce6c5ec7c15eb67503ec056ed980ce72fa4dd6ead69f2ffd5908a3b26ad94b4dceac3ee674fa52c4c3a9e11abe004a47de8982de633d0ab9ccfc6397ee0bf9ec9e98ae57008b82a5b268340fbca53e13faf9c38a66cd8a7c899fd392aa5919f8ea98af92e459b2c5a3ad002f28f56a431a99820eb2edaf3d5d8c5302cb0c4c9effcc6e97d03b337457d8a28a2ca0fa422a09121e11f95b69bd2c73d2fead0e1858fdaec7c13f8365e30d40aab" data-plotcat-salt="salt_540c89e0c525d362506f45ff">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-6" data-plotcat-manifest="{&quot;engine&quot;:&quot;python&quot;,&quot;id&quot;:&quot;exercise-6&quot;}" data-plotcat-target-code="ZnJvbSBwbG90bmluZSBpbXBvcnQgZ2dwbG90LCBhZXMsIGdlb21fcG9pbnQsIGxhYnMsIHRoZW1lX21pbmltYWwKZnJvbSBwbG90bmluZS5kYXRhIGltcG9ydCBtdGNhcnMKcGxvdCA9ICgKICBnZ3Bsb3QobXRjYXJzLCBhZXMoInd0IiwgIm1wZyIsIGNvbG9yPSJmYWN0b3IoY3lsKSIpKQogICsgZ2VvbV9wb2ludChzaXplPTMpCiAgKyBsYWJzKHRpdGxlPSJGdWVsIGVjb25vbXkgYnkgd2VpZ2h0IiwgeD0iV2VpZ2h0IiwgeT0iTWlsZXMgcGVyIGdhbGxvbiIsIGNvbG9yPSJDeWxpbmRlcnMiKQogICsgdGhlbWVfbWluaW1hbCgpCikKcGxvdC5zaG93KCk=" data-plotcat-weights="eyJwbG90bHkiOnsiZGF0YSI6MC40LCJsYXlvdXQiOjAuMSwic3R5bGUiOjAuMiwidHJhY2UiOjAuM30sInN2ZyI6eyJmcmFtZSI6MC4xNSwiZ2VvbWV0cnkiOjAuNiwic3R5bGUiOjAuMSwidGV4dCI6MC4xNX19">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
     <figure class="plotcat__plot plotcat__student figure" data-plotcat-student="" aria-label="Your plot"></figure>
     <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle="" role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
   </div>
-  <label for="plotcat-exercise-6-editor">Code</label>
   <div class="plotcat-editor-container"><div class="plotcat__editor" id="plotcat-exercise-6-editor">
 
 <div>
@@ -533,7 +524,7 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
 
 </div>
 <script type="pyodide-6-contents">
-eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2UsInJ1bmJ1dHRvbiI6ZmFsc2V9LCJjb2RlIjoiZnJvbSBwbG90bmluZSBpbXBvcnQgZ2dwbG90LCBhZXMsIGdlb21fcG9pbnRcbmZyb20gcGxvdG5pbmUuZGF0YSBpbXBvcnQgbXRjYXJzXG5nZ3Bsb3QobXRjYXJzLCBhZXMoXCJ3dFwiLCBcIm1wZ1wiKSkgKyBnZW9tX3BvaW50KCkifQ==
+eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2V9LCJjb2RlIjoiZnJvbSBwbG90bmluZSBpbXBvcnQgZ2dwbG90LCBhZXMsIGdlb21fcG9pbnRcbmZyb20gcGxvdG5pbmUuZGF0YSBpbXBvcnQgbXRjYXJzXG5nZ3Bsb3QobXRjYXJzLCBhZXMoXCJ3dFwiLCBcIm1wZ1wiKSkgKyBnZW9tX3BvaW50KCkifQ==
 </script>
 </div>
   </div></div>
@@ -548,19 +539,17 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
     </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite"></div>
-  <div class="plotcat__feedback"></div>
 </section>
 </section>
 <section id="seaborn" class="level2">
 <h2 class="anchored" data-anchor-id="seaborn"><a href="https://seaborn.pydata.org/"><code>seaborn</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-7" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-7&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;sklearn&quot;,&quot;pandas&quot;,&quot;seaborn&quot;]}" data-plotcat-target-code="ac1d14fbf49d89eadda06939e4a7e6b5714fc428502bd961599fdca9a48242bcae3012e4bd9de8efd5b17425bee3f7a07e58c02f036ac32c5994a4b4e99e42afbe4f08f3b58c8df4d6e17a24eab0e9b21a55d335502b8d2c459fcfb9db875fb4b947529cb088c2bb98b17f798ea2f3a0564ec0314623d97e408380b9e59a4cf1ea0c14faa1838cf585a8693eb9ede1a47148d42e4654de6d4495ddf48e8a4b86ed1c0bf3b78787f59f9c3b6aeaaaf5a86312d53d516cd5782383c0aeaa9d4ebcbe1b1ee4a4828df290a57a23abfee3a73c1cd9610178d57c489c8eb1e1804aa9a24f53f5b9c7c0aa98b82675baa6f3a07c1ccd394d6cc46409d8cdb0adcc01fda21a1eabf69d92e3dba87e24e8ea" data-plotcat-salt="salt_1201d0f4a6051389be8ccabf">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-7" data-plotcat-manifest="{&quot;engine&quot;:&quot;python&quot;,&quot;id&quot;:&quot;exercise-7&quot;}" data-plotcat-target-code="ZnJvbSBza2xlYXJuLmRhdGFzZXRzIGltcG9ydCBsb2FkX2lyaXMKaW1wb3J0IHBhbmRhcyBhcyBwZAppbXBvcnQgc2VhYm9ybiBhcyBzbnMKaXJpcyA9IGxvYWRfaXJpcygpCmRmID0gcGQuRGF0YUZyYW1lKGlyaXMuZGF0YSwgY29sdW1ucz1pcmlzLmZlYXR1cmVfbmFtZXMpCmRmWydzcGVjaWVzJ10gPSBpcmlzLnRhcmdldApzbnMuc2NhdHRlcnBsb3QoZGF0YT1kZiwgeD0ic2VwYWwgbGVuZ3RoIChjbSkiLCB5PSJwZXRhbCBsZW5ndGggKGNtKSIsIGh1ZT0ic3BlY2llcyIp" data-plotcat-weights="eyJwbG90bHkiOnsiZGF0YSI6MC40LCJsYXlvdXQiOjAuMSwic3R5bGUiOjAuMiwidHJhY2UiOjAuM30sInN2ZyI6eyJmcmFtZSI6MC4xNSwiZ2VvbWV0cnkiOjAuNiwic3R5bGUiOjAuMSwidGV4dCI6MC4xNX19">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
     <figure class="plotcat__plot plotcat__student figure" data-plotcat-student="" aria-label="Your plot"></figure>
     <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle="" role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
   </div>
-  <label for="plotcat-exercise-7-editor">Code</label>
   <div class="plotcat-editor-container"><div class="plotcat__editor" id="plotcat-exercise-7-editor">
 
 <div>
@@ -568,7 +557,7 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
 
 </div>
 <script type="pyodide-7-contents">
-eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2UsInJ1bmJ1dHRvbiI6ZmFsc2V9LCJjb2RlIjoiZnJvbSBza2xlYXJuLmRhdGFzZXRzIGltcG9ydCBsb2FkX2lyaXNcbmltcG9ydCBwYW5kYXMgYXMgcGRcbmltcG9ydCBzZWFib3JuIGFzIHNuc1xuaXJpcyA9IGxvYWRfaXJpcygpXG5kZiA9IHBkLkRhdGFGcmFtZShpcmlzLmRhdGEsIGNvbHVtbnM9aXJpcy5mZWF0dXJlX25hbWVzKVxuZGZbJ3NwZWNpZXMnXSA9IGlyaXMudGFyZ2V0XG5zbnMuc2NhdHRlcnBsb3QoZGF0YT1kZiwgeD1cInNlcGFsIGxlbmd0aCAoY20pXCIsIHk9XCJwZXRhbCBsZW5ndGggKGNtKVwiKSJ9
+eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2V9LCJjb2RlIjoiZnJvbSBza2xlYXJuLmRhdGFzZXRzIGltcG9ydCBsb2FkX2lyaXNcbmltcG9ydCBwYW5kYXMgYXMgcGRcbmltcG9ydCBzZWFib3JuIGFzIHNuc1xuaXJpcyA9IGxvYWRfaXJpcygpXG5kZiA9IHBkLkRhdGFGcmFtZShpcmlzLmRhdGEsIGNvbHVtbnM9aXJpcy5mZWF0dXJlX25hbWVzKVxuZGZbJ3NwZWNpZXMnXSA9IGlyaXMudGFyZ2V0XG5zbnMuc2NhdHRlcnBsb3QoZGF0YT1kZiwgeD1cInNlcGFsIGxlbmd0aCAoY20pXCIsIHk9XCJwZXRhbCBsZW5ndGggKGNtKVwiKSJ9
 </script>
 </div>
   </div></div>
@@ -583,19 +572,17 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
     </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite"></div>
-  <div class="plotcat__feedback"></div>
 </section>
 </section>
 <section id="plotly-1" class="level2">
 <h2 class="anchored" data-anchor-id="plotly-1"><a href="https://plotly.com/python/"><code>plotly</code></a></h2>
-<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-8" data-plotcat-manifest="{&quot;id&quot;:&quot;exercise-8&quot;,&quot;engine&quot;:&quot;python&quot;,&quot;packages&quot;:[&quot;plotly&quot;]}" data-plotcat-target-code="ab48148d308a140d806b87753f587c8596b9c2a86970d66287a2dd541836edf0ad2f028b25de095d8b6bdd5f2f116e8592e1ce96727381608bf8fd171831b9f2b00d1cdf19cf185dde28d32a1b5a3b8eca929edb26279027d28b8254142aa9f2ff0209833095510f9f23da304c107290" data-plotcat-salt="salt_76ae1cd29f4647b9fc63f29e">
+<section class="plotcat plotcat--side-by-side" id="plotcat-exercise-8" data-plotcat-manifest="{&quot;engine&quot;:&quot;python&quot;,&quot;id&quot;:&quot;exercise-8&quot;}" data-plotcat-target-code="aW1wb3J0IHBsb3RseS5ncmFwaF9vYmplY3RzIGFzIGdvCmZyb20gc2tsZWFybi5kYXRhc2V0cyBpbXBvcnQgbG9hZF9pcmlzCgppcmlzID0gbG9hZF9pcmlzKGFzX2ZyYW1lPVRydWUpLmZyYW1lCmZpZyA9IGdvLkZpZ3VyZShkYXRhPWdvLlNjYXR0ZXIoCiAgICB4PWlyaXNbJ3NlcGFsIGxlbmd0aCAoY20pJ10sCiAgICB5PWlyaXNbJ3BldGFsIGxlbmd0aCAoY20pJ10sCiAgICBtb2RlPSdtYXJrZXJzJywKICAgIGhvdmVydGVtcGxhdGU9JzxiPlNlcGFsIGxlbmd0aDo8L2I+ICV7eH08YnI+PGI+UGV0YWwgbGVuZ3RoOjwvYj4gJXt5fTxleHRyYT48L2V4dHJhPicKKSkKZmln" data-plotcat-weights="eyJwbG90bHkiOnsiZGF0YSI6MC40LCJsYXlvdXQiOjAuMSwic3R5bGUiOjAuMiwidHJhY2UiOjAuM30sInN2ZyI6eyJmcmFtZSI6MC4xNSwiZ2VvbWV0cnkiOjAuNiwic3R5bGUiOjAuMSwidGV4dCI6MC4xNX19">
   <header class="plotcat__header"><span>Recreate this plot</span><output class="plotcat__score" aria-live="polite"></output></header>
   <div class="plotcat__body">
     <figure class="plotcat__plot plotcat__target figure" data-plotcat-target=""><div class="plotcat__target-loading"><span class="plotcat__spinner"></span>Loading plot…</div></figure>
     <figure class="plotcat__plot plotcat__student figure" data-plotcat-student="" aria-label="Your plot"></figure>
     <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle="" role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>
   </div>
-  <label for="plotcat-exercise-8-editor">Code</label>
   <div class="plotcat-editor-container"><div class="plotcat__editor" id="plotcat-exercise-8-editor">
 
 <div>
@@ -603,7 +590,7 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
 
 </div>
 <script type="pyodide-8-contents">
-eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2UsInJ1bmJ1dHRvbiI6ZmFsc2V9LCJjb2RlIjoiaW1wb3J0IHBsb3RseS5ncmFwaF9vYmplY3RzIGFzIGdvXG5maWcgPSBnby5GaWd1cmUoZGF0YT1nby5TY2F0dGVyKHg9WzEsIDIsIDNdLCB5PVs0LCA1LCA2XSkpXG5maWcifQ==
+eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6ZmFsc2V9LCJjb2RlIjoiaW1wb3J0IHBsb3RseS5ncmFwaF9vYmplY3RzIGFzIGdvXG5mcm9tIHNrbGVhcm4uZGF0YXNldHMgaW1wb3J0IGxvYWRfaXJpc1xuXG5pcmlzID0gbG9hZF9pcmlzKGFzX2ZyYW1lPVRydWUpLmZyYW1lXG5maWcgPSBnby5GaWd1cmUoZGF0YT1nby5TY2F0dGVyKFxuICAgIHg9aXJpc1snc2VwYWwgbGVuZ3RoIChjbSknXSxcbiAgICB5PWlyaXNbJ3BldGFsIGxlbmd0aCAoY20pJ10sXG4gICAgbW9kZT0nbWFya2VycydcbikpXG5maWcifQ==
 </script>
 </div>
   </div></div>
@@ -618,15 +605,14 @@ eyJhdHRyIjp7ImNvbXBsZXRpb24iOnRydWUsImVkaXQiOnRydWUsImV2YWwiOnRydWUsIm91dHB1dCI6
     </div>
   </div>
   <div class="plotcat__status" role="status" aria-live="polite"></div>
-  <div class="plotcat__feedback"></div>
 </section>
 
 
 <script type="webr-data">
-eyJvcHRpb25zIjp7ImJhc2VVcmwiOiJodHRwczovL3dlYnIuci13YXNtLm9yZy92MC42LjAvIn0sInBhY2thZ2VzIjp7InBrZ3MiOlsiZXZhbHVhdGUiLCJrbml0ciIsImh0bWx0b29scyJdLCJyZXBvcyI6W119LCJyZW5kZXJfZGYiOiJkZWZhdWx0In0=
+eyJvcHRpb25zIjp7ImJhc2VVcmwiOiJodHRwczovL3dlYnIuci13YXNtLm9yZy92MC42LjAvIn0sInBhY2thZ2VzIjp7InBrZ3MiOlsiZXZhbHVhdGUiLCJrbml0ciIsImh0bWx0b29scyIsInN2Z2xpdGUiLCJnZ3Bsb3QyIiwidGlueXBsb3QiLCJsYXR0aWNlIiwicGxvdGx5Il0sInJlcG9zIjpbXX0sInJlbmRlcl9kZiI6ImRlZmF1bHQifQ==
 </script>
 <script type="pyodide-data">
-eyJvcHRpb25zIjp7ImVudiI6eyJQTE9UTFlfUkVOREVSRVIiOiJwbG90bHlfbWltZXR5cGUifSwiaW5kZXhVUkwiOiJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvcHlvZGlkZS92MC4yOC4xL2Z1bGwvIn0sInBhY2thZ2VzIjp7InBrZ3MiOlsicHlvZGlkZV9odHRwIiwibWljcm9waXAiLCJpcHl0aG9uIl19fQ==
+eyJvcHRpb25zIjp7ImVudiI6eyJQTE9UTFlfUkVOREVSRVIiOiJwbG90bHlfbWltZXR5cGUifSwiaW5kZXhVUkwiOiJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvcHlvZGlkZS92MC4yOC4xL2Z1bGwvIn0sInBhY2thZ2VzIjp7InBrZ3MiOlsicHlvZGlkZV9odHRwIiwibWljcm9waXAiLCJpcHl0aG9uIiwibWF0cGxvdGxpYiIsInNjaWtpdC1sZWFybiIsInBhbmRhcyIsInNlYWJvcm4iLCJwbG90bmluZSIsInBsb3RseSJdfX0=
 </script>
 <script type="ojs-module-contents">
 eyJjb250ZW50cyI6W3siY2VsbE5hbWUiOiJweW9kaWRlLTgiLCJpbmxpbmUiOmZhbHNlLCJtZXRob2ROYW1lIjoiaW50ZXJwcmV0Iiwic291cmNlIjoidmlld29mIF9weW9kaWRlX2VkaXRvcl84ID0ge1xuICBjb25zdCB7IFB5b2RpZGVFeGVyY2lzZUVkaXRvciwgYjY0RGVjb2RlIH0gPSB3aW5kb3cuX2V4ZXJjaXNlX29qc19ydW50aW1lO1xuXG4gIGNvbnN0IHNjcmlwdENvbnRlbnQgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKGBzY3JpcHRbdHlwZT1cXFwicHlvZGlkZS04LWNvbnRlbnRzXFxcIl1gKS50ZXh0Q29udGVudDtcbiAgY29uc3QgYmxvY2sgPSBKU09OLnBhcnNlKGI2NERlY29kZShzY3JpcHRDb250ZW50KSk7XG5cbiAgY29uc3Qgb3B0aW9ucyA9IE9iamVjdC5hc3NpZ24oeyBpZDogYHB5b2RpZGUtOC1jb250ZW50c2AgfSwgYmxvY2suYXR0cik7XG4gIGNvbnN0IGVkaXRvciA9IG5ldyBQeW9kaWRlRXhlcmNpc2VFZGl0b3IoXG4gICAgcHlvZGlkZU9qcy5weW9kaWRlUHJvbWlzZSxcbiAgICBibG9jay5jb2RlLFxuICAgIG9wdGlvbnNcbiAgKTtcblxuICByZXR1cm4gZWRpdG9yLmNvbnRhaW5lcjtcbn1cbl9weW9kaWRlX3ZhbHVlXzggPSBweW9kaWRlT2pzLnByb2Nlc3MoX3B5b2RpZGVfZWRpdG9yXzgsIHt9KTtcbiJ9LHsiY2VsbE5hbWUiOiJweW9kaWRlLTciLCJpbmxpbmUiOmZhbHNlLCJtZXRob2ROYW1lIjoiaW50ZXJwcmV0Iiwic291cmNlIjoidmlld29mIF9weW9kaWRlX2VkaXRvcl83ID0ge1xuICBjb25zdCB7IFB5b2RpZGVFeGVyY2lzZUVkaXRvciwgYjY0RGVjb2RlIH0gPSB3aW5kb3cuX2V4ZXJjaXNlX29qc19ydW50aW1lO1xuXG4gIGNvbnN0IHNjcmlwdENvbnRlbnQgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKGBzY3JpcHRbdHlwZT1cXFwicHlvZGlkZS03LWNvbnRlbnRzXFxcIl1gKS50ZXh0Q29udGVudDtcbiAgY29uc3QgYmxvY2sgPSBKU09OLnBhcnNlKGI2NERlY29kZShzY3JpcHRDb250ZW50KSk7XG5cbiAgY29uc3Qgb3B0aW9ucyA9IE9iamVjdC5hc3NpZ24oeyBpZDogYHB5b2RpZGUtNy1jb250ZW50c2AgfSwgYmxvY2suYXR0cik7XG4gIGNvbnN0IGVkaXRvciA9IG5ldyBQeW9kaWRlRXhlcmNpc2VFZGl0b3IoXG4gICAgcHlvZGlkZU9qcy5weW9kaWRlUHJvbWlzZSxcbiAgICBibG9jay5jb2RlLFxuICAgIG9wdGlvbnNcbiAgKTtcblxuICByZXR1cm4gZWRpdG9yLmNvbnRhaW5lcjtcbn1cbl9weW9kaWRlX3ZhbHVlXzcgPSBweW9kaWRlT2pzLnByb2Nlc3MoX3B5b2RpZGVfZWRpdG9yXzcsIHt9KTtcbiJ9LHsiY2VsbE5hbWUiOiJweW9kaWRlLTYiLCJpbmxpbmUiOmZhbHNlLCJtZXRob2ROYW1lIjoiaW50ZXJwcmV0Iiwic291cmNlIjoidmlld29mIF9weW9kaWRlX2VkaXRvcl82ID0ge1xuICBjb25zdCB7IFB5b2RpZGVFeGVyY2lzZUVkaXRvciwgYjY0RGVjb2RlIH0gPSB3aW5kb3cuX2V4ZXJjaXNlX29qc19ydW50aW1lO1xuXG4gIGNvbnN0IHNjcmlwdENvbnRlbnQgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKGBzY3JpcHRbdHlwZT1cXFwicHlvZGlkZS02LWNvbnRlbnRzXFxcIl1gKS50ZXh0Q29udGVudDtcbiAgY29uc3QgYmxvY2sgPSBKU09OLnBhcnNlKGI2NERlY29kZShzY3JpcHRDb250ZW50KSk7XG5cbiAgY29uc3Qgb3B0aW9ucyA9IE9iamVjdC5hc3NpZ24oeyBpZDogYHB5b2RpZGUtNi1jb250ZW50c2AgfSwgYmxvY2suYXR0cik7XG4gIGNvbnN0IGVkaXRvciA9IG5ldyBQeW9kaWRlRXhlcmNpc2VFZGl0b3IoXG4gICAgcHlvZGlkZU9qcy5weW9kaWRlUHJvbWlzZSxcbiAgICBibG9jay5jb2RlLFxuICAgIG9wdGlvbnNcbiAgKTtcblxuICByZXR1cm4gZWRpdG9yLmNvbnRhaW5lcjtcbn1cbl9weW9kaWRlX3ZhbHVlXzYgPSBweW9kaWRlT2pzLnByb2Nlc3MoX3B5b2RpZGVfZWRpdG9yXzYsIHt9KTtcbiJ9LHsiY2VsbE5hbWUiOiJweW9kaWRlLTUiLCJpbmxpbmUiOmZhbHNlLCJtZXRob2ROYW1lIjoiaW50ZXJwcmV0Iiwic291cmNlIjoidmlld29mIF9weW9kaWRlX2VkaXRvcl81ID0ge1xuICBjb25zdCB7IFB5b2RpZGVFeGVyY2lzZUVkaXRvciwgYjY0RGVjb2RlIH0gPSB3aW5kb3cuX2V4ZXJjaXNlX29qc19ydW50aW1lO1xuXG4gIGNvbnN0IHNjcmlwdENvbnRlbnQgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKGBzY3JpcHRbdHlwZT1cXFwicHlvZGlkZS01LWNvbnRlbnRzXFxcIl1gKS50ZXh0Q29udGVudDtcbiAgY29uc3QgYmxvY2sgPSBKU09OLnBhcnNlKGI2NERlY29kZShzY3JpcHRDb250ZW50KSk7XG5cbiAgY29uc3Qgb3B0aW9ucyA9IE9iamVjdC5hc3NpZ24oeyBpZDogYHB5b2RpZGUtNS1jb250ZW50c2AgfSwgYmxvY2suYXR0cik7XG4gIGNvbnN0IGVkaXRvciA9IG5ldyBQeW9kaWRlRXhlcmNpc2VFZGl0b3IoXG4gICAgcHlvZGlkZU9qcy5weW9kaWRlUHJvbWlzZSxcbiAgICBibG9jay5jb2RlLFxuICAgIG9wdGlvbnNcbiAgKTtcblxuICByZXR1cm4gZWRpdG9yLmNvbnRhaW5lcjtcbn1cbl9weW9kaWRlX3ZhbHVlXzUgPSBweW9kaWRlT2pzLnByb2Nlc3MoX3B5b2RpZGVfZWRpdG9yXzUsIHt9KTtcbiJ9LHsiY2VsbE5hbWUiOiJ3ZWJyLXdpZGdldC00IiwiaW5saW5lIjpmYWxzZSwibWV0aG9kTmFtZSI6ImludGVycHJldFF1aWV0Iiwic291cmNlIjoie1xuICAvLyBXYWl0IGZvciBvdXRwdXQgdG8gYmUgd3JpdHRlbiB0byB0aGUgRE9NLCB0aGVuIHRyaWdnZXIgd2lkZ2V0IHJlbmRlcmluZ1xuICBhd2FpdCBfd2Vicl92YWx1ZV80O1xuICBpZiAod2luZG93LkhUTUxXaWRnZXRzKSB7XG4gICAgd2luZG93LkhUTUxXaWRnZXRzLnN0YXRpY1JlbmRlcigpO1xuICB9XG4gIGlmICh3aW5kb3cuUGFnZWRUYWJsZURvYykge1xuICAgIHdpbmRvdy5QYWdlZFRhYmxlRG9jLmluaXRBbGwoKTtcbiAgfVxufVxuIn0seyJjZWxsTmFtZSI6IndlYnItNCIsImlubGluZSI6ZmFsc2UsIm1ldGhvZE5hbWUiOiJpbnRlcnByZXQiLCJzb3VyY2UiOiJ2aWV3b2YgX3dlYnJfZWRpdG9yXzQgPSB7XG4gIGNvbnN0IHsgV2ViUkV4ZXJjaXNlRWRpdG9yLCBiNjREZWNvZGUgfSA9IHdpbmRvdy5fZXhlcmNpc2Vfb2pzX3J1bnRpbWU7XG4gIGNvbnN0IHNjcmlwdENvbnRlbnQgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKGBzY3JpcHRbdHlwZT1cXFwid2Vici00LWNvbnRlbnRzXFxcIl1gKS50ZXh0Q29udGVudDtcbiAgY29uc3QgYmxvY2sgPSBKU09OLnBhcnNlKGI2NERlY29kZShzY3JpcHRDb250ZW50KSk7XG5cbiAgY29uc3Qgb3B0aW9ucyA9IE9iamVjdC5hc3NpZ24oeyBpZDogYHdlYnItNC1jb250ZW50c2AgfSwgYmxvY2suYXR0cik7XG4gIGNvbnN0IGVkaXRvciA9IG5ldyBXZWJSRXhlcmNpc2VFZGl0b3Iod2ViUk9qcy53ZWJSUHJvbWlzZSwgYmxvY2suY29kZSwgb3B0aW9ucyk7XG5cbiAgcmV0dXJuIGVkaXRvci5jb250YWluZXI7XG59XG5fd2Vicl92YWx1ZV80ID0gd2ViUk9qcy5wcm9jZXNzKF93ZWJyX2VkaXRvcl80LCB7fSk7XG4ifSx7ImNlbGxOYW1lIjoid2Vici13aWRnZXQtMyIsImlubGluZSI6ZmFsc2UsIm1ldGhvZE5hbWUiOiJpbnRlcnByZXRRdWlldCIsInNvdXJjZSI6IntcbiAgLy8gV2FpdCBmb3Igb3V0cHV0IHRvIGJlIHdyaXR0ZW4gdG8gdGhlIERPTSwgdGhlbiB0cmlnZ2VyIHdpZGdldCByZW5kZXJpbmdcbiAgYXdhaXQgX3dlYnJfdmFsdWVfMztcbiAgaWYgKHdpbmRvdy5IVE1MV2lkZ2V0cykge1xuICAgIHdpbmRvdy5IVE1MV2lkZ2V0cy5zdGF0aWNSZW5kZXIoKTtcbiAgfVxuICBpZiAod2luZG93LlBhZ2VkVGFibGVEb2MpIHtcbiAgICB3aW5kb3cuUGFnZWRUYWJsZURvYy5pbml0QWxsKCk7XG4gIH1cbn1cbiJ9LHsiY2VsbE5hbWUiOiJ3ZWJyLTMiLCJpbmxpbmUiOmZhbHNlLCJtZXRob2ROYW1lIjoiaW50ZXJwcmV0Iiwic291cmNlIjoidmlld29mIF93ZWJyX2VkaXRvcl8zID0ge1xuICBjb25zdCB7IFdlYlJFeGVyY2lzZUVkaXRvciwgYjY0RGVjb2RlIH0gPSB3aW5kb3cuX2V4ZXJjaXNlX29qc19ydW50aW1lO1xuICBjb25zdCBzY3JpcHRDb250ZW50ID0gZG9jdW1lbnQucXVlcnlTZWxlY3Rvcihgc2NyaXB0W3R5cGU9XFxcIndlYnItMy1jb250ZW50c1xcXCJdYCkudGV4dENvbnRlbnQ7XG4gIGNvbnN0IGJsb2NrID0gSlNPTi5wYXJzZShiNjREZWNvZGUoc2NyaXB0Q29udGVudCkpO1xuXG4gIGNvbnN0IG9wdGlvbnMgPSBPYmplY3QuYXNzaWduKHsgaWQ6IGB3ZWJyLTMtY29udGVudHNgIH0sIGJsb2NrLmF0dHIpO1xuICBjb25zdCBlZGl0b3IgPSBuZXcgV2ViUkV4ZXJjaXNlRWRpdG9yKHdlYlJPanMud2ViUlByb21pc2UsIGJsb2NrLmNvZGUsIG9wdGlvbnMpO1xuXG4gIHJldHVybiBlZGl0b3IuY29udGFpbmVyO1xufVxuX3dlYnJfdmFsdWVfMyA9IHdlYlJPanMucHJvY2Vzcyhfd2Vicl9lZGl0b3JfMywge30pO1xuIn0seyJjZWxsTmFtZSI6IndlYnItd2lkZ2V0LTIiLCJpbmxpbmUiOmZhbHNlLCJtZXRob2ROYW1lIjoiaW50ZXJwcmV0UXVpZXQiLCJzb3VyY2UiOiJ7XG4gIC8vIFdhaXQgZm9yIG91dHB1dCB0byBiZSB3cml0dGVuIHRvIHRoZSBET00sIHRoZW4gdHJpZ2dlciB3aWRnZXQgcmVuZGVyaW5nXG4gIGF3YWl0IF93ZWJyX3ZhbHVlXzI7XG4gIGlmICh3aW5kb3cuSFRNTFdpZGdldHMpIHtcbiAgICB3aW5kb3cuSFRNTFdpZGdldHMuc3RhdGljUmVuZGVyKCk7XG4gIH1cbiAgaWYgKHdpbmRvdy5QYWdlZFRhYmxlRG9jKSB7XG4gICAgd2luZG93LlBhZ2VkVGFibGVEb2MuaW5pdEFsbCgpO1xuICB9XG59XG4ifSx7ImNlbGxOYW1lIjoid2Vici0yIiwiaW5saW5lIjpmYWxzZSwibWV0aG9kTmFtZSI6ImludGVycHJldCIsInNvdXJjZSI6InZpZXdvZiBfd2Vicl9lZGl0b3JfMiA9IHtcbiAgY29uc3QgeyBXZWJSRXhlcmNpc2VFZGl0b3IsIGI2NERlY29kZSB9ID0gd2luZG93Ll9leGVyY2lzZV9vanNfcnVudGltZTtcbiAgY29uc3Qgc2NyaXB0Q29udGVudCA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoYHNjcmlwdFt0eXBlPVxcXCJ3ZWJyLTItY29udGVudHNcXFwiXWApLnRleHRDb250ZW50O1xuICBjb25zdCBibG9jayA9IEpTT04ucGFyc2UoYjY0RGVjb2RlKHNjcmlwdENvbnRlbnQpKTtcblxuICBjb25zdCBvcHRpb25zID0gT2JqZWN0LmFzc2lnbih7IGlkOiBgd2Vici0yLWNvbnRlbnRzYCB9LCBibG9jay5hdHRyKTtcbiAgY29uc3QgZWRpdG9yID0gbmV3IFdlYlJFeGVyY2lzZUVkaXRvcih3ZWJST2pzLndlYlJQcm9taXNlLCBibG9jay5jb2RlLCBvcHRpb25zKTtcblxuICByZXR1cm4gZWRpdG9yLmNvbnRhaW5lcjtcbn1cbl93ZWJyX3ZhbHVlXzIgPSB3ZWJST2pzLnByb2Nlc3MoX3dlYnJfZWRpdG9yXzIsIHt9KTtcbiJ9LHsiY2VsbE5hbWUiOiJ3ZWJyLXdpZGdldC0xIiwiaW5saW5lIjpmYWxzZSwibWV0aG9kTmFtZSI6ImludGVycHJldFF1aWV0Iiwic291cmNlIjoie1xuICAvLyBXYWl0IGZvciBvdXRwdXQgdG8gYmUgd3JpdHRlbiB0byB0aGUgRE9NLCB0aGVuIHRyaWdnZXIgd2lkZ2V0IHJlbmRlcmluZ1xuICBhd2FpdCBfd2Vicl92YWx1ZV8xO1xuICBpZiAod2luZG93LkhUTUxXaWRnZXRzKSB7XG4gICAgd2luZG93LkhUTUxXaWRnZXRzLnN0YXRpY1JlbmRlcigpO1xuICB9XG4gIGlmICh3aW5kb3cuUGFnZWRUYWJsZURvYykge1xuICAgIHdpbmRvdy5QYWdlZFRhYmxlRG9jLmluaXRBbGwoKTtcbiAgfVxufVxuIn0seyJjZWxsTmFtZSI6IndlYnItMSIsImlubGluZSI6ZmFsc2UsIm1ldGhvZE5hbWUiOiJpbnRlcnByZXQiLCJzb3VyY2UiOiJ2aWV3b2YgX3dlYnJfZWRpdG9yXzEgPSB7XG4gIGNvbnN0IHsgV2ViUkV4ZXJjaXNlRWRpdG9yLCBiNjREZWNvZGUgfSA9IHdpbmRvdy5fZXhlcmNpc2Vfb2pzX3J1bnRpbWU7XG4gIGNvbnN0IHNjcmlwdENvbnRlbnQgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKGBzY3JpcHRbdHlwZT1cXFwid2Vici0xLWNvbnRlbnRzXFxcIl1gKS50ZXh0Q29udGVudDtcbiAgY29uc3QgYmxvY2sgPSBKU09OLnBhcnNlKGI2NERlY29kZShzY3JpcHRDb250ZW50KSk7XG5cbiAgY29uc3Qgb3B0aW9ucyA9IE9iamVjdC5hc3NpZ24oeyBpZDogYHdlYnItMS1jb250ZW50c2AgfSwgYmxvY2suYXR0cik7XG4gIGNvbnN0IGVkaXRvciA9IG5ldyBXZWJSRXhlcmNpc2VFZGl0b3Iod2ViUk9qcy53ZWJSUHJvbWlzZSwgYmxvY2suY29kZSwgb3B0aW9ucyk7XG5cbiAgcmV0dXJuIGVkaXRvci5jb250YWluZXI7XG59XG5fd2Vicl92YWx1ZV8xID0gd2ViUk9qcy5wcm9jZXNzKF93ZWJyX2VkaXRvcl8xLCB7fSk7XG4ifSx7ImNlbGxOYW1lIjoid2Vici1wcmVsdWRlIiwiaW5saW5lIjpmYWxzZSwibWV0aG9kTmFtZSI6ImludGVycHJldFF1aWV0Iiwic291cmNlIjoid2ViUk9qcyA9IHtcbiAgY29uc3QgeyBXZWJSLCBDaGFubmVsVHlwZSB9ID0gd2luZG93Ll9leGVyY2lzZV9vanNfcnVudGltZS5XZWJSO1xuICBjb25zdCB7XG4gICAgV2ViUkV2YWx1YXRvcixcbiAgICBXZWJSRW52aXJvbm1lbnRNYW5hZ2VyLFxuICAgIHNldHVwUixcbiAgICBiNjREZWNvZGUsXG4gICAgY29sbGFwc2VQYXRoXG4gIH0gPSB3aW5kb3cuX2V4ZXJjaXNlX29qc19ydW50aW1lO1xuXG4gIGNvbnN0IHN0YXR1c0NvbnRhaW5lciA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKFwiZXhlcmNpc2UtbG9hZGluZy1zdGF0dXNcIik7XG4gIGNvbnN0IGluZGljYXRvckNvbnRhaW5lciA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKFwiZXhlcmNpc2UtbG9hZGluZy1pbmRpY2F0b3JcIik7XG4gIGluZGljYXRvckNvbnRhaW5lci5jbGFzc0xpc3QucmVtb3ZlKFwiZC1ub25lXCIpO1xuXG4gIGxldCBzdGF0dXNUZXh0ID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudChcImRpdlwiKVxuICBzdGF0dXNUZXh0LmNsYXNzTGlzdCA9IFwiZXhlcmNpc2UtbG9hZGluZy1kZXRhaWxzXCI7XG4gIHN0YXR1c1RleHQgPSBzdGF0dXNDb250YWluZXIuYXBwZW5kQ2hpbGQoc3RhdHVzVGV4dCk7XG4gIHN0YXR1c1RleHQudGV4dENvbnRlbnQgPSBgSW5pdGlhbGlzZWA7XG5cbiAgLy8gSG9pc3QgaW5kaWNhdG9yIG91dCBmcm9tIGZpbmFsIHNsaWRlIHdoZW4gcnVubmluZyB1bmRlciByZXZlYWxcbiAgY29uc3QgcmV2ZWFsU3RhdHVzID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvcihcIi5yZXZlYWwgLmV4ZXJjaXNlLWxvYWRpbmctaW5kaWNhdG9yXCIpO1xuICBpZiAocmV2ZWFsU3RhdHVzKSB7XG4gICAgcmV2ZWFsU3RhdHVzLnJlbW92ZSgpO1xuICAgIGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoXCIucmV2ZWFsID4gLnNsaWRlc1wiKS5hcHBlbmRDaGlsZChyZXZlYWxTdGF0dXMpO1xuICB9XG5cbiAgLy8gTWFrZSBhbnkgcmV2ZWFsIHNsaWRlcyB3aXRoIGxpdmUgY2VsbHMgc2Nyb2xsYWJsZVxuICBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKFwiLnJldmVhbCAuZXhlcmNpc2UtY2VsbFwiKS5mb3JFYWNoKChlbCkgPT4ge1xuICAgIGVsLmNsb3Nlc3QoJ3NlY3Rpb24uc2xpZGUnKS5jbGFzc0xpc3QuYWRkKFwic2Nyb2xsYWJsZVwiKTtcbiAgfSlcblxuICAvLyB3ZWJSIHN1cHBsZW1lbnRhbCBkYXRhIGFuZCBvcHRpb25zXG4gIGNvbnN0IGRhdGFDb250ZW50ID0gZG9jdW1lbnQucXVlcnlTZWxlY3Rvcihgc2NyaXB0W3R5cGU9XFxcIndlYnItZGF0YVxcXCJdYCkudGV4dENvbnRlbnQ7XG4gIGNvbnN0IGRhdGEgPSBKU09OLnBhcnNlKGI2NERlY29kZShkYXRhQ29udGVudCkpO1xuXG4gIC8vIEdyYWIgbGlzdCBvZiByZXNvdXJjZXMgdG8gYmUgZG93bmxvYWRlZFxuICBjb25zdCBmaWxlc0NvbnRlbnQgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKGBzY3JpcHRbdHlwZT1cXFwidmZzLWZpbGVcXFwiXWApLnRleHRDb250ZW50O1xuICBjb25zdCBmaWxlcyA9IEpTT04ucGFyc2UoYjY0RGVjb2RlKGZpbGVzQ29udGVudCkpO1xuXG4gIC8vIEluaXRpYWxpc2Ugd2ViUiBhbmQgc2V0dXAgZm9yIFIgY29kZSBldmFsdWF0aW9uXG4gIGxldCB3ZWJSUHJvbWlzZSA9IChhc3luYyAod2ViUikgPT4ge1xuICAgIHN0YXR1c1RleHQudGV4dENvbnRlbnQgPSBgRG93bmxvYWRpbmcgd2ViUmA7XG4gICAgYXdhaXQgd2ViUi5pbml0KCk7XG5cbiAgICAvLyBJbnN0YWxsIHByb3ZpZGVkIGxpc3Qgb2YgcGFja2FnZXNcbiAgICAvLyBFbnN1cmUgd2ViUiBkZWZhdWx0IHJlcG8gaXMgaW5jbHVkZWRcbiAgICBkYXRhLnBhY2thZ2VzLnJlcG9zLnB1c2goXCJodHRwczovL3JlcG8uci13YXNtLm9yZ1wiKVxuICAgIGF3YWl0IGRhdGEucGFja2FnZXMucGtncy5tYXAoKHBrZykgPT4gKCkgPT4ge1xuICAgICAgc3RhdHVzVGV4dC50ZXh0Q29udGVudCA9IGBEb3dubG9hZGluZyBwYWNrYWdlOiAke3BrZ31gO1xuICAgICAgcmV0dXJuIHdlYlIuZXZhbFJWb2lkKGBcbiAgICAgICAgd2Vicjo6aW5zdGFsbChwa2csIHJlcG9zID0gcmVwb3MpXG4gICAgICAgIGxpYnJhcnkocGtnLCBjaGFyYWN0ZXIub25seSA9IFRSVUUpXG4gICAgICBgLCB7IGVudjoge1xuICAgICAgICBwa2c6IHBrZyxcbiAgICAgICAgcmVwb3M6IGRhdGEucGFja2FnZXMucmVwb3MsXG4gICAgICB9fSk7XG4gICAgfSkucmVkdWNlKChjdXIsIG5leHQpID0+IGN1ci50aGVuKG5leHQpLCBQcm9taXNlLnJlc29sdmUoKSk7XG5cbiAgICAvLyBEb3dubG9hZCBhbmQgaW5zdGFsbCByZXNvdXJjZXNcbiAgICBhd2FpdCBmaWxlcy5tYXAoKGZpbGUpID0+IGFzeW5jICgpID0+IHtcbiAgICAgIGNvbnN0IG5hbWUgPSBmaWxlLnN1YnN0cmluZyhmaWxlLmxhc3RJbmRleE9mKCcvJykgKyAxKTtcbiAgICAgIHN0YXR1c1RleHQudGV4dENvbnRlbnQgPSBgRG93bmxvYWRpbmcgcmVzb3VyY2U6ICR7bmFtZX1gO1xuICAgICAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaChmaWxlKTtcbiAgICAgIGlmICghcmVzcG9uc2Uub2spIHtcbiAgICAgICAgdGhyb3cgbmV3IEVycm9yKGBDYW4ndCBkb3dubG9hZCBcXGAke2ZpbGV9XFxgLiBFcnJvciAke3Jlc3BvbnNlLnN0YXR1c306IFwiJHtyZXNwb25zZS5zdGF0dXNUZXh0fVwiLmApO1xuICAgICAgfVxuICAgICAgY29uc3QgZGF0YSA9IGF3YWl0IHJlc3BvbnNlLmFycmF5QnVmZmVyKCk7XG5cbiAgICAgIC8vIFN0b3JlIFVSTHMgaW4gdGhlIGN3ZCB3aXRob3V0IGFueSBzdWJkaXJlY3Rvcnkgc3RydWN0dXJlXG4gICAgICBpZiAoZmlsZS5pbmNsdWRlcyhcIjovL1wiKSkge1xuICAgICAgICBmaWxlID0gbmFtZTtcbiAgICAgIH1cblxuICAgICAgLy8gQ29sbGFwc2UgaGlnaGVyIGRpcmVjdG9yeSBzdHJ1Y3R1cmVcbiAgICAgIGZpbGUgPSBjb2xsYXBzZVBhdGgoZmlsZSk7XG5cbiAgICAgIC8vIENyZWF0ZSBkaXJlY3RvcnkgdHJlZSwgaWdub3JpbmcgXCJkaXJlY3RvcnkgZXhpc3RzXCIgVkZTIGVycm9yc1xuICAgICAgY29uc3QgcGFydHMgPSBmaWxlLnNwbGl0KCcvJykuc2xpY2UoMCwgLTEpO1xuICAgICAgbGV0IHBhdGggPSAnJztcbiAgICAgIHdoaWxlIChwYXJ0cy5sZW5ndGggPiAwKSB7XG4gICAgICAgIHBhdGggKz0gcGFydHMuc2hpZnQoKSArICcvJztcbiAgICAgICAgY29uc3QgYW5hbHlzaXMgPSBhd2FpdCB3ZWJSLkZTLmFuYWx5emVQYXRoKHBhdGgpO1xuICAgICAgICBpZiAoIWFuYWx5c2lzLmV4aXN0cykge1xuICAgICAgICAgIHRyeSB7XG4gICAgICAgICAgICBhd2FpdCB3ZWJSLkZTLm1rZGlyKHBhdGgpO1xuICAgICAgICAgIH0gY2F0Y2ggKGUpIHtcbiAgICAgICAgICAgIHRocm93IG5ldyBFcnJvcihgRmlsZXN5c3RlbSBFcnJvcjogXCIke2UubWVzc2FnZX1cIi5gKTtcbiAgICAgICAgICB9XG4gICAgICAgIH1cbiAgICAgIH1cblxuICAgICAgLy8gV3JpdGUgdGhpcyBmaWxlIHRvIHRoZSBWRlNcbiAgICAgIHJldHVybiBhd2FpdCB3ZWJSLkZTLndyaXRlRmlsZShmaWxlLCBuZXcgVWludDhBcnJheShkYXRhKSk7XG4gICAgfSkucmVkdWNlKChjdXIsIG5leHQpID0+IGN1ci50aGVuKG5leHQpLCBQcm9taXNlLnJlc29sdmUoKSk7XG5cbiAgICBzdGF0dXNUZXh0LnRleHRDb250ZW50ID0gYEluc3RhbGxpbmcgd2ViUiBzaGltc2A7XG4gICAgYXdhaXQgd2ViUi5ldmFsUlZvaWQoYHdlYnI6OnNoaW1faW5zdGFsbCgpYCk7XG5cbiAgICBzdGF0dXNUZXh0LnRleHRDb250ZW50ID0gYFdlYlIgZW52aXJvbm1lbnQgc2V0dXBgO1xuICAgIGF3YWl0IHNldHVwUih3ZWJSLCBkYXRhKTtcblxuICAgIHN0YXR1c1RleHQucmVtb3ZlKCk7XG4gICAgaWYgKHN0YXR1c0NvbnRhaW5lci5jaGlsZHJlbi5sZW5ndGggPT0gMCkge1xuICAgICAgc3RhdHVzQ29udGFpbmVyLnBhcmVudE5vZGUucmVtb3ZlKCk7XG4gICAgfVxuICAgIHJldHVybiB3ZWJSO1xuICB9KShuZXcgV2ViUihkYXRhLm9wdGlvbnMpKTtcblxuICAvLyBLZWVwIHRyYWNrIG9mIGluaXRpYWwgT0pTIGJsb2NrIHJlbmRlclxuICBjb25zdCByZW5kZXJlZE9qcyA9IHt9O1xuXG4gIGNvbnN0IHByb2Nlc3MgPSBhc3luYyAoY29udGV4dCwgaW5wdXRzKSA9PiB7XG4gICAgY29uc3Qgd2ViUiA9IGF3YWl0IHdlYlJQcm9taXNlO1xuICAgIGNvbnN0IGV2YWx1YXRvciA9IG5ldyBXZWJSRXZhbHVhdG9yKHdlYlIsIGNvbnRleHQpXG4gICAgYXdhaXQgZXZhbHVhdG9yLnByb2Nlc3MoaW5wdXRzKTtcbiAgICByZXR1cm4gZXZhbHVhdG9yLmNvbnRhaW5lcjtcbiAgfVxuXG4gIHJldHVybiB7XG4gICAgcHJvY2VzcyxcbiAgICB3ZWJSUHJvbWlzZSxcbiAgICByZW5kZXJlZE9qcyxcbiAgfTtcbn1cbiJ9LHsiY2VsbE5hbWUiOiJweW9kaWRlLXByZWx1ZGUiLCJpbmxpbmUiOmZhbHNlLCJtZXRob2ROYW1lIjoiaW50ZXJwcmV0UXVpZXQiLCJzb3VyY2UiOiJweW9kaWRlT2pzID0ge1xuICBjb25zdCB7XG4gICAgUHlvZGlkZUV2YWx1YXRvcixcbiAgICBQeW9kaWRlRW52aXJvbm1lbnRNYW5hZ2VyLFxuICAgIHNldHVwUHl0aG9uLFxuICAgIHN0YXJ0UHlvZGlkZVdvcmtlcixcbiAgICBiNjREZWNvZGUsXG4gICAgY29sbGFwc2VQYXRoLFxuICB9ID0gd2luZG93Ll9leGVyY2lzZV9vanNfcnVudGltZTtcblxuICBjb25zdCBzdGF0dXNDb250YWluZXIgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZChcImV4ZXJjaXNlLWxvYWRpbmctc3RhdHVzXCIpO1xuICBjb25zdCBpbmRpY2F0b3JDb250YWluZXIgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZChcImV4ZXJjaXNlLWxvYWRpbmctaW5kaWNhdG9yXCIpO1xuICBpbmRpY2F0b3JDb250YWluZXIuY2xhc3NMaXN0LnJlbW92ZShcImQtbm9uZVwiKTtcblxuICBsZXQgc3RhdHVzVGV4dCA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoXCJkaXZcIilcbiAgc3RhdHVzVGV4dC5jbGFzc0xpc3QgPSBcImV4ZXJjaXNlLWxvYWRpbmctZGV0YWlsc1wiO1xuICBzdGF0dXNUZXh0ID0gc3RhdHVzQ29udGFpbmVyLmFwcGVuZENoaWxkKHN0YXR1c1RleHQpO1xuICBzdGF0dXNUZXh0LnRleHRDb250ZW50ID0gYEluaXRpYWxpc2VgO1xuXG4gIC8vIEhvaXN0IGluZGljYXRvciBvdXQgZnJvbSBmaW5hbCBzbGlkZSB3aGVuIHJ1bm5pbmcgdW5kZXIgcmV2ZWFsXG4gIGNvbnN0IHJldmVhbFN0YXR1cyA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoXCIucmV2ZWFsIC5leGVyY2lzZS1sb2FkaW5nLWluZGljYXRvclwiKTtcbiAgaWYgKHJldmVhbFN0YXR1cykge1xuICAgIHJldmVhbFN0YXR1cy5yZW1vdmUoKTtcbiAgICBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKFwiLnJldmVhbCA+IC5zbGlkZXNcIikuYXBwZW5kQ2hpbGQocmV2ZWFsU3RhdHVzKTtcbiAgfVxuXG4gIC8vIE1ha2UgYW55IHJldmVhbCBzbGlkZXMgd2l0aCBsaXZlIGNlbGxzIHNjcm9sbGFibGVcbiAgZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbChcIi5yZXZlYWwgLmV4ZXJjaXNlLWNlbGxcIikuZm9yRWFjaCgoZWwpID0+IHtcbiAgICBlbC5jbG9zZXN0KCdzZWN0aW9uLnNsaWRlJykuY2xhc3NMaXN0LmFkZChcInNjcm9sbGFibGVcIik7XG4gIH0pXG5cbiAgLy8gUHlvZGlkZSBzdXBwbGVtZW50YWwgZGF0YSBhbmQgb3B0aW9uc1xuICBjb25zdCBkYXRhQ29udGVudCA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoYHNjcmlwdFt0eXBlPVxcXCJweW9kaWRlLWRhdGFcXFwiXWApLnRleHRDb250ZW50O1xuICBjb25zdCBkYXRhID0gSlNPTi5wYXJzZShiNjREZWNvZGUoZGF0YUNvbnRlbnQpKTtcblxuICAvLyBHcmFiIGxpc3Qgb2YgcmVzb3VyY2VzIHRvIGJlIGRvd25sb2FkZWRcbiAgY29uc3QgZmlsZXNDb250ZW50ID0gZG9jdW1lbnQucXVlcnlTZWxlY3Rvcihgc2NyaXB0W3R5cGU9XFxcInZmcy1maWxlXFxcIl1gKS50ZXh0Q29udGVudDtcbiAgY29uc3QgZmlsZXMgPSBKU09OLnBhcnNlKGI2NERlY29kZShmaWxlc0NvbnRlbnQpKTtcblxuICBsZXQgcHlvZGlkZVByb21pc2UgPSAoYXN5bmMgKCkgPT4ge1xuICAgIHN0YXR1c1RleHQudGV4dENvbnRlbnQgPSBgRG93bmxvYWRpbmcgUHlvZGlkZWA7XG4gICAgY29uc3QgcHlvZGlkZSA9IGF3YWl0IHN0YXJ0UHlvZGlkZVdvcmtlcihkYXRhLm9wdGlvbnMpO1xuXG4gICAgc3RhdHVzVGV4dC50ZXh0Q29udGVudCA9IGBEb3dubG9hZGluZyBwYWNrYWdlOiBtaWNyb3BpcGA7XG4gICAgYXdhaXQgcHlvZGlkZS5sb2FkUGFja2FnZShcIm1pY3JvcGlwXCIpO1xuICAgIGNvbnN0IG1pY3JvcGlwID0gYXdhaXQgcHlvZGlkZS5weWltcG9ydChcIm1pY3JvcGlwXCIpO1xuICAgIGF3YWl0IGRhdGEucGFja2FnZXMucGtncy5tYXAoKHBrZykgPT4gKCkgPT4ge1xuICAgICAgc3RhdHVzVGV4dC50ZXh0Q29udGVudCA9IGBEb3dubG9hZGluZyBwYWNrYWdlOiAke3BrZ31gO1xuICAgICAgcmV0dXJuIG1pY3JvcGlwLmluc3RhbGwocGtnKTtcbiAgICB9KS5yZWR1Y2UoKGN1ciwgbmV4dCkgPT4gY3VyLnRoZW4obmV4dCksIFByb21pc2UucmVzb2x2ZSgpKTtcbiAgICBhd2FpdCBtaWNyb3BpcC5kZXN0cm95KCk7XG5cbiAgICAvLyBEb3dubG9hZCBhbmQgaW5zdGFsbCByZXNvdXJjZXNcbiAgICBhd2FpdCBmaWxlcy5tYXAoKGZpbGUpID0+IGFzeW5jICgpID0+IHtcbiAgICAgIGNvbnN0IG5hbWUgPSBmaWxlLnN1YnN0cmluZyhmaWxlLmxhc3RJbmRleE9mKCcvJykgKyAxKTtcbiAgICAgIHN0YXR1c1RleHQudGV4dENvbnRlbnQgPSBgRG93bmxvYWRpbmcgcmVzb3VyY2U6ICR7bmFtZX1gO1xuICAgICAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaChmaWxlKTtcbiAgICAgIGlmICghcmVzcG9uc2Uub2spIHtcbiAgICAgICAgdGhyb3cgbmV3IEVycm9yKGBDYW4ndCBkb3dubG9hZCBcXGAke2ZpbGV9XFxgLiBFcnJvciAke3Jlc3BvbnNlLnN0YXR1c306IFwiJHtyZXNwb25zZS5zdGF0dXNUZXh0fVwiLmApO1xuICAgICAgfVxuICAgICAgY29uc3QgZGF0YSA9IGF3YWl0IHJlc3BvbnNlLmFycmF5QnVmZmVyKCk7XG5cbiAgICAgIC8vIFN0b3JlIFVSTHMgaW4gdGhlIGN3ZCB3aXRob3V0IGFueSBzdWJkaXJlY3Rvcnkgc3RydWN0dXJlXG4gICAgICBpZiAoZmlsZS5pbmNsdWRlcyhcIjovL1wiKSkge1xuICAgICAgICBmaWxlID0gbmFtZTtcbiAgICAgIH1cblxuICAgICAgLy8gQ29sbGFwc2UgaGlnaGVyIGRpcmVjdG9yeSBzdHJ1Y3R1cmVcbiAgICAgIGZpbGUgPSBjb2xsYXBzZVBhdGgoZmlsZSk7XG5cbiAgICAgIC8vIENyZWF0ZSBkaXJlY3RvcnkgdHJlZSwgaWdub3JpbmcgXCJkaXJlY3RvcnkgZXhpc3RzXCIgVkZTIGVycm9yc1xuICAgICAgY29uc3QgcGFydHMgPSBmaWxlLnNwbGl0KCcvJykuc2xpY2UoMCwgLTEpO1xuICAgICAgbGV0IHBhdGggPSAnJztcbiAgICAgIHdoaWxlIChwYXJ0cy5sZW5ndGggPiAwKSB7XG4gICAgICAgIHBhdGggKz0gcGFydHMuc2hpZnQoKSArICcvJztcbiAgICAgICAgdHJ5IHtcbiAgICAgICAgICBhd2FpdCBweW9kaWRlLkZTLm1rZGlyKHBhdGgpO1xuICAgICAgICB9IGNhdGNoIChlKSB7XG4gICAgICAgICAgaWYgKGUubmFtZSAhPT0gXCJFcnJub0Vycm9yXCIpIHRocm93IGU7XG4gICAgICAgICAgaWYgKGUuZXJybm8gIT09IDIwKSB7XG4gICAgICAgICAgICBjb25zdCBlcnJvclRleHRQdHIgPSBhd2FpdCBweW9kaWRlLl9tb2R1bGUuX3N0cmVycm9yKGUuZXJybm8pO1xuICAgICAgICAgICAgY29uc3QgZXJyb3JUZXh0ID0gYXdhaXQgcHlvZGlkZS5fbW9kdWxlLlVURjhUb1N0cmluZyhlcnJvclRleHRQdHIpO1xuICAgICAgICAgICAgdGhyb3cgbmV3IEVycm9yKGBGaWxlc3lzdGVtIEVycm9yICR7ZS5lcnJub30gXCIke2Vycm9yVGV4dH1cIi5gKTtcbiAgICAgICAgICB9XG4gICAgICAgIH1cbiAgICAgIH1cblxuICAgICAgLy8gV3JpdGUgdGhpcyBmaWxlIHRvIHRoZSBWRlNcbiAgICAgIHRyeSB7XG4gICAgICAgIHJldHVybiBhd2FpdCBweW9kaWRlLkZTLndyaXRlRmlsZShmaWxlLCBuZXcgVWludDhBcnJheShkYXRhKSk7XG4gICAgICB9IGNhdGNoIChlKSB7XG4gICAgICAgIGlmIChlLm5hbWUgIT09IFwiRXJybm9FcnJvclwiKSB0aHJvdyBlO1xuICAgICAgICBjb25zdCBlcnJvclRleHRQdHIgPSBhd2FpdCBweW9kaWRlLl9tb2R1bGUuX3N0cmVycm9yKGUuZXJybm8pO1xuICAgICAgICBjb25zdCBlcnJvclRleHQgPSBhd2FpdCBweW9kaWRlLl9tb2R1bGUuVVRGOFRvU3RyaW5nKGVycm9yVGV4dFB0cik7XG4gICAgICAgIHRocm93IG5ldyBFcnJvcihgRmlsZXN5c3RlbSBFcnJvciAke2UuZXJybm99IFwiJHtlcnJvclRleHR9XCIuYCk7XG4gICAgICB9XG4gICAgfSkucmVkdWNlKChjdXIsIG5leHQpID0+IGN1ci50aGVuKG5leHQpLCBQcm9taXNlLnJlc29sdmUoKSk7XG5cbiAgICBzdGF0dXNUZXh0LnRleHRDb250ZW50ID0gYFB5b2RpZGUgZW52aXJvbm1lbnQgc2V0dXBgO1xuICAgIGF3YWl0IHNldHVwUHl0aG9uKHB5b2RpZGUpO1xuXG4gICAgc3RhdHVzVGV4dC5yZW1vdmUoKTtcbiAgICBpZiAoc3RhdHVzQ29udGFpbmVyLmNoaWxkcmVuLmxlbmd0aCA9PSAwKSB7XG4gICAgICBzdGF0dXNDb250YWluZXIucGFyZW50Tm9kZS5yZW1vdmUoKTtcbiAgICB9XG4gICAgcmV0dXJuIHB5b2RpZGU7XG4gIH0pKCkuY2F0Y2goKGVycikgPT4ge1xuICAgIHN0YXR1c1RleHQuc3R5bGUuY29sb3IgPSBcInZhcigtLWV4ZXJjaXNlLWVkaXRvci1obC1lciwgI0FEMDAwMClcIjtcbiAgICBzdGF0dXNUZXh0LnRleHRDb250ZW50ID0gZXJyLm1lc3NhZ2U7XG4gICAgLy9pbmRpY2F0b3JDb250YWluZXIucXVlcnlTZWxlY3RvcihcIi5zcGlubmVyLWdyb3dcIikuY2xhc3NMaXN0LmFkZChcImQtbm9uZVwiKTtcbiAgICB0aHJvdyBlcnI7XG4gIH0pO1xuXG4gIC8vIEtlZXAgdHJhY2sgb2YgaW5pdGlhbCBPSlMgYmxvY2sgcmVuZGVyXG4gIGNvbnN0IHJlbmRlcmVkT2pzID0ge307XG5cbiAgY29uc3QgcHJvY2VzcyA9IGFzeW5jIChjb250ZXh0LCBpbnB1dHMpID0+IHtcbiAgICBjb25zdCBweW9kaWRlID0gYXdhaXQgcHlvZGlkZVByb21pc2U7XG4gICAgY29uc3QgZXZhbHVhdG9yID0gbmV3IFB5b2RpZGVFdmFsdWF0b3IocHlvZGlkZSwgY29udGV4dCk7XG4gICAgYXdhaXQgZXZhbHVhdG9yLnByb2Nlc3MoaW5wdXRzKTtcbiAgICByZXR1cm4gZXZhbHVhdG9yLmNvbnRhaW5lcjtcbiAgfVxuXG4gIHJldHVybiB7XG4gICAgcHlvZGlkZVByb21pc2UsXG4gICAgcmVuZGVyZWRPanMsXG4gICAgcHJvY2VzcyxcbiAgfTtcbn1cbiJ9XX0=

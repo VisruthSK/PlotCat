@@ -329,11 +329,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#plotcat" id="toc-plotcat" class="nav-link active" data-scroll-target="#plotcat">PlotCat</a>
+  <li><a href="#plotcat" id="toc-plotcat" class="nav-link active" data-scroll-target="#plotcat"><code>PlotCat</code></a>
   <ul class="collapse">
   <li><a href="#requirements" id="toc-requirements" class="nav-link" data-scroll-target="#requirements">Requirements</a></li>
   <li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation">Installation</a></li>
   <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example">Example</a></li>
+  <li><a href="#weights" id="toc-weights" class="nav-link" data-scroll-target="#weights">Weights</a>
+  <ul class="collapse">
+  <li><a href="#global-defaults" id="toc-global-defaults" class="nav-link" data-scroll-target="#global-defaults">Global defaults</a></li>
+  <li><a href="#svg-weights" id="toc-svg-weights" class="nav-link" data-scroll-target="#svg-weights">SVG weights</a></li>
+  <li><a href="#plotly-weights" id="toc-plotly-weights" class="nav-link" data-scroll-target="#plotly-weights">Plotly weights</a></li>
+  <li><a href="#example-1" id="toc-example-1" class="nav-link" data-scroll-target="#example-1">Example</a></li>
+  <li><a href="#dimensions" id="toc-dimensions" class="nav-link" data-scroll-target="#dimensions">Dimensions</a></li>
+  <li><a href="#heading" id="toc-heading" class="nav-link" data-scroll-target="#heading">Heading</a></li>
+  </ul></li>
   <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
   <li><a href="#design-inspiration" id="toc-design-inspiration" class="nav-link" data-scroll-target="#design-inspiration">Design Inspiration</a></li>
   </ul></li>
@@ -348,78 +357,216 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <section id="plotcat" class="level1">
-<h1>PlotCat</h1>
-<p><code>plotcat</code> is a Quarto extension for plot-recreation exercises. Authors provide a target plot and optional starter code. Students write R or Python in the browser, render their plot with WebR or Pyodide, and compare it with the target.</p>
-<p>PlotCat compares SVG structure and plot text for static plots. It also supports a focused comparison of Plotly traces and layout. Plotly exercises support side-by-side comparison only; overlay and wipe apply to SVG plots. The target source is removed from the rendered HTML, but this is not a security boundary: do not put secrets in an exercise.</p>
+<h1><code>PlotCat</code></h1>
+<p><code>PlotCat</code> is a Quarto extension for plot-recreation exercises. Authors provide a target plot and optional starter code. Students write R or Python in the browser, render their plot with WebR or Pyodide, and compare it with the target.</p>
+<p><code>PlotCat</code> compares SVG structure and plot text for static plots. It compares Plotly traces and layout separately. Plotly exercises use side-by-side comparison; overlay and wipe apply to SVG plots. PlotCat obfuscates the target source in the rendered HTML to discourage casual inspection.</p>
 <section id="requirements" class="level2">
 <h2 class="anchored" data-anchor-id="requirements">Requirements</h2>
-<p>PlotCat publishes interactive HTML only. Its browser runtimes need network access on first use and package availability in WebR or Pyodide. The included examples cover base R, <code>ggplot2</code>, <code>tinyplot</code>, <code>lattice</code>, <code>matplotlib</code>, <code>plotnine</code>, <code>seaborn</code>, and Plotly.</p>
+<p><code>PlotCat</code> publishes interactive HTML only. Its browser runtimes need network access on first use and package availability in WebR or Pyodide. The included examples cover base R, <code>ggplot2</code>, <code>tinyplot</code>, <code>lattice</code>, <code>matplotlib</code>, <code>plotnine</code>, <code>seaborn</code>, and <code>Plotly</code>.</p>
 </section>
 <section id="installation" class="level2">
 <h2 class="anchored" data-anchor-id="installation">Installation</h2>
-<p>Add Quarto Live, then PlotCat:</p>
+<p>Add Quarto Live, then <code>PlotCat</code>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> add r-wasm/quarto-live</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> add VisruthSK/PlotCat</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Then enable the filter in a document or project config:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span><span class="at"> live-html</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">filters</span><span class="kw">:</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> plotcat</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>live-html</code> provides the native WebR and Pyodide editors. Set <code>#| eval: false</code> on each PlotCat chunk so Quarto leaves it for the browser runtime.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">live-html</span><span class="kw">:</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">webr</span><span class="kw">:</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">packages</span><span class="kw">:</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="kw">-</span><span class="at"> svglite</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="kw">-</span><span class="at"> ggplot2</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">pyodide</span><span class="kw">:</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">packages</span><span class="kw">:</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="kw">-</span><span class="at"> matplotlib</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">filters</span><span class="kw">:</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> plotcat </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>R pages using <code>PlotCat</code> must declare <code>svglite</code>. Authors must declare every non-base R or Python package used by target or starter code. <code>PlotCat</code> does not infer or install runtime packages. Package configuration belongs to Quarto Live.</p>
+<p>For a single document, put <code>webr</code> and <code>pyodide</code> options in the document front matter. In project configuration, nest them under <code>live-html</code> to avoid metadata-merging problems.</p>
+<p><code>live-html</code> supplies the native WebR and Pyodide editors. Set <code>#| eval: false</code> on every <code>PlotCat</code> chunk so Quarto leaves it for the browser runtime.</p>
 </section>
 <section id="example" class="level2">
 <h2 class="anchored" data-anchor-id="example">Example</h2>
-<p>Write the target plot as the first chunk inside a <code>.plotcat</code> Div. Set <code>#| eval: false</code>: PlotCat renders both the target and a student’s submission in the browser. This must be set on each PlotCat chunk because Quarto decides whether to execute it before PlotCat’s filter runs.</p>
+<p>Write the target plot as the first chunk inside a <code>.plotcat</code> Div and set <code>#| eval: false</code>. <code>PlotCat</code> renders the target and the student’s submission in the browser. Apply the option to every <code>PlotCat</code> chunk: Quarto decides whether to execute chunks before <code>PlotCat</code>’s filter runs.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat}</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>tinyplot<span class="sc">::</span><span class="fu">tinyplot</span>(</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  dist <span class="sc">~</span> speed,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cars,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Stopping distance by speed"</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">"Speed"</span>,</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">"Stopping distance"</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Add a second chunk to give students starter code. Also set <code>#| eval: false</code> on the starter chunk.</p>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>::: {.cell}</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="in">```{.r .cell-code}</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>tinyplot<span class="sc">::</span><span class="fu">tinyplot</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  dist <span class="sc">~</span> speed,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cars,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Stopping distance by speed"</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">"Speed"</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">"Stopping distance"</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Add a second chunk for starter code. Set <code>#| eval: false</code> on the starter chunk.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat}</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>tinyplot<span class="sc">::</span><span class="fu">tinyplot</span>(</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  dist <span class="sc">~</span> speed,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cars,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Stopping distance by speed"</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">"Speed"</span>,</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">"Stopping distance"</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>tinyplot<span class="sc">::</span><span class="fu">tinyplot</span>(</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  dist <span class="sc">~</span> speed,</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cars</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The first chunk becomes the browser-rendered target, and its source is omitted from the rendered HTML. The second chunk appears in the editor.</p>
-<p>PlotCat accepts R and Python chunks. Both chunks in an exercise must use the same language.</p>
-<p>Use either <code>{r}</code> or <code>{webr}</code> for R, and either <code>{python}</code> or <code>{pyodide}</code> for Python. PlotCat turns the student editor into Quarto Live’s native <code>webr</code> or <code>pyodide</code> cell.</p>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>::: {.cell}</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="in">```{.r .cell-code}</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>tinyplot<span class="sc">::</span><span class="fu">tinyplot</span>(</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  dist <span class="sc">~</span> speed,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cars,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Stopping distance by speed"</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">"Speed"</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">"Stopping distance"</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>::: {.cell}</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="in">```{.r .cell-code}</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>tinyplot<span class="sc">::</span><span class="fu">tinyplot</span>(</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  dist <span class="sc">~</span> speed,</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cars</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The first chunk becomes the browser-rendered target, and its source is obfuscated in the rendered HTML. The second chunk appears in the editor.</p>
+<p><code>PlotCat</code> accepts R and Python chunks. Both chunks in an exercise must use the same language.</p>
+<p>Use either <code>{r}</code> or <code>{webr}</code> for R, and either <code>{python}</code> or <code>{pyodide}</code> for Python. <code>PlotCat</code> turns the student editor into Quarto Live’s native <code>webr</code> or <code>pyodide</code> cell.</p>
+</section>
+<section id="weights" class="level2">
+<h2 class="anchored" data-anchor-id="weights">Weights</h2>
+<p><code>PlotCat</code> scores student plots against a target using a weighted comparison. You can override individual weights per exercise as attributes on the <code>.plotcat</code> Div.</p>
+<p>Unset attributes keep their defaults.</p>
+<section id="global-defaults" class="level3">
+<h3 class="anchored" data-anchor-id="global-defaults">Global defaults</h3>
+<p>Set project-wide or document-wide weights under <code>plotcat.weights</code> in YAML frontmatter. Per-exercise attributes on the <code>.plotcat</code> Div override these.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcat</span><span class="kw">:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">weights</span><span class="kw">:</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">svg</span><span class="kw">:</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">geometry</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">text</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.25</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">plotly</span><span class="kw">:</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">data</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">layout</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="svg-weights" class="level3">
+<h3 class="anchored" data-anchor-id="svg-weights">SVG weights</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Attribute</th>
+<th>Default</th>
+<th>Controls</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>svg-geometry</code></td>
+<td>0.6</td>
+<td>Element positions (bag overlap of coarse geometry)</td>
+</tr>
+<tr class="even">
+<td><code>svg-text</code></td>
+<td>0.15</td>
+<td>Text content match</td>
+</tr>
+<tr class="odd">
+<td><code>svg-style</code></td>
+<td>0.1</td>
+<td>Fill, stroke, opacity</td>
+</tr>
+<tr class="even">
+<td><code>svg-frame</code></td>
+<td>0.15</td>
+<td>Aspect ratio</td>
+</tr>
+</tbody>
+</table>
+<p>Raise <code>svg-text</code> when axis labels matter more in a scatter exercise. Raise <code>svg-geometry</code> when missing bars should reduce a bar-chart score.</p>
+</section>
+<section id="plotly-weights" class="level3">
+<h3 class="anchored" data-anchor-id="plotly-weights">Plotly weights</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Attribute</th>
+<th>Default</th>
+<th>Controls</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>plotly-trace</code></td>
+<td>0.3</td>
+<td>Trace type and count</td>
+</tr>
+<tr class="even">
+<td><code>plotly-data</code></td>
+<td>0.4</td>
+<td>Data values (x, y arrays)</td>
+</tr>
+<tr class="odd">
+<td><code>plotly-style</code></td>
+<td>0.2</td>
+<td>Marker and line formatting</td>
+</tr>
+<tr class="even">
+<td><code>plotly-layout</code></td>
+<td>0.1</td>
+<td>Title and axis labels</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="example-1" class="level3">
+<h3 class="anchored" data-anchor-id="example-1">Example</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat id="scatter"</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    svg-geometry="0.4"</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    svg-text="0.4"}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The final score sums each category multiplied by its top-level weight: <code>geometry * svg-geometry + text * svg-text + style * svg-style + frame * svg-frame</code>.</p>
+</section>
+<section id="dimensions" class="level3">
+<h3 class="anchored" data-anchor-id="dimensions">Dimensions</h3>
+<p>Override the default plot dimensions per exercise using <code>plotcat-width</code> and <code>plotcat-height</code> attributes on the <code>.plotcat</code> Div. The default is 7×5 in for both R and Python.</p>
+<p>Set document-wide defaults under <code>plotcat.dimensions</code> in YAML frontmatter:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcat</span><span class="kw">:</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">dimensions</span><span class="kw">:</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">width</span><span class="kw">:</span><span class="at"> </span><span class="dv">8</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">height</span><span class="kw">:</span><span class="at"> </span><span class="dv">6</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat id="tall-plot" plotcat-width="4" plotcat-height="6"}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="heading" class="level3">
+<h3 class="anchored" data-anchor-id="heading">Heading</h3>
+<p>Override the heading text with <code>plotcat-heading</code> on the <code>.plotcat</code> Div or <code>plotcat.heading</code> in YAML frontmatter. Defaults to “Recreate this plot”.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>::: {.plotcat id="labeled" plotcat-heading="Reproduce the graphic"}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcat</span><span class="kw">:</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">heading</span><span class="kw">:</span><span class="at"> </span><span class="st">"Reproduce the graphic"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
 </section>
 <section id="limitations" class="level2">
 <h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
 <ul>
-<li><strong>Font and text styling</strong>: SVG comparison checks text content, but ignores font families, font sizes, font weights, and text positioning.</li>
-<li><strong>Coarse geometry matching</strong>: Coordinates are rounded to ~1% relative precision and matched as unordered marks. Minor position shifts or point jittering may still yield high scores.</li>
-<li><strong>No code inspection</strong>: PlotCat evaluates rendered plot output (SVG or Plotly JSON), not R or Python code structure. It cannot check for specific function calls or idioms.</li>
-<li><strong>Plotly support</strong>: Plotly exercises only support side-by-side comparison and evaluate a subset of trace data, mark attributes, and titles.</li>
-<li><strong>Runtime sandbox</strong>: WebR and Pyodide run in the browser WebAssembly sandbox, so code cannot access files on the local filesystem (e.g., <code>read.csv("C:/data.csv")</code>). However, remote data files can be fetched directly using standard functions like <code>read.csv("https://...")</code> in R or <code>pd.read_csv("https://...")</code> in Python. Required packages must be available in WebAssembly.</li>
+<li>Font and text styling: SVG comparison checks text content, but ignores font families, font sizes, font weights, and text positioning.</li>
+<li>Coarse geometry matching: Coordinates are rounded to ~0.1% relative precision and matched as unordered marks. Minor position shifts or point jittering may still yield high scores.</li>
+<li>No code inspection: <code>PlotCat</code> evaluates rendered plot output (SVG or Plotly JSON), not R or Python code structure. It cannot check for specific function calls or idioms.</li>
+<li>Plotly support: Plotly exercises use side-by-side comparison and evaluate a subset of trace data, mark attributes, and titles.</li>
+<li>Runtime sandbox: WebR and Pyodide run in the browser WebAssembly sandbox, so code cannot access files on the local filesystem (e.g., <code>read.csv("C:/data.csv")</code>). Remote data files can be fetched directly with functions such as <code>read.csv("https://...")</code> in R or <code>pd.read_csv("https://...")</code> in Python. Required packages must be available in WebAssembly.</li>
 </ul>
 </section>
 <section id="design-inspiration" class="level2">
 <h2 class="anchored" data-anchor-id="design-inspiration">Design Inspiration</h2>
-<p>PlotCat was inspired by <a href="https://github.com/MikeLydeamore/ggplot2-battles">ggplot2 Battles</a>, brought to my attention by <a href="https://www.emilyarobinson.com/">Emily Robinson</a>.</p>
+<p><code>PlotCat</code> was inspired by <a href="https://github.com/MikeLydeamore/ggplot2-battles">ggplot2 Battles</a>, brought to my attention by <a href="https://www.emilyarobinson.com/">Emily Robinson</a>.</p>
 
 
 <script type="ojs-module-contents">
