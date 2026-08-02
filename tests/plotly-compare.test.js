@@ -382,3 +382,120 @@ test('42. Frames and configuration are retained where the adapters expose them',
   assert.equal(res.score, 100);
   assert.equal(res.targetLeafCount, 2); // name: f1, displayModeBar: false
 });
+
+test('weighted Plotly scoring uses the configured categories', () => {
+  const target = {
+    data: [{ type: 'scatter', x: [1, 2], marker: { color: 'red' } }],
+    layout: { title: { text: 'Target' } }
+  };
+  const student = {
+    data: [{ type: 'scatter', x: [9, 2], marker: { color: 'blue' } }],
+    layout: { title: { text: 'Student' } }
+  };
+
+  const dataOnly = comparePlotly(target, student, {
+    trace: 0, data: 1, style: 0, layout: 0
+  });
+  const styleOnly = comparePlotly(target, student, {
+    trace: 0, data: 0, style: 1, layout: 0
+  });
+  const layoutOnly = comparePlotly(target, student, {
+    trace: 0, data: 0, style: 0, layout: 1
+  });
+
+  assert.equal(dataOnly.score, 50);
+  assert.equal(styleOnly.score, 0);
+  assert.equal(layoutOnly.score, 0);
+});
+
+test('weighted Plotly scoring grades the complete serialized figure', () => {
+  const target = {
+    data: [{
+      type: 'scatter',
+      name: 'Target series',
+      x: [1, 2],
+      y: [3, 4],
+      customdata: ['a', 'b'],
+      hovertemplate: '%{y:.2f}',
+      mode: 'markers',
+      marker: { color: 'red' }
+    }],
+    layout: {
+      title: { text: 'Target' },
+      yaxis: { range: [0, 5] },
+      annotations: [{ text: 'Target annotation' }]
+    },
+    frames: [{ name: 'frame-1', data: [{ y: [3, 4] }] }],
+    config: { scrollZoom: true }
+  };
+  const student = {
+    data: [{
+      type: 'scatter',
+      name: 'Student series',
+      x: [1, 2],
+      y: [3, 4],
+      customdata: ['a', 'wrong'],
+      hovertemplate: '%{y}',
+      mode: 'lines',
+      marker: { color: 'blue' }
+    }],
+    layout: {
+      title: { text: 'Student' },
+      yaxis: { range: [0, 10] },
+      annotations: [{ text: 'Student annotation' }]
+    },
+    frames: [{ name: 'frame-2', data: [{ y: [3, 9] }] }],
+    config: { scrollZoom: false }
+  };
+
+  const result = comparePlotly(target, student, {
+    trace: 0.3, data: 0.4, style: 0.2, layout: 0.1
+  });
+
+  assert.ok(result.score < 100);
+  assert.ok(result.categories.data < 1);
+  assert.ok(result.categories.style < 1);
+  assert.ok(result.categories.layout < 1);
+  const paths = result.differences.map(difference => difference.path);
+  assert.deepEqual(paths.slice(0, 3), [
+    'data[0].name',
+    'data[0].customdata[1]',
+    'data[0].hovertemplate'
+  ]);
+  assert.ok(paths.includes('data[0].mode'));
+  assert.ok(paths.includes('data[0].marker.color'));
+  assert.ok(paths.includes('layout.title.text'));
+  assert.ok(paths.includes('frames[0].name'));
+
+  const configOnly = comparePlotly(
+    { config: { scrollZoom: true } },
+    { config: { scrollZoom: false } },
+    { trace: 0, data: 0, style: 0, layout: 1 }
+  );
+  assert.equal(configOnly.categories.layout, 0);
+  assert.equal(configOnly.differences[0].path, 'config.scrollZoom');
+});
+
+test('weighted Plotly scoring penalizes missing and extra chart structure', () => {
+  const target = {
+    data: [{ type: 'scatter', x: [1, 2], y: [3, 4] }, { type: 'bar', y: [5] }],
+    layout: { title: { text: 'Target' } },
+    frames: [{ name: 'frame-1' }],
+    config: { responsive: true }
+  };
+  const student = {
+    data: [{ type: 'bar', x: [9], y: [8] }],
+    layout: {},
+    frames: [],
+    config: {}
+  };
+
+  const result = comparePlotly(target, student, {
+    trace: 0.3, data: 0.4, style: 0.2, layout: 0.1
+  });
+
+  assert.ok(result.score < 50);
+  assert.equal(result.categories.trace, 0);
+  assert.ok(result.categories.data < 0.5);
+  assert.equal(result.categories.layout, 0);
+});

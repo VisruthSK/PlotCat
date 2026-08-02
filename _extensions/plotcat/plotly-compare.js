@@ -186,7 +186,162 @@ function compareValue(expected, actual, path, state) {
   }
 }
 
-export function comparePlotly(target, student) {
+const STYLE_KEYS = new Set([
+  'color',
+  'colorscale',
+  'fill',
+  'fillcolor',
+  'hoverlabel',
+  'insidetextfont',
+  'line',
+  'marker',
+  'mode',
+  'opacity',
+  'outsidetextfont',
+  'selected',
+  'textfont',
+  'unselected'
+]);
+
+function weightedCategory(path) {
+  const root = path[0];
+  if (root === 'layout' || root === 'frames' || root === 'config') return 'layout';
+  if (root !== 'data') return 'data';
+
+  // Trace count and type are structural. All remaining trace properties are
+  // graded as data, except for the explicitly visual/style subtrees.
+  if (path.length === 2 || path[2] === 'type') return 'trace';
+  if (path.slice(2).some(segment => STYLE_KEYS.has(segment))) return 'style';
+  return 'data';
+}
+
+function createWeightedState() {
+  return {
+    categories: {
+      trace: { total: 0, mismatches: 0 },
+      data: { total: 0, mismatches: 0 },
+      style: { total: 0, mismatches: 0 },
+      layout: { total: 0, mismatches: 0 }
+    },
+    differences: []
+  };
+}
+
+function recordWeighted(state, path, expected, actual, kind, count = 1) {
+  const category = state.categories[weightedCategory(path)];
+  category.total += count;
+  category.mismatches += count;
+  if (state.differences.length < 10) {
+    state.differences.push({
+      path: formatPath(path),
+      expected,
+      actual,
+      kind
+    });
+  }
+}
+
+function compareWeightedValue(expected, actual, path, state) {
+  if (isPlainObject(expected)) {
+    if (!isPlainObject(actual)) {
+      const leaves = countLeaves(expected);
+      recordWeighted(state, path, expected, actual,
+        actual === undefined ? 'missing' : 'type', leaves);
+      return;
+    }
+    for (const key of Object.keys(expected)) {
+      if (!Object.hasOwn(actual, key)) {
+        const value = expected[key];
+        recordWeighted(state, [...path, key], value, undefined, 'missing', countLeaves(value));
+      } else {
+        compareWeightedValue(expected[key], actual[key], [...path, key], state);
+      }
+    }
+    return;
+  }
+
+  if (Array.isArray(expected)) {
+    if (!Array.isArray(actual)) {
+      recordWeighted(state, path, expected, actual,
+        actual === undefined ? 'missing' : 'type', countLeaves(expected));
+      return;
+    }
+    const shared = Math.min(expected.length, actual.length);
+    for (let i = 0; i < shared; i++) {
+      compareWeightedValue(expected[i], actual[i], [...path, i], state);
+    }
+    for (let i = shared; i < expected.length; i++) {
+      recordWeighted(state, [...path, i], expected[i], undefined, 'missing', countLeaves(expected[i]));
+    }
+    for (let i = shared; i < actual.length; i++) {
+      recordWeighted(state, [...path, i], undefined, actual[i], 'extra', countLeaves(actual[i]));
+    }
+    return;
+  }
+
+  const category = state.categories[weightedCategory(path)];
+  category.total++;
+  if (actual === undefined) {
+    category.mismatches++;
+    if (state.differences.length < 10) {
+      state.differences.push({ path: formatPath(path), expected, actual, kind: 'missing' });
+    }
+    return;
+  }
+
+  let matches = true;
+  if (expected === null) {
+    matches = actual === null;
+  } else if (typeof expected === 'number') {
+    matches = typeof actual === 'number' && closeNumber(expected, actual);
+  } else {
+    matches = typeof actual === typeof expected && actual === expected;
+  }
+  if (!matches) {
+    category.mismatches++;
+    if (state.differences.length < 10) {
+      const kind = expected === null || typeof actual !== typeof expected ? 'type' : 'value';
+      state.differences.push({ path: formatPath(path), expected, actual, kind });
+    }
+  }
+}
+
+function comparePlotlyWeighted(target, student, weights) {
+  const w = {
+    trace: weights.trace ?? 0.3,
+    data: weights.data ?? 0.4,
+    style: weights.style ?? 0.2,
+    layout: weights.layout ?? 0.1
+  };
+  const state = createWeightedState();
+  compareWeightedValue(
+    normalize(normalizeFigure(target)),
+    normalize(normalizeFigure(student)),
+    [],
+    state
+  );
+  const categoryScore = category => {
+    const { total, mismatches } = state.categories[category];
+    return total ? Math.max(0, 1 - mismatches / total) : 1;
+  };
+  const categories = {
+    trace: categoryScore('trace'),
+    data: categoryScore('data'),
+    style: categoryScore('style'),
+    layout: categoryScore('layout')
+  };
+  const score = Math.round((categories.trace * w.trace + categories.data * w.data +
+    categories.style * w.style + categories.layout * w.layout) * 100) / 100;
+  return {
+    score: score * 100,
+    categories,
+    differences: state.differences,
+    mismatchCount: Object.values(state.categories).reduce((sum, category) => sum + category.mismatches, 0),
+    targetLeafCount: Object.values(state.categories).reduce((sum, category) => sum + category.total, 0)
+  };
+}
+
+function comparePlotlyExact(target, student) {
   const normTarget = normalize(normalizeFigure(target));
   const normStudent = normalize(normalizeFigure(student));
 
@@ -212,4 +367,8 @@ export function comparePlotly(target, student) {
     mismatchCount: state.mismatchCount,
     targetLeafCount
   };
+}
+
+export function comparePlotly(target, student, weights) {
+  return weights ? comparePlotlyWeighted(target, student, weights) : comparePlotlyExact(target, student);
 }

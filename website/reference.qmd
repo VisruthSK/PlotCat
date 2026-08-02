@@ -121,7 +121,7 @@ SVG plots support three comparison modes. Plotly charts use side-by-side compari
 
 ## Scoring & Comparison
 
-PlotCat compares SVG plots using feature weights and Plotly figures using an explicit target contract.
+PlotCat compares SVG plots using feature weights and Plotly figures using four weighted categories.
 
 ### SVG Weights
 
@@ -162,6 +162,13 @@ PlotCat compares the target and student figure JSON, rather than the rendered pi
 | `config` | Configuration values included by the browser runtime |
 
 PlotCat grades each property present in the target. Set a title, color, range, hover template, or similar property in the target code when it should affect the score. Plotly defaults that do not appear in the target JSON are not graded.
+
+| Weight | Default | Covers |
+|---|---:|---|
+| `plotly-trace` | 0.3 | Trace count and type |
+| `plotly-data` | 0.4 | All non-style trace data, including coordinates, names, hover text, and `customdata` |
+| `plotly-style` | 0.2 | Trace styling, including marker, line, fill, and opacity settings |
+| `plotly-layout` | 0.1 | Layout, animation frames, and Plotly configuration |
 
 Arrays are positional. Missing, reordered, or extra traces, points, annotations, and shapes reduce the score. Extra properties inside a student object are ignored, so students may add settings that the target does not require.
 

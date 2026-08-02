@@ -158,9 +158,13 @@ Raise `svg-geometry` when missing bars should reduce a bar-chart score.
 | Attribute | Default | Controls |
 |---|---|---|
 | `plotly-trace` | 0.3 | Trace type and count |
-| `plotly-data` | 0.4 | Data values (x, y arrays) |
-| `plotly-style` | 0.2 | Marker and line formatting |
-| `plotly-layout` | 0.1 | Title and axis labels |
+| `plotly-data` | 0.4 | All non-style trace data, including coordinates, names, hover text, and `customdata` |
+| `plotly-style` | 0.2 | Trace styling, including marker, line, fill, and opacity settings |
+| `plotly-layout` | 0.1 | Layout, animation frames, and Plotly configuration |
+
+PlotCat grades every serialized target property in one of these categories.
+Extra properties inside a student object are allowed, but missing or extra
+array entries reduce the score.
 
 ### Example
 

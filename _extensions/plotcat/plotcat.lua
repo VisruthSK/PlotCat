@@ -106,9 +106,19 @@ local function parse_attributes(attrs, yaml_meta)
         fail("weight '" .. key .. "' must be a number, got '" .. value .. "'")
       end
     elseif spec == "width" then
-      dims.width = tonumber(value) or dims.width
+      local num = tonumber(value)
+      if num and num > 0 then
+        dims.width = num
+      else
+        fail("dimension 'plotcat-width' must be a positive number, got '" .. value .. "'")
+      end
     elseif spec == "height" then
-      dims.height = tonumber(value) or dims.height
+      local num = tonumber(value)
+      if num and num > 0 then
+        dims.height = num
+      else
+        fail("dimension 'plotcat-height' must be a positive number, got '" .. value .. "'")
+      end
     elseif spec == "heading" then
       heading = value
     end
@@ -117,6 +127,10 @@ local function parse_attributes(attrs, yaml_meta)
   local svg_sum = weights.svg.geometry + weights.svg.text + weights.svg.style + weights.svg.frame
   if math.abs(svg_sum - 1.0) > 1e-3 then
     fail("SVG weights must sum to 1.0, got " .. string.format("%.4g", svg_sum))
+  end
+  local plotly_sum = weights.plotly.trace + weights.plotly.data + weights.plotly.style + weights.plotly.layout
+  if math.abs(plotly_sum - 1.0) > 1e-3 then
+    fail("Plotly weights must sum to 1.0, got " .. string.format("%.4g", plotly_sum))
   end
 
   return weights, dims, heading

@@ -146,7 +146,8 @@ try {
     ['duplicate-id.qmd', "duplicate id 'same'"],
     ['unsupported-engine.qmd', "unsupported engine 'bash'"],
     ['wrong-format.qmd', 'requires format: live-html'],
-    ['invalid-weight-sum.qmd', 'SVG weights must sum to 1.0']
+    ['invalid-weight-sum.qmd', 'SVG weights must sum to 1.0'],
+    ['invalid-dimension.qmd', "dimension 'plotcat-width' must be a positive number"]
   ];
 
   function renderInvalid(fixture) {
