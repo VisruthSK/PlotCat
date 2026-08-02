@@ -498,6 +498,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="plotly-weights" class="level3">
 <h3 class="anchored" data-anchor-id="plotly-weights">Plotly weights</h3>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Attribute</th>
@@ -514,20 +519,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td><code>plotly-data</code></td>
 <td>0.4</td>
-<td>Data values (x, y arrays)</td>
+<td>All non-style trace data, including coordinates, names, hover text, and <code>customdata</code></td>
 </tr>
 <tr class="odd">
 <td><code>plotly-style</code></td>
 <td>0.2</td>
-<td>Marker and line formatting</td>
+<td>Trace styling, including marker, line, fill, and opacity settings</td>
 </tr>
 <tr class="even">
 <td><code>plotly-layout</code></td>
 <td>0.1</td>
-<td>Title and axis labels</td>
+<td>Layout, animation frames, and Plotly configuration</td>
 </tr>
 </tbody>
 </table>
+<p>PlotCat grades every serialized target property in one of these categories. Extra properties inside a student object are allowed, but missing or extra array entries reduce the score.</p>
 </section>
 <section id="example-1" class="level3">
 <h3 class="anchored" data-anchor-id="example-1">Example</h3>

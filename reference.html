@@ -496,7 +496,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="scoring-comparison" class="level2">
 <h2 class="anchored" data-anchor-id="scoring-comparison">Scoring &amp; Comparison</h2>
-<p>PlotCat compares SVG plots using feature weights and Plotly figures using an explicit target contract.</p>
+<p>PlotCat compares SVG plots using feature weights and Plotly figures using four weighted categories.</p>
 <section id="svg-weights" class="level3">
 <h3 class="anchored" data-anchor-id="svg-weights">SVG Weights</h3>
 <p>Set per-exercise weight overrides as Div attributes:</p>
@@ -580,6 +580,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 <p>PlotCat grades each property present in the target. Set a title, color, range, hover template, or similar property in the target code when it should affect the score. Plotly defaults that do not appear in the target JSON are not graded.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 30%">
+<col style="width: 40%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Weight</th>
+<th style="text-align: right;">Default</th>
+<th>Covers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>plotly-trace</code></td>
+<td style="text-align: right;">0.3</td>
+<td>Trace count and type</td>
+</tr>
+<tr class="even">
+<td><code>plotly-data</code></td>
+<td style="text-align: right;">0.4</td>
+<td>All non-style trace data, including coordinates, names, hover text, and <code>customdata</code></td>
+</tr>
+<tr class="odd">
+<td><code>plotly-style</code></td>
+<td style="text-align: right;">0.2</td>
+<td>Trace styling, including marker, line, fill, and opacity settings</td>
+</tr>
+<tr class="even">
+<td><code>plotly-layout</code></td>
+<td style="text-align: right;">0.1</td>
+<td>Layout, animation frames, and Plotly configuration</td>
+</tr>
+</tbody>
+</table>
 <p>Arrays are positional. Missing, reordered, or extra traces, points, annotations, and shapes reduce the score. Extra properties inside a student object are ignored, so students may add settings that the target does not require.</p>
 <p>PlotCat ignores generated <code>uid</code> values and keys that begin with <code>_</code>. It allows small floating-point differences. In text properties, <code>&lt;b&gt;</code> and <code>&lt;strong&gt;</code> are equivalent, as are <code>&lt;i&gt;</code> and <code>&lt;em&gt;</code> and common forms of <code>&lt;br&gt;</code>.</p>
 <p>Functions, callbacks, and settings omitted from the serialized figure cannot be compared. Plotly exercises use side-by-side mode because overlay and wipe are unavailable for Plotly charts.</p>

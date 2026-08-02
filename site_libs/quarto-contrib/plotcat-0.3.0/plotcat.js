@@ -168,6 +168,7 @@ export function mountPlotCat(root, manager) {
         console.error('Failed to render target plot:', error);
         status.textContent = 'Error rendering target: ' + packageHint(errorMessage(error));
         root.classList.add('plotcat--error');
+        run.disabled = false;
       });
   } else {
     const targetSvgEl = target.querySelector('svg');
@@ -243,11 +244,17 @@ export function mountPlotCat(root, manager) {
 
       let score;
       if (result.kind === 'plotly') {
+        if (outputType !== 'plotly') {
+          throw new Error('Student output must use the same plot type as the target.');
+        }
         status.textContent = 'Loading Plotly…';
         await loadPlotly();
         await renderPlotly(student, result.figure);
-        score = comparePlotly(targetFigure, result.figure).score / 100;
+        score = comparePlotly(targetFigure, result.figure, weights.plotly).score / 100;
       } else if (result.kind === 'svg') {
+        if (outputType !== 'svg') {
+          throw new Error('Student output must use the same plot type as the target.');
+        }
         const result_ = prepareSvg(result.svg, `${svgPrefix}-student`);
         student.replaceChildren(svgFragment(result_.svg));
         score = compareSvgFeatures(targetFeatures, result_.features, weights.svg).score;
