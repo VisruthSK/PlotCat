@@ -150,14 +150,24 @@ plotcat:
 | `svg-style` | 0.1 | Fill, stroke, opacity attributes on geometry elements |
 | `svg-frame` | 0.15 | Aspect ratio from viewBox or explicit dimensions (pass/fail, not proportional) |
 
-### Plotly Exercises
+### Plotly figures
 
-PlotCat evaluates Plotly charts by comparing serialized figure JSON (`data`, `layout`, `frames`, `config`) directly against the target plot.
+PlotCat compares the target and student figure JSON, rather than the rendered pixels or source code. It reads four top-level fields:
 
-- **Explicit Property Contract**: Every property explicitly defined in the target figure must be present in the student figure. Unset target properties are not graded against implicit Plotly defaults. Explicitly define titles, axis labels, colors, ranges, and hover templates in the target code if students should be scored on them. It is not suggested to define them and set them to their default values.
-- **Trace and Array Order**: Traces, data points, annotations, and shapes are matched by position. Extra student array elements reduce the score.
-- **HTML Text Equivalents**: Basic markup tags in text properties (`<b>` / `<strong>`, `<i>` / `<em>`, `<br>` / `<br/>`) are treated as identical.
-- **Comparison Modes**: Plotly charts render in side-by-side mode. Overlay and wipe modes are disabled for Plotly figures.
+| Field | What PlotCat can compare |
+|---|---|
+| `data` | Trace type and order, coordinates, `customdata`, hover text, marker and line properties, and other serialized trace settings |
+| `layout` | Titles, axes, ranges, legends, annotations, shapes, margins, and other serialized layout settings |
+| `frames` | Names, data, and layout stored in animation frames |
+| `config` | Configuration values included by the browser runtime |
+
+PlotCat grades each property present in the target. Set a title, color, range, hover template, or similar property in the target code when it should affect the score. Plotly defaults that do not appear in the target JSON are not graded.
+
+Arrays are positional. Missing, reordered, or extra traces, points, annotations, and shapes reduce the score. Extra properties inside a student object are ignored, so students may add settings that the target does not require.
+
+PlotCat ignores generated `uid` values and keys that begin with `_`. It allows small floating-point differences. In text properties, `<b>` and `<strong>` are equivalent, as are `<i>` and `<em>` and common forms of `<br>`.
+
+Functions, callbacks, and settings omitted from the serialized figure cannot be compared. Plotly exercises use side-by-side mode because overlay and wipe are unavailable for Plotly charts.
 
 ## Dimensions
 
@@ -266,4 +276,3 @@ library(lattice)
 xyplot(mpg ~ wt, data = mtcars)
 ```
 :::
-
