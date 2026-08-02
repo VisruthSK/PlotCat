@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
-const files = await Promise.all(['plotcat.js', 'svg.js', 'runtime-manager.js'].map(name => readFile(new URL(`../_extensions/plotcat/${name}`, import.meta.url), 'utf8')));
+const files = await Promise.all(['plotcat.js', 'svg.js', 'plotly-compare.js', 'runtime-manager.js'].map(name => readFile(new URL(`../_extensions/plotcat/${name}`, import.meta.url), 'utf8')));
 const source = files.join('\n');
 
 test('comparison stays SVG-only and local', () => {

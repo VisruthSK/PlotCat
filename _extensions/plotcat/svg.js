@@ -5,6 +5,21 @@ const round = value => String(Math.round(Number(value) * 1000) / 1000);
 const geometryAttributes = ['d','cx','cy','r','x','y','width','height','x1','y1','x2','y2','points','transform'];
 const styleAttributes = ['fill','stroke','opacity','fill-opacity','stroke-opacity','stroke-width'];
 const tagSelector = 'path,circle,rect,line,polygon,polyline,text,clipPath';
+const fragmentUrl = /url\(\s*(['"]?)#([^)'"]+)\1\s*\)/g;
+
+export function rewriteSvgIdReferences(value, ids) {
+  return value
+    .replace(fragmentUrl, (_, _quote, id) => `url(#${ids.get(id) || id})`)
+    .replace(/^#(.+)$/, (_, id) => `#${ids.get(id) || id}`);
+}
+
+function rewriteDocIdReferences(doc, ids) {
+  doc.querySelectorAll('*').forEach(node => {
+    for (const attr of [...node.attributes]) {
+      attr.value = rewriteSvgIdReferences(attr.value, ids);
+    }
+  });
+}
 
 function sanitizeDoc(doc) {
   if (doc.querySelector('parsererror') || doc.documentElement.localName !== 'svg')
@@ -34,10 +49,10 @@ function normalizeDoc(doc) {
     ids.set(old, id);
     node.id = id;
   });
+  rewriteDocIdReferences(doc, ids);
   doc.querySelectorAll('*').forEach(node => {
     for (const attr of [...node.attributes]) {
-      let value = attr.value.replace(/url\(#([^)]+)\)/g, (_, id) => `url(#${ids.get(id) || id})`);
-      value = value.replace(/-?\d*\.\d+(?:e[-+]?\d+)?/gi, round).replace(/\s+/g, ' ').trim();
+      let value = attr.value.replace(/-?\d*\.\d+(?:e[-+]?\d+)?/gi, round).replace(/\s+/g, ' ').trim();
       if (attr.name === 'style') value = value.split(';').filter(Boolean).map(x => x.trim()).sort().join(';');
       attr.value = value;
     }
@@ -58,13 +73,7 @@ function scopeDocIds(doc, prefix) {
     ids.set(original, scoped);
     node.id = scoped;
   });
-  doc.querySelectorAll('*').forEach(node => {
-    for (const attr of [...node.attributes]) {
-      attr.value = attr.value
-        .replace(/url\(#([^)]+)\)/g, (_, id) => `url(#${ids.get(id) || id})`)
-        .replace(/^#(.+)$/, (_, id) => `#${ids.get(id) || id}`);
-    }
-  });
+  rewriteDocIdReferences(doc, ids);
 }
 
 function extractFeaturesFromDoc(doc) {
@@ -183,139 +192,5 @@ export function compareSvg(target, student, weights) {
   );
 }
 
-export function comparePlotly(target, student, weights = {}) {
-  const w = {
-    trace: weights.trace ?? 0.3,
-    data: weights.data ?? 0.4,
-    style: weights.style ?? 0.2,
-    layout: weights.layout ?? 0.1,
-  };
-  const a = typeof target === 'string' ? JSON.parse(target) : target;
-  const b = typeof student === 'string' ? JSON.parse(student) : student;
+export { comparePlotly } from './plotly-compare.js';
 
-  const tTraces = a.data || [];
-  const sTraces = b.data || [];
-
-  let traceScore = 1.0;
-  if (tTraces.length !== sTraces.length) {
-    traceScore = Math.max(0, 1 - Math.abs(tTraces.length - sTraces.length) / Math.max(tTraces.length, sTraces.length));
-  }
-
-  let dataScore = 1.0;
-  let styleScore = 1.0;
-  const minTraces = Math.min(tTraces.length, sTraces.length);
-
-  if (minTraces > 0) {
-    let typeMatches = 0;
-    let traceDataSum = 0;
-    let traceStyleSum = 0;
-    for (let i = 0; i < minTraces; i++) {
-      const t = tTraces[i];
-      const s = sTraces[i];
-
-      if (t.type === s.type) {
-        typeMatches++;
-      }
-
-      let dataDiff = 0;
-      let dataCount = 0;
-      ['x', 'y', 'z', 'values', 'labels'].forEach(key => {
-        if (t[key] || s[key]) {
-          dataCount++;
-          const tArr = Array.isArray(t[key]) ? t[key] : [];
-          const sArr = Array.isArray(s[key]) ? s[key] : [];
-          if (tArr.length !== sArr.length) {
-            dataDiff += 1.0;
-          } else {
-            let itemDiff = 0;
-            for (let j = 0; j < tArr.length; j++) {
-              if (String(tArr[j]) !== String(sArr[j])) {
-                itemDiff++;
-              }
-            }
-            if (itemDiff > 0) {
-              dataDiff += tArr.length ? itemDiff / tArr.length : 0;
-            }
-          }
-        }
-      });
-      traceDataSum += dataCount ? 1 - dataDiff / dataCount : 1;
-
-      let styleDiff = 0;
-      let styleCount = 0;
-      if (t.mode || s.mode) {
-        styleCount++;
-        if (t.mode !== s.mode) {
-          styleDiff++;
-        }
-      }
-      const tMarker = t.marker || {};
-      const sMarker = s.marker || {};
-      ['color', 'size', 'symbol'].forEach(prop => {
-        if (tMarker[prop] || sMarker[prop]) {
-          styleCount++;
-          if (String(tMarker[prop]) !== String(sMarker[prop])) {
-            styleDiff++;
-          }
-        }
-      });
-      const tLine = t.line || {};
-      const sLine = s.line || {};
-      ['color', 'width'].forEach(prop => {
-        if (tLine[prop] || sLine[prop]) {
-          styleCount++;
-          if (String(tLine[prop]) !== String(sLine[prop])) {
-            styleDiff++;
-          }
-        }
-      });
-      traceStyleSum += styleCount ? 1 - styleDiff / styleCount : 1;
-    }
-
-    traceScore = traceScore * 0.4 + (typeMatches / minTraces) * 0.6;
-    dataScore = traceDataSum / minTraces;
-    styleScore = traceStyleSum / minTraces;
-  } else {
-    traceScore = 0;
-    dataScore = 0;
-    styleScore = 0;
-  }
-
-  const tLayout = a.layout || {};
-  const sLayout = b.layout || {};
-  let layoutScore = 1.0;
-  let layoutCount = 0;
-  let layoutDiff = 0;
-
-  const tTitle = resolveTitle(tLayout).trim();
-  const sTitle = resolveTitle(sLayout).trim();
-  if (tTitle || sTitle) {
-    layoutCount++;
-    if (tTitle !== sTitle) {
-      layoutDiff++;
-    }
-  }
-
-  ['xaxis', 'yaxis'].forEach(axis => {
-    const tAxisTitle = resolveTitle(tLayout, axis).trim();
-    const sAxisTitle = resolveTitle(sLayout, axis).trim();
-    if (tAxisTitle || sAxisTitle) {
-      layoutCount++;
-      if (tAxisTitle !== sAxisTitle) {
-        layoutDiff++;
-      }
-    }
-  });
-
-  if (layoutCount > 0) {
-    layoutScore = 1 - layoutDiff / layoutCount;
-  }
-
-  const rawScore = traceScore * w.trace + dataScore * w.data + styleScore * w.style + layoutScore * w.layout;
-  const score = Math.round(rawScore * 100) / 100;
-
-  return {
-    score,
-    categories: { traceScore, dataScore, styleScore, layoutScore }
-  };
-}

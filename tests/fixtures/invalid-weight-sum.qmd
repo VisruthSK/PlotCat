@@ -4,7 +4,7 @@ filters:
   - ../../_extensions/plotcat/plotcat.lua
 ---
 
-::: {.plotcat id="custom-weights" svg-geometry="0.35" svg-text="0.4"}
+::: {.plotcat id="invalid-sum" svg-geometry="0.5" svg-text="0.9"}
 ```{r}
 #| eval: false
 plot(cars)

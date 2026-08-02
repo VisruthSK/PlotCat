@@ -77,7 +77,7 @@ function studentCode(root) {
   return editor.innerText;
 }
 
-function renderPlotly(target, figure) {
+async function renderPlotly(target, figure) {
   const previous = target.querySelector('.js-plotly-plot');
   if (previous && window.Plotly) {
     window.Plotly.purge(previous);
@@ -90,7 +90,25 @@ function renderPlotly(target, figure) {
   div.style.alignSelf = 'stretch';
   div.style.flexGrow = '1';
   target.appendChild(div);
-  return Plotly.newPlot(div, figure.data, figure.layout, { responsive: true, displayModeBar: false });
+
+  const layout = structuredClone(figure.layout || {});
+  delete layout.width;
+  delete layout.height;
+  layout.autosize = true;
+  layout.margin = {
+    l: 40,
+    r: 10,
+    t: 30,
+    b: 40,
+    ...layout.margin
+  };
+
+  const config = { ...(figure.config || {}), responsive: true, displayModeBar: false };
+  await Plotly.newPlot(div, figure.data || [], layout, config);
+  if (Array.isArray(figure.frames) && figure.frames.length > 0) {
+    await Plotly.addFrames(div, figure.frames);
+  }
+  return div;
 }
 
 export function mountPlotCat(root, manager) {
@@ -228,7 +246,7 @@ export function mountPlotCat(root, manager) {
         status.textContent = 'Loading Plotly…';
         await loadPlotly();
         await renderPlotly(student, result.figure);
-        score = comparePlotly(targetFigure, result.figure, weights.plotly).score;
+        score = comparePlotly(targetFigure, result.figure).score / 100;
       } else if (result.kind === 'svg') {
         const result_ = prepareSvg(result.svg, `${svgPrefix}-student`);
         student.replaceChildren(svgFragment(result_.svg));

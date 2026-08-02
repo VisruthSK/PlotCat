@@ -42,7 +42,7 @@ filters:
   - plotcat
 ```
 
-R pages must declare the `svglite` package under `format.live-html.webr.packages`. Every non-base R or Python package used by target or starter code must be listed too. PlotCat does not infer or install runtime packages — package configuration belongs to Quarto Live.
+R pages must declare the `svglite` package under `format.live-html.webr.packages`. List every non-base R or Python package used by target or starter code. PlotCat does not infer or install runtime packages; configure them through Quarto Live.
 
 ```yaml
 format:
@@ -75,7 +75,7 @@ tinyplot::tinyplot(
 :::
 ````
 
-Add a second chunk for starter code. Also set `#| eval: false` on the starter chunk.
+Add a second chunk for starter code. Set `#| eval: false` on the starter chunk.
 
 ````markdown
 ::: {.plotcat}
@@ -103,15 +103,29 @@ tinyplot::tinyplot(
 ### Markup Rules
 
 - Both chunks need `#| eval: false`. PlotCat executes code in the browser, not during document rendering.
-- The first chunk becomes the browser-rendered target. Its source is obfuscated in the HTML — enough to prevent casual inspection, not a security boundary.
+- The first chunk becomes the browser-rendered target. Its source is obfuscated in the HTML. The obfuscation discourages casual inspection but is not a security boundary.
 - The second chunk populates the student code editor. Omit it for a blank editor.
 - Both chunks in an exercise must use the same language. Use `{r}` or `{webr}` for R, and `{python}` or `{pyodide}` for Python. PlotCat normalizes the student editor to Quarto Live's native `webr` or `pyodide` cell.
 - Assign custom exercise IDs on the container div: `::: {.plotcat #scatter-exercise}`. Auto-generated IDs are `exercise-1`, `exercise-2`, etc.
 - Extra classes on the `.plotcat` Div are forwarded to the widget container for scoped styling.
 
-## Weights
+## Comparison Modes
 
-PlotCat scores student plots against a target using a weighted comparison. Set per-exercise overrides as Div attributes. Unset attributes keep their defaults.
+SVG plots support three comparison modes. Plotly charts use side-by-side comparison; overlay and wipe are unavailable.
+
+| Mode | Behavior |
+|---|---|
+| **Side by side** (default) | Target and student plots rendered in a two-column grid. Stacks to single column below 48rem. |
+| **Overlay** | Student plot rendered on top of the target at 50% opacity. |
+| **Wipe** | A draggable vertical slider reveals the target on the left and the student plot on the right. Keyboard: Arrow keys, Home, End. |
+
+## Scoring & Comparison
+
+PlotCat compares SVG plots using feature weights and Plotly figures using an explicit target contract.
+
+### SVG Weights
+
+Set per-exercise weight overrides as Div attributes:
 
 ```markdown
 ::: {.plotcat id="scatter"
@@ -119,7 +133,7 @@ PlotCat scores student plots against a target using a weighted comparison. Set p
     svg-text="0.4"}
 ```
 
-Set document-wide defaults under `plotcat.weights` in YAML frontmatter. Per-exercise attributes override these.
+Set document-wide defaults under `plotcat.weights.svg` in YAML frontmatter:
 
 ```yaml
 plotcat:
@@ -127,13 +141,7 @@ plotcat:
     svg:
       geometry: 0.5
       text: 0.25
-    plotly:
-      data: 0.5
-      layout: 0.2
 ```
-
-
-### SVG Weights
 
 | Attribute | Default | Controls |
 |---|---|---|
@@ -142,16 +150,24 @@ plotcat:
 | `svg-style` | 0.1 | Fill, stroke, opacity attributes on geometry elements |
 | `svg-frame` | 0.15 | Aspect ratio from viewBox or explicit dimensions (pass/fail, not proportional) |
 
-Scatter exercises can raise `svg-text` when axis labels matter most. Bar charts can raise `svg-geometry` to penalise missing bars.
+### Plotly figures
 
-### Plotly Weights
+PlotCat compares the target and student figure JSON, rather than the rendered pixels or source code. It reads four top-level fields:
 
-| Attribute | Default | Controls |
-|---|---|---|
-| `plotly-trace` | 0.3 | Trace type and count (40%) + per-trace type match (60%) |
-| `plotly-data` | 0.4 | Data arrays (x, y, z, values, labels) compared element-by-element |
-| `plotly-style` | 0.2 | Marker and line formatting (mode, marker color/size/symbol, line color/width) |
-| `plotly-layout` | 0.1 | Title text and axis labels |
+| Field | What PlotCat can compare |
+|---|---|
+| `data` | Trace type and order, coordinates, `customdata`, hover text, marker and line properties, and other serialized trace settings |
+| `layout` | Titles, axes, ranges, legends, annotations, shapes, margins, and other serialized layout settings |
+| `frames` | Names, data, and layout stored in animation frames |
+| `config` | Configuration values included by the browser runtime |
+
+PlotCat grades each property present in the target. Set a title, color, range, hover template, or similar property in the target code when it should affect the score. Plotly defaults that do not appear in the target JSON are not graded.
+
+Arrays are positional. Missing, reordered, or extra traces, points, annotations, and shapes reduce the score. Extra properties inside a student object are ignored, so students may add settings that the target does not require.
+
+PlotCat ignores generated `uid` values and keys that begin with `_`. It allows small floating-point differences. In text properties, `<b>` and `<strong>` are equivalent, as are `<i>` and `<em>` and common forms of `<br>`.
+
+Functions, callbacks, and settings omitted from the serialized figure cannot be compared. Plotly exercises use side-by-side mode because overlay and wipe are unavailable for Plotly charts.
 
 ## Dimensions
 
@@ -185,16 +201,6 @@ plotcat:
   heading: "Reproduce the graphic"
 ```
 
-## Comparison Modes
-
-Three comparison modes are available for SVG plots. Plotly charts are limited to side-by-side only — overlay and wipe are disabled and hidden behind a tooltip.
-
-| Mode | Behavior |
-|---|---|
-| **Side by side** (default) | Target and student plots rendered in a two-column grid. Stacks to single column below 48rem. |
-| **Overlay** | Student plot rendered on top of the target at 50% opacity. |
-| **Wipe** | A draggable vertical slider reveals the target on the left and the student plot on the right. Keyboard: Arrow keys, Home, End. |
-
 ## CSS Variables
 
 PlotCat exposes CSS custom properties on `.plotcat` containers. Override these variables globally in your stylesheet or locally on specific containers.
@@ -210,7 +216,7 @@ PlotCat exposes CSS custom properties on `.plotcat` containers. Override these v
 
 ### Bootstrap Variable Integration
 
-PlotCat inherits global colors from Quarto Bootstrap themes automatically.
+PlotCat inherits global colors from Quarto Bootstrap themes.
 
 - `--bs-body-color`: Primary text color for labels, status messages, and editor code.
 - `--bs-body-bg`: Baseline for card and plot surfaces.
@@ -270,4 +276,3 @@ library(lattice)
 xyplot(mpg ~ wt, data = mtcars)
 ```
 :::
-

@@ -7,10 +7,14 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "node --test --test-isolation=none && node tests/transform-check.mjs && node tests/browser-check.mjs",
+    "test:unit": "node --test --test-isolation=none",
+    "test:transform": "node tests/transform-check.mjs",
+    "test:browser": "node tests/browser-check.mjs",
+    "test:site": "node tests/site-check.mjs",
+    "test": "pnpm test:unit && pnpm test:transform && pnpm test:browser",
+    "check": "pnpm test && pnpm build && pnpm test:site",
     "prebuild": "node -e \"fs.rmSync('website/_extensions/plotcat',{recursive:true,force:true});fs.cpSync('_extensions/plotcat','website/_extensions/plotcat',{recursive:true})\"",
-    "build": "pnpm prebuild && quarto render website",
-    "check": "pnpm test && pnpm build && node tests/site-check.mjs"
+    "build": "pnpm prebuild && quarto render website"
   },
   "devDependencies": {
     "playwright": "^1.62.0"

@@ -2,52 +2,101 @@ import assert from 'node:assert/strict';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 
 const output = resolve('.test-output');
 try { rmSync(output, { recursive: true, force: true }); } catch {}
 
-function render(file) {
-  let source = readFileSync(resolve('tests/fixtures', file), 'utf8')
+const secondsSince = started => ((performance.now() - started) / 1000).toFixed(1);
+const windows = process.platform === 'win32';
+const executable = windows ? 'quarto.cmd' : 'quarto';
+const renderTimeout = Number(process.env.PLOTCAT_QUARTO_TIMEOUT_MS ?? 90000);
+
+function copyExtensions(dir) {
+  cpSync(resolve('_extensions'), resolve(dir, '_extensions'), { recursive: true });
+  cpSync(resolve('website/_extensions/r-wasm'), resolve(dir, '_extensions/r-wasm'), { recursive: true });
+}
+
+function readFixture(file) {
+  return readFileSync(resolve('tests/fixtures', file), 'utf8')
     .replace('../../_extensions/plotcat/plotcat.lua', 'plotcat');
-  writeFileSync(resolve(output, file), source);
-  const windows = process.platform === 'win32';
-  const executable = windows ? 'quarto.cmd' : 'quarto';
-  const isInteractive = file !== 'wrong-format.qmd' && file !== 'non-html.qmd';
-  const args = isInteractive ? ['render', file, '--to', 'live-html'] : ['render', file];
-  return spawnSync(executable, args, {
-    encoding: 'utf8',
-    cwd: output,
-    shell: windows
-  });
 }
 
-function assertRendered(fixture) {
-  const result = render(fixture);
-  assert.equal(result.status, 0, result.stdout + result.stderr);
-  if (fixture !== 'non-html.qmd') {
-    const htmlFile = fixture.replace(/\.qmd$/, '.html');
-    return readFileSync(resolve(output, htmlFile), 'utf8');
-  }
+function spawnQuarto(args, cwd) {
+  return spawnSync(executable, args, { encoding: 'utf8', cwd, shell: windows });
 }
 
-function assertWeights(fixture, expected) {
-  const html = assertRendered(fixture);
-  const match = html.match(/data-plotcat-weights="([^"]+)"/);
-  assert.ok(match, `data-plotcat-weights attribute not found in ${fixture}`);
-  const decoded = JSON.parse(atob(match[1]));
-  for (const [key, value] of Object.entries(expected)) {
-    assert.equal(decoded.svg[key], value, `Weight mismatch for ${key} in ${fixture}`);
+async function runWithConcurrency(tasks, limit) {
+  const results = new Array(tasks.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= tasks.length) return;
+      results[index] = await tasks[index]();
+    }
   }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, tasks.length) }, () => worker())
+  );
+
+  return results;
 }
 
 try {
   mkdirSync(output, { recursive: true });
-  cpSync(resolve('_extensions'), resolve(output, '_extensions'), { recursive: true });
-  cpSync(resolve('website/_extensions/r-wasm'), resolve(output, '_extensions/r-wasm'), { recursive: true });
-  writeFileSync(resolve(output, '_quarto.yml'), 'format:\n  live-html:\n    toc: true\n');
 
-  const html = assertRendered('minimal.qmd');
+  // ── Batch successful fixtures (concurrent individual renders) ──
+  const t0 = performance.now();
+
+  const successFixtures = [
+    'minimal.qmd',
+    'missing-id.qmd',
+    'two-chunks.qmd',
+    'multiple.qmd',
+    'weights.qmd',
+    'weights-frontmatter.qmd'
+  ];
+
+  const successDirs = {};
+  function renderSuccess(fixture) {
+    const dir = resolve(output, `success-${fixture.replace(/\.qmd$/, '')}`);
+    mkdirSync(dir, { recursive: true });
+    copyExtensions(dir);
+    writeFileSync(resolve(dir, fixture), readFixture(fixture));
+    writeFileSync(resolve(dir, '_quarto.yml'), 'format:\n  live-html:\n    toc: true\n');
+    const result = spawnQuarto(['render', fixture, '--to', 'live-html'], dir);
+    assert.equal(result.status, 0, `Render of ${fixture} failed: ${result.stdout + result.stderr}`);
+    successDirs[fixture] = dir;
+  }
+
+  const successResults = await runWithConcurrency(
+    successFixtures.map(f => () => renderSuccess(f)),
+    2
+  );
+  assert.equal(successResults.length, successFixtures.length);
+
+  console.log(`TIMING: batch render ${secondsSince(t0)}s`);
+
+  const assertionsStarted = performance.now();
+
+  function readGenerated(fixture) {
+    const htmlFile = fixture.replace(/\.qmd$/, '.html');
+    return readFileSync(resolve(successDirs[fixture], htmlFile), 'utf8');
+  }
+
+  function assertWeights(html, expected) {
+    const match = html.match(/data-plotcat-weights="([^"]+)"/);
+    assert.ok(match, `data-plotcat-weights attribute not found`);
+    const decoded = JSON.parse(atob(match[1]));
+    for (const [key, value] of Object.entries(expected)) {
+      assert.equal(decoded.svg[key], value, `Weight mismatch for ${key}`);
+    }
+  }
+
+  const html = readGenerated('minimal.qmd');
   assert.match(html, /class="plotcat plotcat--side-by-side"/);
   assert.match(html, /data-plotcat-target-code="[A-Za-z0-9+/=]+"/);
   assert.doesNotMatch(html, /data-plotcat-salt=/);
@@ -56,10 +105,10 @@ try {
   assert.doesNotMatch(html, /plotcat-live-cell/);
   assert.match(html, /type="module"/);
 
-  const generatedHtml = assertRendered('missing-id.qmd');
+  const generatedHtml = readGenerated('missing-id.qmd');
   assert.match(generatedHtml, /id="plotcat-exercise-1"/);
 
-  const twoHtml = assertRendered('two-chunks.qmd');
+  const twoHtml = readGenerated('two-chunks.qmd');
   assert.match(twoHtml, /id="plotcat-two-r"/);
   assert.match(twoHtml, /&quot;engine&quot;:&quot;r&quot;/);
   assert.doesNotMatch(twoHtml, /&quot;packages&quot;/);
@@ -67,16 +116,28 @@ try {
   assert.doesNotMatch(twoHtml, /cdnjs\.cloudflare\.com\/ajax\/libs\/codemirror/);
   assert.doesNotMatch(twoHtml, /main = "Target title"/);
 
-  const multipleHtml = assertRendered('multiple.qmd');
+  const multipleHtml = readGenerated('multiple.qmd');
   assert.equal((multipleHtml.match(/class="plotcat plotcat--side-by-side"/g) || []).length, 2);
   assert.equal((multipleHtml.match(/plotcat\.js" type="module"/g) || []).length, 1);
 
-  assertRendered('non-html.qmd');
+  assertWeights(readGenerated('weights.qmd'), { geometry: 0.35, text: 0.4, style: 0.1, frame: 0.15 });
+  assertWeights(readGenerated('weights-frontmatter.qmd'), { geometry: 0.65, text: 0.1, style: 0.1 });
 
-  assertWeights('weights.qmd', { geometry: 0.3, text: 0.5, style: 0.1, frame: 0.15 });
-  assertWeights('weights-frontmatter.qmd', { geometry: 0.7, text: 0.2, style: 0.1 });
+  console.log(`TIMING: batch assertions ${secondsSince(assertionsStarted)}s`);
 
-  for (const [fixture, message] of [
+  // ── Non-HTML fixture (separate process) ────────────────────────
+  const t2 = performance.now();
+  const nonHtmlDir = resolve(output, 'non-html');
+  mkdirSync(nonHtmlDir, { recursive: true });
+  copyExtensions(nonHtmlDir);
+  writeFileSync(resolve(nonHtmlDir, 'non-html.qmd'), readFixture('non-html.qmd'));
+  const nonHtmlResult = spawnQuarto(['render', 'non-html.qmd'], nonHtmlDir);
+  assert.equal(nonHtmlResult.status, 0, nonHtmlResult.stdout + nonHtmlResult.stderr);
+  console.log(`TIMING: non-html ${secondsSince(t2)}s`);
+
+  // ── Invalid fixtures (concurrent, concurrency-limited) ─────────
+  const t3 = performance.now();
+  const invalidFixtures = [
     ['zero-chunks.qmd', 'needs one target chunk'],
     ['too-many.qmd', 'more than two executable chunks'],
     ['mixed.qmd', 'mixes engines'],
@@ -84,33 +145,67 @@ try {
     ['executed-starter.qmd', 'starter chunk executed'],
     ['duplicate-id.qmd', "duplicate id 'same'"],
     ['unsupported-engine.qmd', "unsupported engine 'bash'"],
-    ['wrong-format.qmd', 'requires format: live-html']
-  ]) {
-    const result = render(fixture);
-    assert.notEqual(result.status, 0, `${fixture} unexpectedly rendered`);
-    assert.match(result.stdout + result.stderr, new RegExp(message));
+    ['wrong-format.qmd', 'requires format: live-html'],
+    ['invalid-weight-sum.qmd', 'SVG weights must sum to 1.0']
+  ];
+
+  function renderInvalid(fixture) {
+    return new Promise((resolvePromise, reject) => {
+      const dir = resolve(output, `invalid-${fixture.replace(/\.qmd$/, '')}`);
+      mkdirSync(dir, { recursive: true });
+      copyExtensions(dir);
+      writeFileSync(resolve(dir, fixture), readFixture(fixture));
+      writeFileSync(resolve(dir, '_quarto.yml'), 'format:\n  live-html:\n    toc: true\n');
+
+      const isInteractive = fixture !== 'wrong-format.qmd';
+      const args = isInteractive ? ['render', fixture, '--to', 'live-html'] : ['render', fixture];
+
+      const child = spawn(executable, args, { cwd: dir, shell: windows, stdio: ['ignore', 'pipe', 'pipe'] });
+
+      const timer = setTimeout(() => {
+        child.kill();
+        reject(new Error(`${fixture} timed out after ${renderTimeout}ms`));
+      }, renderTimeout);
+
+      let stdout = '';
+      let stderr = '';
+      child.stdout.on('data', d => { stdout += d; });
+      child.stderr.on('data', d => { stderr += d; });
+
+      child.on('close', (code, signal) => {
+        clearTimeout(timer);
+        resolvePromise({ fixture, code, signal, stdout, stderr });
+      });
+      child.on('error', error => {
+        clearTimeout(timer);
+        reject(new Error(`${fixture}: failed to start Quarto: ${error.message}`, { cause: error }));
+      });
+    });
   }
 
-  // Quarto Live owns runtime package installation
-  const lua = await readFile(
-    new URL('../_extensions/plotcat/plotcat.lua', import.meta.url),
-    'utf8'
+  const invalidResults = await runWithConcurrency(
+    invalidFixtures.map(([fixture, _message]) => () => renderInvalid(fixture)),
+    3
   );
+  assert.equal(invalidResults.length, invalidFixtures.length);
 
-  const runtime = await readFile(
-    new URL('../_extensions/plotcat/runtime-manager.js', import.meta.url),
-    'utf8'
-  );
+  for (const { fixture, code, signal, stdout, stderr } of invalidResults) {
+    const entry = invalidFixtures.find(([f]) => f === fixture);
+    const message = entry[1];
+    assert.notEqual(code, 0, `${fixture} unexpectedly rendered`);
+    assert.equal(signal, null, `${fixture} was terminated by signal ${signal}`);
+    assert.match(stdout + stderr, new RegExp(message), `${fixture} missing expected diagnostic "${message}"`);
+  }
 
-  const pyodide = await readFile(
-    new URL('../_extensions/plotcat/pyodide-adapter.js', import.meta.url),
-    'utf8'
-  );
+  console.log(`TIMING: invalid fixtures ${secondsSince(t3)}s`);
 
-  const webr = await readFile(
-    new URL('../_extensions/plotcat/webr-adapter.js', import.meta.url),
-    'utf8'
-  );
+  const t4 = performance.now();
+
+  // ── Static source checks ───────────────────────────────────────
+  const lua = await readFile(new URL('../_extensions/plotcat/plotcat.lua', import.meta.url), 'utf8');
+  const runtime = await readFile(new URL('../_extensions/plotcat/runtime-manager.js', import.meta.url), 'utf8');
+  const pyodide = await readFile(new URL('../_extensions/plotcat/pyodide-adapter.js', import.meta.url), 'utf8');
+  const webr = await readFile(new URL('../_extensions/plotcat/webr-adapter.js', import.meta.url), 'utf8');
 
   assert.doesNotMatch(lua, /packages_for/);
   assert.doesNotMatch(lua, /packages\s*=/);
@@ -118,6 +213,9 @@ try {
   assert.doesNotMatch(runtime, /installPackages/);
   assert.doesNotMatch(pyodide, /micropip|pyimport|loadPackage/);
   assert.doesNotMatch(webr, /installPackages/);
+
+  console.log(`TIMING: static checks ${secondsSince(t4)}s`);
+  console.log(`TIMING: total ${secondsSince(t0)}s`);
 } finally {
   try { rmSync(output, { recursive: true, force: true }); } catch {}
 }

@@ -150,7 +150,7 @@ test('comparePlotly evaluates data, types, styling, and layout variables', () =>
   };
 
   const matchResult = comparePlotly(target, target);
-  assert.equal(matchResult.score, 1.0);
+  assert.equal(matchResult.score, 100);
 
   const student = {
     data: [{
@@ -166,5 +166,5 @@ test('comparePlotly evaluates data, types, styling, and layout variables', () =>
     }
   };
   const diffResult = comparePlotly(target, student);
-  assert.ok(diffResult.score < 1.0);
+  assert.ok(diffResult.score < 100);
 });

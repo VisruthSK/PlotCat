@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 import { setupBrowserTest } from './playwright-helper.mjs';
 
 const { server, page, teardown } = await setupBrowserTest('.');
@@ -34,6 +35,140 @@ try {
     };
   });
   assert.deepEqual(normalized, { id: 'id0', reference: 'url(#id0)', width: '1.235', style: 'fill: blue;stroke: red' });
+
+  const preparedReferences = await page.evaluate(() => {
+    const source = `<svg xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <path id="marker" d="M0 0h1v1z"/>
+        <clipPath id="clip"><rect width="1" height="1"/></clipPath>
+      </defs>
+      <use href="#marker"/>
+      <g clip-path="url('#clip')"/>
+    </svg>`;
+    const prepared = window.plotcatSvg.prepareSvg(source, 'plot');
+    const doc = new DOMParser().parseFromString(prepared.svg, 'image/svg+xml');
+    return {
+      ids: [...doc.querySelectorAll('[id]')].map(node => node.id),
+      href: doc.querySelector('use').getAttribute('href'),
+      clip: doc.querySelector('g').getAttribute('clip-path')
+    };
+  });
+  assert.deepEqual(preparedReferences, {
+    ids: ['plot-id0', 'plot-id1'],
+    href: '#plot-id0',
+    clip: 'url(#plot-id1)'
+  });
+
+  const rendererFixtures = [
+    {
+      name: 'matplotlib',
+      file: 'tests/fixtures/renderers/matplotlib-scatter.svg',
+      minimumUses: 150,
+      labels: []
+    },
+    {
+      name: 'seaborn',
+      file: 'tests/fixtures/renderers/seaborn-scatter.svg',
+      minimumUses: 100,
+      labels: ['bill_length_mm', 'Penguin bills']
+    },
+    {
+      name: 'plotnine',
+      file: 'tests/fixtures/renderers/plotnine-scatter.svg',
+      minimumUses: 50,
+      labels: ['Plotnine labels', 'Horizontal label', 'Vertical label']
+    }
+  ];
+
+  for (const fixture of rendererFixtures) {
+    const source = await fs.readFile(fixture.file, 'utf8');
+    const result = await page.evaluate(({ source, fixture }) => {
+      const parser = new DOMParser();
+      const sourceDoc = parser.parseFromString(source, 'image/svg+xml');
+      const sourceGroups = [...sourceDoc.querySelectorAll('g')];
+      const labelGroupIndexes = {};
+      const comments = sourceDoc.createTreeWalker(sourceDoc, NodeFilter.SHOW_COMMENT);
+
+      while (comments.nextNode()) {
+        const label = comments.currentNode.textContent.trim();
+        if (fixture.labels.includes(label)) {
+          labelGroupIndexes[label] = sourceGroups.indexOf(comments.currentNode.parentElement);
+        }
+      }
+
+      const prepared = window.plotcatSvg.prepareSvg(source, `fixture-${fixture.name}`);
+      const preparedDoc = parser.parseFromString(prepared.svg, 'image/svg+xml');
+      const svg = document.importNode(preparedDoc.documentElement, true);
+      svg.style.width = '700px';
+      svg.style.height = '500px';
+      document.body.append(svg);
+
+      const ids = new Set([...svg.querySelectorAll('[id]')].map(node => node.id));
+      const references = [];
+      const unresolved = [];
+      const fragmentUrl = /url\(\s*['"]?#([^)'"\s]+)['"]?\s*\)/g;
+
+      for (const node of svg.querySelectorAll('*')) {
+        for (const attr of node.attributes) {
+          const direct = attr.value.match(/^#(.+)$/);
+          if (direct) references.push(direct[1]);
+          for (const match of attr.value.matchAll(fragmentUrl)) references.push(match[1]);
+        }
+      }
+
+      for (const id of references) {
+        if (!ids.has(id)) unresolved.push(id);
+      }
+
+      const uses = [...svg.querySelectorAll('use')];
+      const laidOutUses = uses.filter(node => {
+        try {
+          const box = node.getBBox();
+          return box.width > 0 && box.height > 0;
+        } catch {
+          return false;
+        }
+      }).length;
+
+      const preparedGroups = [...svg.querySelectorAll('g')];
+      const labelBoxes = {};
+      for (const [label, index] of Object.entries(labelGroupIndexes)) {
+        const box = preparedGroups[index]?.getBBox();
+        labelBoxes[label] = box ? { width: box.width, height: box.height } : null;
+      }
+
+      svg.remove();
+      return {
+        ids: [...ids],
+        references,
+        unresolved,
+        useCount: uses.length,
+        laidOutUses,
+        labelGroupIndexes,
+        labelBoxes
+      };
+    }, { source, fixture });
+
+    assert.ok(result.useCount >= fixture.minimumUses, `${fixture.name} fixture must exercise real glyph and marker references`);
+    assert.equal(result.unresolved.length, 0, `${fixture.name} must not contain stale SVG fragment references`);
+    assert.ok(
+      result.references.every(id => id.startsWith(`fixture-${fixture.name}-`)),
+      `${fixture.name} references must point at normalized, scoped IDs`
+    );
+    assert.ok(
+      result.laidOutUses / result.useCount >= 0.8,
+      `${fixture.name} glyphs and markers must produce browser layout boxes`
+    );
+    assert.deepEqual(
+      Object.keys(result.labelGroupIndexes).sort(),
+      [...fixture.labels].sort(),
+      `${fixture.name} label fixtures must retain their expected label groups`
+    );
+    for (const label of fixture.labels) {
+      const box = result.labelBoxes[label];
+      assert.ok(box && box.width > 1 && box.height > 1, `${fixture.name} label "${label}" must be visible`);
+    }
+  }
 
   const comparison = await page.evaluate(() => {
     const target = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/><text x="1" y="2">Speed</text></svg>`;
@@ -123,6 +258,46 @@ try {
     };
   });
   assert.deepEqual(forEachRun, { engine: 'r', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: '', complete: true });
+
+  await load();
+  const plotlyRendering = await page.evaluate(async () => {
+    const root = document.querySelector('.plotcat');
+    root.dataset.plotcatManifest = '{"id":"test","engine":"python"}';
+    root.dataset.plotcatTargetCode = btoa('fig');
+    const calls = [];
+    window.Plotly = {
+      purge: () => {},
+      newPlot: async (_div, data, layout, config) => calls.push({ type: 'newPlot', data, layout, config }),
+      addFrames: async (_div, frames) => calls.push({ type: 'addFrames', frames })
+    };
+    const figure = {
+      data: [{ type: 'scatter', x: [1], y: [2] }],
+      layout: { title: { text: 'Animated' } },
+      frames: [{ name: 'step-1', data: [{ y: [3] }] }],
+      config: { scrollZoom: true, displayModeBar: true }
+    };
+    const adapter = { renderSvg: async () => ({ kind: 'plotly', figure }) };
+    const manager = { get: async () => adapter, run: async (_engine, task) => task() };
+    window.plotcatUi.mountPlotCat(root, manager);
+    await new Promise(resolve => {
+      const poll = () => root.querySelector('[data-plotcat-run]').disabled ? setTimeout(poll, 0) : resolve();
+      poll();
+    });
+    return calls;
+  });
+  assert.deepEqual(plotlyRendering, [
+    {
+      type: 'newPlot',
+      data: [{ type: 'scatter', x: [1], y: [2] }],
+      layout: {
+        title: { text: 'Animated' },
+        autosize: true,
+        margin: { l: 40, r: 10, t: 30, b: 40 }
+      },
+      config: { scrollZoom: true, displayModeBar: false, responsive: true }
+    },
+    { type: 'addFrames', frames: [{ name: 'step-1', data: [{ y: [3] }] }] }
+  ]);
 
   await load();
   const failedRun = await page.evaluate(async () => {

@@ -75,13 +75,20 @@ xyplot(mpg ~ wt, data = mtcars)
 ```{r}
 #| eval: false
 library(plotly)
-plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter', mode = 'markers')
+plot_ly(
+  data = iris,
+  x = ~Sepal.Length,
+  y = ~Petal.Length,
+  type = 'scatter',
+  mode = 'markers',
+  hovertemplate = '<b>Sepal length:</b> %{x}<br><b>Petal length:</b> %{y}<extra></extra>'
+)
 ```
 
 ```{r}
 #| eval: false
 library(plotly)
-plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter')
+plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter', mode = 'markers')
 ```
 :::
 
@@ -170,14 +177,29 @@ sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)")
 ```{python}
 #| eval: false
 import plotly.graph_objects as go
-fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6], mode='markers'))
+from sklearn.datasets import load_iris
+
+iris = load_iris(as_frame=True).frame
+fig = go.Figure(data=go.Scatter(
+    x=iris['sepal length (cm)'],
+    y=iris['petal length (cm)'],
+    mode='markers',
+    hovertemplate='<b>Sepal length:</b> %{x}<br><b>Petal length:</b> %{y}<extra></extra>'
+))
 fig
 ```
 
 ```{python}
 #| eval: false
 import plotly.graph_objects as go
-fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6]))
+from sklearn.datasets import load_iris
+
+iris = load_iris(as_frame=True).frame
+fig = go.Figure(data=go.Scatter(
+    x=iris['sepal length (cm)'],
+    y=iris['petal length (cm)'],
+    mode='markers'
+))
 fig
 ```
 :::

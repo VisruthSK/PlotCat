@@ -114,6 +114,11 @@ local function parse_attributes(attrs, yaml_meta)
     end
   end
 
+  local svg_sum = weights.svg.geometry + weights.svg.text + weights.svg.style + weights.svg.frame
+  if math.abs(svg_sum - 1.0) > 1e-3 then
+    fail("SVG weights must sum to 1.0, got " .. string.format("%.4g", svg_sum))
+  end
+
   return weights, dims, heading
 end
 
@@ -146,7 +151,6 @@ local function widget(id, engine, target, starter, extra_classes, weights_json, 
     '    <figure class="plotcat__plot plotcat__student" data-plotcat-student aria-label="Your plot"></figure>\n',
     '    <button class="plotcat__wipe-handle" type="button" data-plotcat-wipe-handle role="slider" aria-label="Wipe comparison boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></button>\n',
     '  </div>\n',
-    '  <label for="', escape_html(dom_id), '-editor">Code</label>\n',
     '  <div class="plotcat-editor-container"><div class="plotcat__editor" id="', escape_html(dom_id), '-editor">\n'
   }
 
@@ -235,7 +239,7 @@ function Div(div)
     version = "0.3.0",
     scripts = {{path = "plotcat.js", attribs = {type = "module"}}},
     stylesheets = {"plotcat.css"},
-    resources = {"svg.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js"},
+    resources = {"svg.js", "plotly-compare.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js", "quarto-live-bridge.js", "utils.js"},
     head = '<link rel="preconnect" href="https://cdn.plot.ly" crossorigin><link rel="dns-prefetch" href="https://webr.r-wasm.org"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net">'
   })
 
