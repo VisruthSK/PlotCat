@@ -1,0 +1,12 @@
+---
+format: live-html
+filters:
+  - ../../_extensions/plotcat/plotcat.lua
+---
+
+::: {.plotcat plotcat-width="wide"}
+```{r}
+#| eval: false
+plot(cars)
+```
+:::

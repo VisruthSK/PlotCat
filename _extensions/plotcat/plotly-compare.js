@@ -1,3 +1,5 @@
+import { resolveTitle } from './utils.js';
+
 const TEXT_KEYS = new Set([
   'text',
   'title',
@@ -186,7 +188,123 @@ function compareValue(expected, actual, path, state) {
   }
 }
 
-export function comparePlotly(target, student) {
+function comparePlotlyWeighted(target, student, weights) {
+  const w = {
+    trace: weights.trace ?? 0.3,
+    data: weights.data ?? 0.4,
+    style: weights.style ?? 0.2,
+    layout: weights.layout ?? 0.1
+  };
+  const a = normalizeFigure(target);
+  const b = normalizeFigure(student);
+  const tTraces = a.data;
+  const sTraces = b.data;
+
+  let traceScore = 1;
+  if (tTraces.length !== sTraces.length) {
+    traceScore = Math.max(0, 1 - Math.abs(tTraces.length - sTraces.length) /
+      Math.max(tTraces.length, sTraces.length));
+  }
+
+  let dataScore = 1;
+  let styleScore = 1;
+  const minTraces = Math.min(tTraces.length, sTraces.length);
+
+  if (minTraces > 0) {
+    let typeMatches = 0;
+    let traceDataSum = 0;
+    let traceStyleSum = 0;
+
+    for (let i = 0; i < minTraces; i++) {
+      const t = tTraces[i] || {};
+      const s = sTraces[i] || {};
+      if (t.type === s.type) typeMatches++;
+
+      let dataDiff = 0;
+      let dataCount = 0;
+      for (const key of ['x', 'y', 'z', 'values', 'labels']) {
+        if (t[key] !== undefined || s[key] !== undefined) {
+          dataCount++;
+          const tArr = Array.isArray(t[key]) ? t[key] : [];
+          const sArr = Array.isArray(s[key]) ? s[key] : [];
+          if (tArr.length !== sArr.length) {
+            dataDiff++;
+          } else {
+            let itemDiff = 0;
+            for (let j = 0; j < tArr.length; j++) {
+              if (String(tArr[j]) !== String(sArr[j])) itemDiff++;
+            }
+            if (itemDiff > 0 && tArr.length > 0) dataDiff += itemDiff / tArr.length;
+          }
+        }
+      }
+      traceDataSum += dataCount ? 1 - dataDiff / dataCount : 1;
+
+      let styleDiff = 0;
+      let styleCount = 0;
+      if (t.mode !== undefined || s.mode !== undefined) {
+        styleCount++;
+        if (t.mode !== s.mode) styleDiff++;
+      }
+      const tMarker = t.marker || {};
+      const sMarker = s.marker || {};
+      for (const prop of ['color', 'size', 'symbol']) {
+        if (tMarker[prop] !== undefined || sMarker[prop] !== undefined) {
+          styleCount++;
+          if (String(tMarker[prop]) !== String(sMarker[prop])) styleDiff++;
+        }
+      }
+      const tLine = t.line || {};
+      const sLine = s.line || {};
+      for (const prop of ['color', 'width']) {
+        if (tLine[prop] !== undefined || sLine[prop] !== undefined) {
+          styleCount++;
+          if (String(tLine[prop]) !== String(sLine[prop])) styleDiff++;
+        }
+      }
+      traceStyleSum += styleCount ? 1 - styleDiff / styleCount : 1;
+    }
+
+    traceScore = traceScore * 0.4 + (typeMatches / minTraces) * 0.6;
+    dataScore = traceDataSum / minTraces;
+    styleScore = traceStyleSum / minTraces;
+  } else {
+    traceScore = 0;
+    dataScore = 0;
+    styleScore = 0;
+  }
+
+  const tLayout = a.layout;
+  const sLayout = b.layout;
+  let layoutScore = 1;
+  let layoutCount = 0;
+  let layoutDiff = 0;
+  const tTitle = resolveTitle(tLayout).trim();
+  const sTitle = resolveTitle(sLayout).trim();
+  if (tTitle || sTitle) {
+    layoutCount++;
+    if (tTitle !== sTitle) layoutDiff++;
+  }
+  for (const axis of ['xaxis', 'yaxis']) {
+    const tAxisTitle = resolveTitle(tLayout, axis).trim();
+    const sAxisTitle = resolveTitle(sLayout, axis).trim();
+    if (tAxisTitle || sAxisTitle) {
+      layoutCount++;
+      if (tAxisTitle !== sAxisTitle) layoutDiff++;
+    }
+  }
+  if (layoutCount > 0) layoutScore = 1 - layoutDiff / layoutCount;
+
+  const score = Math.round((traceScore * w.trace + dataScore * w.data +
+    styleScore * w.style + layoutScore * w.layout) * 100) / 100;
+  return {
+    score: score * 100,
+    categories: { trace: traceScore, data: dataScore, style: styleScore, layout: layoutScore },
+    differences: []
+  };
+}
+
+function comparePlotlyExact(target, student) {
   const normTarget = normalize(normalizeFigure(target));
   const normStudent = normalize(normalizeFigure(student));
 
@@ -212,4 +330,8 @@ export function comparePlotly(target, student) {
     mismatchCount: state.mismatchCount,
     targetLeafCount
   };
+}
+
+export function comparePlotly(target, student, weights) {
+  return weights ? comparePlotlyWeighted(target, student, weights) : comparePlotlyExact(target, student);
 }

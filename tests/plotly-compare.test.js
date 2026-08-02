@@ -382,3 +382,28 @@ test('42. Frames and configuration are retained where the adapters expose them',
   assert.equal(res.score, 100);
   assert.equal(res.targetLeafCount, 2); // name: f1, displayModeBar: false
 });
+
+test('weighted Plotly scoring uses the configured categories', () => {
+  const target = {
+    data: [{ type: 'scatter', x: [1, 2], marker: { color: 'red' } }],
+    layout: { title: { text: 'Target' } }
+  };
+  const student = {
+    data: [{ type: 'scatter', x: [9, 2], marker: { color: 'blue' } }],
+    layout: { title: { text: 'Student' } }
+  };
+
+  const dataOnly = comparePlotly(target, student, {
+    trace: 0, data: 1, style: 0, layout: 0
+  });
+  const styleOnly = comparePlotly(target, student, {
+    trace: 0, data: 0, style: 1, layout: 0
+  });
+  const layoutOnly = comparePlotly(target, student, {
+    trace: 0, data: 0, style: 0, layout: 1
+  });
+
+  assert.equal(dataOnly.score, 50);
+  assert.equal(styleOnly.score, 0);
+  assert.equal(layoutOnly.score, 0);
+});

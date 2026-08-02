@@ -246,7 +246,7 @@ export function mountPlotCat(root, manager) {
         status.textContent = 'Loading Plotly…';
         await loadPlotly();
         await renderPlotly(student, result.figure);
-        score = comparePlotly(targetFigure, result.figure).score / 100;
+        score = comparePlotly(targetFigure, result.figure, weights.plotly).score / 100;
       } else if (result.kind === 'svg') {
         const result_ = prepareSvg(result.svg, `${svgPrefix}-student`);
         student.replaceChildren(svgFragment(result_.svg));
