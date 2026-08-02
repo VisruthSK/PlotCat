@@ -42,7 +42,7 @@ filters:
   - plotcat
 ```
 
-R pages must declare the `svglite` package under `format.live-html.webr.packages`. Every non-base R or Python package used by target or starter code must be listed too. PlotCat does not infer or install runtime packages — package configuration belongs to Quarto Live.
+R pages must declare the `svglite` package under `format.live-html.webr.packages`. List every non-base R or Python package used by target or starter code. PlotCat does not infer or install runtime packages; configure them through Quarto Live.
 
 ```yaml
 format:
@@ -75,7 +75,7 @@ tinyplot::tinyplot(
 :::
 ````
 
-Add a second chunk for starter code. Also set `#| eval: false` on the starter chunk.
+Add a second chunk for starter code. Set `#| eval: false` on the starter chunk.
 
 ````markdown
 ::: {.plotcat}
@@ -103,7 +103,7 @@ tinyplot::tinyplot(
 ### Markup Rules
 
 - Both chunks need `#| eval: false`. PlotCat executes code in the browser, not during document rendering.
-- The first chunk becomes the browser-rendered target. Its source is obfuscated in the HTML — enough to prevent casual inspection, not a security boundary.
+- The first chunk becomes the browser-rendered target. Its source is obfuscated in the HTML. The obfuscation discourages casual inspection but is not a security boundary.
 - The second chunk populates the student code editor. Omit it for a blank editor.
 - Both chunks in an exercise must use the same language. Use `{r}` or `{webr}` for R, and `{python}` or `{pyodide}` for Python. PlotCat normalizes the student editor to Quarto Live's native `webr` or `pyodide` cell.
 - Assign custom exercise IDs on the container div: `::: {.plotcat #scatter-exercise}`. Auto-generated IDs are `exercise-1`, `exercise-2`, etc.
@@ -111,7 +111,7 @@ tinyplot::tinyplot(
 
 ## Comparison Modes
 
-Three comparison modes are available for SVG plots. Plotly charts are limited to side-by-side only — overlay and wipe are disabled and hidden behind a tooltip.
+SVG plots support three comparison modes. Plotly charts use side-by-side comparison; overlay and wipe are unavailable.
 
 | Mode | Behavior |
 |---|---|
@@ -216,7 +216,7 @@ PlotCat exposes CSS custom properties on `.plotcat` containers. Override these v
 
 ### Bootstrap Variable Integration
 
-PlotCat inherits global colors from Quarto Bootstrap themes automatically.
+PlotCat inherits global colors from Quarto Bootstrap themes.
 
 - `--bs-body-color`: Primary text color for labels, status messages, and editor code.
 - `--bs-body-bg`: Baseline for card and plot surfaces.

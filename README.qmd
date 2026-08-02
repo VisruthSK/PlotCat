@@ -5,11 +5,11 @@ provide a target plot and optional starter code. Students write R or
 Python in the browser, render their plot with WebR or Pyodide, and
 compare it with the target.
 
-`PlotCat` compares SVG structure and plot text for static plots. It also
-supports a focused comparison of Plotly traces and layout. Plotly
-exercises support side-by-side comparison only; overlay and wipe apply
-to SVG plots. PlotCat obfuscates the target source in the rendered HTML,
-which prevents casual inspection.
+`PlotCat` compares SVG structure and plot text for static plots. It
+compares Plotly traces and layout separately. Plotly exercises use
+side-by-side comparison; overlay and wipe apply to SVG plots. PlotCat
+obfuscates the target source in the rendered HTML to discourage casual
+inspection.
 
 ## Requirements
 
@@ -50,21 +50,20 @@ Authors must declare every non-base R or Python package used by target
 or starter code. `PlotCat` does not infer or install runtime packages.
 Package configuration belongs to Quarto Live.
 
-For a single document, Quarto Live also accepts `webr` and `pyodide`
-options in document front matter. For project configuration, nesting them
-under `live-html` avoids metadata-merging problems.
+For a single document, put `webr` and `pyodide` options in the document
+front matter. In project configuration, nest them under `live-html` to
+avoid metadata-merging problems.
 
-`live-html` provides the native WebR and Pyodide editors. Set
-`#| eval: false` on each `PlotCat` chunk so Quarto leaves it for the
+`live-html` supplies the native WebR and Pyodide editors. Set
+`#| eval: false` on every `PlotCat` chunk so Quarto leaves it for the
 browser runtime.
 
 ## Example
 
-Write the target plot as the first chunk inside a `.plotcat` Div. Set
-`#| eval: false`: `PlotCat` renders both the target and a student's
-submission in the browser. This must be set on each `PlotCat` chunk
-because Quarto decides whether to execute it before `PlotCat`'s filter
-runs.
+Write the target plot as the first chunk inside a `.plotcat` Div and set
+`#| eval: false`. `PlotCat` renders the target and the student's
+submission in the browser. Apply the option to every `PlotCat` chunk:
+Quarto decides whether to execute chunks before `PlotCat`'s filter runs.
 
 ```` markdown
 ::: {.plotcat}
@@ -81,7 +80,7 @@ tinyplot::tinyplot(
 :::
 ````
 
-Add a second chunk to give students starter code. Also set
+Add a second chunk for starter code. Set
 `#| eval: false` on the starter chunk.
 
 ```` markdown
@@ -151,9 +150,8 @@ plotcat:
 | `svg-style` | 0.1 | Fill, stroke, opacity |
 | `svg-frame` | 0.15 | Aspect ratio |
 
-A scatter exercise might need higher `svg-text` weight because axis
-labels matter more. A bar chart might raise `svg-geometry` to penalise
-missing bars.
+Raise `svg-text` when axis labels matter more in a scatter exercise.
+Raise `svg-geometry` when missing bars should reduce a bar-chart score.
 
 ### Plotly weights
 
@@ -210,21 +208,20 @@ plotcat:
 
 ## Limitations
 
-- **Font and text styling**: SVG comparison checks text content, but
+- Font and text styling: SVG comparison checks text content, but
   ignores font families, font sizes, font weights, and text positioning.
-- **Coarse geometry matching**: Coordinates are rounded to ~0.1% relative
+- Coarse geometry matching: Coordinates are rounded to ~0.1% relative
   precision and matched as unordered marks. Minor position shifts or
   point jittering may still yield high scores.
-- **No code inspection**: `PlotCat` evaluates rendered plot output (SVG or
+- No code inspection: `PlotCat` evaluates rendered plot output (SVG or
   Plotly JSON), not R or Python code structure. It cannot check for
   specific function calls or idioms.
-- **Plotly support**: Plotly exercises only support side-by-side
-  comparison and evaluate a subset of trace data, mark attributes, and
-  titles.
-- **Runtime sandbox**: WebR and Pyodide run in the browser WebAssembly
+- Plotly support: Plotly exercises use side-by-side comparison and evaluate
+  a subset of trace data, mark attributes, and titles.
+- Runtime sandbox: WebR and Pyodide run in the browser WebAssembly
   sandbox, so code cannot access files on the local filesystem (e.g.,
-  `read.csv("C:/data.csv")`). However, remote data files can be fetched
-  directly using standard functions like `read.csv("https://...")` in R
+  `read.csv("C:/data.csv")`). Remote data files can be fetched
+  directly with functions such as `read.csv("https://...")` in R
   or `pd.read_csv("https://...")` in Python. Required packages must be
   available in WebAssembly.
 
