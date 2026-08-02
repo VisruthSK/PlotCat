@@ -48,17 +48,5 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps --only-shell chromium
 
-      - name: Unit tests
-        run: pnpm test:unit
-
-      - name: Transform tests
-        run: pnpm test:transform
-
-      - name: Browser component tests
-        run: pnpm test:browser
-
-      - name: Build
-        run: pnpm build
-
-      - name: Runtime integration tests
-        run: pnpm test:site
+      - name: Check
+        run: pnpm check

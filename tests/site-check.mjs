@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import { setupBrowserTest } from './playwright-helper.mjs';
 
-import { existsSync } from 'node:fs';
-
-const { server, page, teardown } = await setupBrowserTest(existsSync('_site') ? '_site' : 'website/_site');
+const { server, page, teardown } = await setupBrowserTest('website/_site');
 page.setDefaultTimeout(180_000);
 const requests = [];
 const failedRequests = [];
@@ -248,7 +246,14 @@ xyplot(mpg ~ wt, data = mtcars, main = "MPG vs Weight", xlab = "Weight", ylab = 
   const tk6 = performance.now();
   const rPlotly = page.locator('#plotcat-exercise-4');
   const rPlotlySolution = `library(plotly)
-plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, type = 'scatter', mode = 'markers')`;
+plot_ly(
+  data = iris,
+  x = ~Sepal.Length,
+  y = ~Petal.Length,
+  type = 'scatter',
+  mode = 'markers',
+  hovertemplate = '<b>Sepal length:</b> %{x}<br><b>Petal length:</b> %{y}<extra></extra>'
+)`;
   await fillEditor(rPlotly, rPlotlySolution);
   await rPlotly.locator('[data-plotcat-run]').click();
   await expectRendered(rPlotly, 'R Plotly');
@@ -277,7 +282,15 @@ sns.scatterplot(data=df, x="sepal length (cm)", y="petal length (cm)", hue="spec
   const tk8 = performance.now();
   const pyPlotly = page.locator('#plotcat-exercise-8');
   const pyPlotlySolution = `import plotly.graph_objects as go
-fig = go.Figure(data=go.Scatter(x=[1, 2, 3], y=[4, 5, 6], mode='markers'))
+from sklearn.datasets import load_iris
+
+iris = load_iris(as_frame=True).frame
+fig = go.Figure(data=go.Scatter(
+    x=iris['sepal length (cm)'],
+    y=iris['petal length (cm)'],
+    mode='markers',
+    hovertemplate='<b>Sepal length:</b> %{x}<br><b>Petal length:</b> %{y}<extra></extra>'
+))
 fig`;
   await fillEditor(pyPlotly, pyPlotlySolution);
   await pyPlotly.locator('[data-plotcat-run]').click();
