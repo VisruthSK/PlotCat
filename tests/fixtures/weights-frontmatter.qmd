@@ -2,18 +2,16 @@
 format: live-html
 filters:
   - ../../_extensions/plotcat/plotcat.lua
+plotcat:
+  weights:
+    svg:
+      geometry: 0.7
+      text: 0.2
 ---
 
-::: {.plotcat id="first"}
+::: {.plotcat id="fm-weights"}
 ```{r}
 #| eval: false
 plot(cars)
-```
-:::
-
-::: {.plotcat id="second"}
-```{r}
-#| eval: false
-plot(pressure)
 ```
 :::

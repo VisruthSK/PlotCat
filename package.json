@@ -1,6 +1,6 @@
 {
   "name": "plotcat",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "packageManager": "pnpm@11.9.0",
   "description": "SVG plot recreation exercises for Quarto",
@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test --test-isolation=none && node tests/transform-check.mjs && node tests/browser-check.mjs",
-    "prebuild": "node -e \"fs.cpSync('_extensions/plotcat', 'website/_extensions/plotcat', {recursive: true})\"",
+    "prebuild": "node -e \"fs.rmSync('website/_extensions/plotcat',{recursive:true,force:true});fs.cpSync('_extensions/plotcat','website/_extensions/plotcat',{recursive:true})\"",
     "build": "pnpm prebuild && quarto render website",
     "check": "pnpm test && pnpm build && node tests/site-check.mjs"
   },

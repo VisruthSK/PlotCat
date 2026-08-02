@@ -1,55 +1,34 @@
+import { errorMessage } from './utils.js';
+
 export class PyodideAdapter {
-  constructor(load = () => import('https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.mjs')) {
-    this.load = load;
-    this.installed = new Set();
+  constructor(pyodidePromise) {
+    this.pyodidePromise = pyodidePromise;
   }
 
-  async init(manifest) {
-    const { loadPyodide } = await this.load();
-    this.pyodide = await loadPyodide();
-    if (manifest && manifest.packages) {
-      await this.installPackages(manifest.packages);
-    }
+  async init() {
+    this.pyodide = await this.pyodidePromise;
   }
 
-  async installPackages(packages) {
-    const aliases = { sklearn: 'scikit-learn' };
-    const bundledNames = new Set(['matplotlib', 'numpy', 'pandas', 'scikit-learn', 'scipy']);
-    const bundled = [];
-    const wheels = [];
-    for (const name of packages) {
-      const normalized = aliases[name] || name;
-      if (!this.installed.has(normalized)) {
-        (bundledNames.has(normalized) ? bundled : wheels).push(normalized);
-      }
-    }
-    if (bundled.length) {
-      await this.pyodide.loadPackage(bundled);
-      bundled.forEach(name => this.installed.add(name));
-      if (bundled.includes('matplotlib')) {
-        await this.pyodide.runPythonAsync("import matplotlib; matplotlib.use('SVG')");
-      }
-    }
-    if (wheels.length) {
-      await this.pyodide.loadPackage('micropip');
-      await this.pyodide.pyimport('micropip').install(wheels);
-      wheels.forEach(name => this.installed.add(name));
-    }
-  }
   async renderSvg(code, options = {}) {
-    const width = options.width || 6.4;
-    const height = options.height || 4.8;
-const wrapped = `import ast
+    const width = options.width || 7;
+    const height = options.height || 5;
+    const wrapped = `import ast
 import contextlib
 import io
 import json
-import matplotlib
-matplotlib.use('SVG')
-import matplotlib.pyplot as plt
-plt.close('all')
+import sys
+
+_plotcat_plt = sys.modules.get("matplotlib.pyplot")
+
+if _plotcat_plt is not None:
+    _plotcat_plt.close("all")
+
 _plotcat_globals = {'__builtins__': __builtins__}
 _plotcat_result = None
+_plotcat_figure = None
+_plotcat_out = None
 _plotcat_console = io.StringIO()
+
 with contextlib.redirect_stdout(_plotcat_console), contextlib.redirect_stderr(_plotcat_console):
     _plotcat_tree = ast.parse(${JSON.stringify(code)})
     if _plotcat_tree.body and isinstance(_plotcat_tree.body[-1], ast.Expr):
@@ -66,37 +45,38 @@ if _plotcat_result is None:
 if _plotcat_result is not None and type(_plotcat_result).__module__.startswith('plotly') and hasattr(_plotcat_result, 'to_json'):
     _plotcat_out = '{"type":"plotly","data":' + _plotcat_result.to_json() + '}'
 else:
+    _plotcat_plt = sys.modules.get("matplotlib.pyplot")
     if hasattr(_plotcat_result, 'savefig'):
         _plotcat_figure = _plotcat_result
     elif type(_plotcat_result).__module__.startswith('plotnine') and hasattr(_plotcat_result, 'draw'):
         _plotcat_figure = _plotcat_result.draw()
-    elif plt.get_fignums():
-        _plotcat_figure = plt.gcf()
+    elif _plotcat_plt is not None and _plotcat_plt.get_fignums():
+        _plotcat_figure = _plotcat_plt.gcf()
     else:
         _plotcat_out = json.dumps({'type': 'no-plot', 'output': _plotcat_console.getvalue()})
-    if '_plotcat_figure' in globals():
+    if _plotcat_figure is not None:
         _plotcat_figure.set_size_inches(${width}, ${height})
         _plotcat_buffer = io.StringIO()
         _plotcat_figure.savefig(_plotcat_buffer, format='svg')
         _plotcat_out = _plotcat_buffer.getvalue()
-        plt.close('all')
+        if _plotcat_plt is not None:
+            _plotcat_plt.close('all')
 _plotcat_out`;
     try {
       const result = await this.pyodide.runPythonAsync(wrapped);
       const output = String(result);
       if (output.startsWith('{"type": "no-plot"')) {
-        const details = JSON.parse(output);
-        const error = new Error('Python code did not produce a plot.');
-        error.output = details.output;
-        throw error;
+        return { kind: 'no-plot', message: 'Python code did not produce a plot. Make sure the last expression is a figure (e.g., plt.plot(), ggplot(), go.Figure()).' };
       }
-      if (!output.includes('<svg') && !output.startsWith('{"type":"plotly"')) {
-        throw new Error('Python code did not produce a plot.');
+      if (output.startsWith('{"type":"plotly"')) {
+        return { kind: 'plotly', figure: JSON.parse(output).data };
       }
-      return output;
+      if (output.includes('<svg')) {
+        return { kind: 'svg', svg: output };
+      }
+      return { kind: 'no-plot', message: 'Python code did not produce a plot. Make sure the last expression is a figure (e.g., plt.plot(), ggplot(), go.Figure()).' };
     } catch (error) {
-      if (error?.output !== undefined) throw error;
-      throw new Error(`Python error: ${error instanceof Error ? error.message : error}`);
+      return { kind: 'error', message: errorMessage(error), traceback: '' };
     }
   }
 }

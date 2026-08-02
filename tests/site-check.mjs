@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
-import { startStaticServer } from './static-server.mjs';
+import { setupBrowserTest } from './playwright-helper.mjs';
 
-const server = await startStaticServer('website/_site');
-const browser = await chromium.launch();
-const page = await browser.newPage();
+const { server, page, teardown } = await setupBrowserTest('website/_site');
 page.setDefaultTimeout(180_000);
 const requests = [];
 const failedRequests = [];
@@ -165,7 +162,7 @@ ggplot(penguins, aes(bill_len, bill_dep, colour = species)) +
   assert.ok(await ggplot.locator('.plotcat__student svg').locator('path, circle').count() > 10);
   const ggplotComparison = await ggplot.evaluate(async node => {
     const script = document.querySelector('script[src*="plotcat.js"]');
-    const svgUrl = script ? script.src.replace('plotcat.js', 'svg.js') : './site_libs/quarto-contrib/plotcat-0.2.0/svg.js';
+    const svgUrl = script ? script.src.replace('plotcat.js', 'svg.js') : './site_libs/quarto-contrib/plotcat-0.3.0/svg.js';
     const { compareSvg } = await import(svgUrl);
     return compareSvg(node.querySelector('.plotcat__target svg').outerHTML, node.querySelector('.plotcat__student svg').outerHTML);
   });
@@ -215,8 +212,6 @@ ggplotly(p)`;
   const incorrectRScoreText = await rPlotly.locator('.plotcat__score').textContent();
   const incorrectRScore = parseInt(incorrectRScoreText);
   assert.ok(incorrectRScore < 100, `R Plotly ggplotly solution should score < 100% against plot_ly target, but got ${incorrectRScore}%`);
-  const rFeedback = await rPlotly.locator('.plotcat__feedback').textContent();
-  assert.ok(rFeedback.includes('expected') || rFeedback.length > 0, 'Feedback should report trace/layout mismatches');
 
   // R Plotly Green Step: submit correct plot_ly code
   const rPlotlySolution = `library(plotly)
@@ -270,6 +265,5 @@ fig`;
     assert.equal(await widget.evaluate(node => node.classList.contains('plotcat--side-by-side')), true, `${label} should use side-by-side comparison`);
   }
 } finally {
-  await browser.close();
-  await server.close();
+  await teardown();
 }

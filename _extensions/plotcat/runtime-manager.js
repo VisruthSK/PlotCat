@@ -1,35 +1,51 @@
-import { WebRAdapter } from './webr-adapter.js';
-import { PyodideAdapter } from './pyodide-adapter.js';
+import { withRetry } from './utils.js';
+import { quartoLiveBridge } from './quarto-live-bridge.js';
 
 export class RuntimeManager {
-  constructor(factories = { r: () => new WebRAdapter(), python: () => new PyodideAdapter() }) {
+  constructor(factories = {
+    r: () => quartoLiveBridge.getRuntime('r'),
+    python: () => quartoLiveBridge.getRuntime('python')
+  }) {
     this.factories = factories;
     this.instances = new Map();
     this.queues = new Map();
-    this.installedPackages = new Map();
   }
 
-  async get(engine, manifest) {
+  async get(engine) {
     if (!this.instances.has(engine)) {
-      this.instances.set(engine, (async () => {
-        const adapter = this.factories[engine]?.();
-        if (!adapter) throw new Error(`Unsupported runtime: ${engine}`);
-        await adapter.init({ packages: [] });
+      const factory = this.factories[engine];
+      if (!factory) {
+        const err = Promise.reject(new Error(
+          `Unsupported runtime: ${engine}. Use 'r' for WebR or 'python' for Pyodide.`
+        ));
+        err.catch(() => {});
+        this.instances.set(engine, err);
+        return err;
+      }
+
+      const promise = withRetry(async () => {
+        const adapter = factory();
+        if (!adapter) throw new Error(`Runtime factory for '${engine}' returned null`);
+        await adapter.init();
         return adapter;
-      })());
-    }
-    const adapter = await this.instances.get(engine);
-    if (manifest?.packages?.length) {
-      await this.run(engine, async () => {
-        const installed = this.installedPackages.get(engine) || new Set();
-        const missing = manifest.packages.filter(packageName => !installed.has(packageName));
-        if (!missing.length) return;
-        await adapter.installPackages(missing);
-        missing.forEach(packageName => installed.add(packageName));
-        this.installedPackages.set(engine, installed);
+      }).catch(() => {
+        const name = engine === 'r' ? 'WebR' : engine === 'python' ? 'Pyodide' : engine;
+        throw new Error(
+          `Could not load ${name} after 3 attempts. ` +
+          `Check your internet connection. The runtime downloads from ` +
+          `${engine === 'r' ? 'webr.r-wasm.org' : 'cdn.jsdelivr.net/pyodide'} ` +
+          `on first use and is cached by your browser afterwards. ` +
+          `If you use a corporate proxy or firewall, confirm these domains are allowed.`
+        );
+      });
+      this.instances.set(engine, promise);
+      promise.catch(() => {
+        if (this.instances.get(engine) === promise) {
+          this.instances.delete(engine);
+        }
       });
     }
-    return adapter;
+    return this.instances.get(engine);
   }
 
   run(engine, task) {
@@ -39,4 +55,5 @@ export class RuntimeManager {
     return next;
   }
 }
+
 export const runtimeManager = new RuntimeManager();

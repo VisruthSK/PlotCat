@@ -6,6 +6,22 @@ format:
     toc-depth: 3
 ---
 
+```{=html}
+<style>
+.plotcat.accent-green {
+  --plotcat-accent: #059669;
+  --plotcat-accent-rgb: 5, 150, 105;
+}
+
+.plotcat.custom-card {
+  --plotcat-bg: #fffbeb;
+  --plotcat-border: #f59e0b;
+  --plotcat-accent: #d97706;
+  --plotcat-accent-rgb: 217, 119, 6;
+}
+</style>
+```
+
 Configuration options, chunk markup syntax, and CSS theme variables for the `plotcat` extension.
 
 ## Document Setup
@@ -26,9 +42,23 @@ filters:
   - plotcat
 ```
 
+R pages must declare the `svglite` package under `format.live-html.webr.packages`. Every non-base R or Python package used by target or starter code must be listed too. PlotCat does not infer or install runtime packages — package configuration belongs to Quarto Live.
+
+```yaml
+format:
+  live-html:
+    webr:
+      packages:
+        - svglite
+        - ggplot2
+    pyodide:
+      packages:
+        - matplotlib
+```
+
 ## Exercise Markup
 
-Write the target plot as the first chunk inside a `.plotcat` Div. Set `#| eval: false`: PlotCat renders both the target and a student's submission in the browser.
+Write the target plot as the first chunk inside a `.plotcat` Div. Set `#| eval: false` so Quarto leaves it for the browser runtime.
 
 ````markdown
 ::: {.plotcat}
@@ -45,7 +75,7 @@ tinyplot::tinyplot(
 :::
 ````
 
-Add a second chunk to give students starter code. Also set `#| eval: false` on the starter chunk.
+Add a second chunk for starter code. Also set `#| eval: false` on the starter chunk.
 
 ````markdown
 ::: {.plotcat}
@@ -72,62 +102,172 @@ tinyplot::tinyplot(
 
 ### Markup Rules
 
-- Set `#| eval: false` on both chunks. PlotCat executes R and Python code in the browser rather than during document rendering.
-- The first chunk defines the target plot. PlotCat renders it in WebR or Pyodide and encrypts the target code in the HTML.
-- The second chunk populates the student code editor. If omitted, the editor starts blank.
+- Both chunks need `#| eval: false`. PlotCat executes code in the browser, not during document rendering.
+- The first chunk becomes the browser-rendered target. Its source is obfuscated in the HTML — enough to prevent casual inspection, not a security boundary.
+- The second chunk populates the student code editor. Omit it for a blank editor.
 - Both chunks in an exercise must use the same language. Use `{r}` or `{webr}` for R, and `{python}` or `{pyodide}` for Python. PlotCat normalizes the student editor to Quarto Live's native `webr` or `pyodide` cell.
-- Assign custom exercise IDs on the container div: `::: {.plotcat #scatter-exercise}`. If omitted, PlotCat auto-generates IDs (`exercise-1`, `exercise-2`).
+- Assign custom exercise IDs on the container div: `::: {.plotcat #scatter-exercise}`. Auto-generated IDs are `exercise-1`, `exercise-2`, etc.
+- Extra classes on the `.plotcat` Div are forwarded to the widget container for scoped styling.
+
+## Weights
+
+PlotCat scores student plots against a target using a weighted comparison. Set per-exercise overrides as Div attributes. Unset attributes keep their defaults.
+
+```markdown
+::: {.plotcat id="scatter"
+    svg-geometry="0.4"
+    svg-text="0.4"}
+```
+
+Set document-wide defaults under `plotcat.weights` in YAML frontmatter. Per-exercise attributes override these.
+
+```yaml
+plotcat:
+  weights:
+    svg:
+      geometry: 0.5
+      text: 0.25
+    plotly:
+      data: 0.5
+      layout: 0.2
+```
+
+
+### SVG Weights
+
+| Attribute | Default | Controls |
+|---|---|---|
+| `svg-geometry` | 0.6 | Element positions (bag overlap of coarse geometry, coordinates rounded to ~0.1% relative precision) |
+| `svg-text` | 0.15 | Text content match (bag overlap of visible `<text>` strings) |
+| `svg-style` | 0.1 | Fill, stroke, opacity attributes on geometry elements |
+| `svg-frame` | 0.15 | Aspect ratio from viewBox or explicit dimensions (pass/fail, not proportional) |
+
+Scatter exercises can raise `svg-text` when axis labels matter most. Bar charts can raise `svg-geometry` to penalise missing bars.
+
+### Plotly Weights
+
+| Attribute | Default | Controls |
+|---|---|---|
+| `plotly-trace` | 0.3 | Trace type and count (40%) + per-trace type match (60%) |
+| `plotly-data` | 0.4 | Data arrays (x, y, z, values, labels) compared element-by-element |
+| `plotly-style` | 0.2 | Marker and line formatting (mode, marker color/size/symbol, line color/width) |
+| `plotly-layout` | 0.1 | Title text and axis labels |
+
+## Dimensions
+
+Override plot dimensions per exercise. Default is 7 inches wide by 5 inches tall for both R and Python.
+
+```markdown
+::: {.plotcat id="tall-plot" plotcat-width="4" plotcat-height="6"}
+```
+
+Set document-wide defaults under `plotcat.dimensions` in YAML frontmatter.
+
+```yaml
+plotcat:
+  dimensions:
+    width: 8
+    height: 6
+```
+
+## Heading
+
+Override the heading text per exercise. Defaults to "Recreate this plot".
+
+```markdown
+::: {.plotcat id="labeled" plotcat-heading="Reproduce the graphic"}
+```
+
+Set the heading in YAML frontmatter for a document-wide default.
+
+```yaml
+plotcat:
+  heading: "Reproduce the graphic"
+```
+
+## Comparison Modes
+
+Three comparison modes are available for SVG plots. Plotly charts are limited to side-by-side only — overlay and wipe are disabled and hidden behind a tooltip.
+
+| Mode | Behavior |
+|---|---|
+| **Side by side** (default) | Target and student plots rendered in a two-column grid. Stacks to single column below 48rem. |
+| **Overlay** | Student plot rendered on top of the target at 50% opacity. |
+| **Wipe** | A draggable vertical slider reveals the target on the left and the student plot on the right. Keyboard: Arrow keys, Home, End. |
 
 ## CSS Variables
 
 PlotCat exposes CSS custom properties on `.plotcat` containers. Override these variables globally in your stylesheet or locally on specific containers.
 
-| Variable | Default Value | Description |
-| :--- | :--- | :--- |
-| `--plotcat-border` | `color-mix(in srgb, var(--bs-body-color, #212529) 20%, var(--bs-body-bg, #ffffff))` | Outer border color for the exercise card and internal divider lines. |
-| `--plotcat-accent` | `var(--bs-primary, #0d6efd)` | Primary brand color used for action buttons, focus highlights, score badges, active mode toggles, and the wipe slider handle. |
-| `--plotcat-accent-rgb` | `var(--bs-primary-rgb, 13, 110, 253)` | Space-separated RGB values of `--plotcat-accent`, used for focus ring and badge background opacity channels. |
-| `--plotcat-bg` | `var(--bs-body-bg, #ffffff)` | Card background color and target/student plot container background. |
-| `--plotcat-nested-bg` | `color-mix(in srgb, var(--bs-body-color, #212529) 6%, var(--bs-body-bg, #ffffff))` | Surface color for the code editor surface and the comparison control bar. |
-| `--plotcat-shadow-color` | `rgb(var(--bs-emphasis-color-rgb, 0, 0, 0))` | Base shadow color used for card drop shadows and handle depth. |
+| Variable | Default | Description |
+|---|---|---|
+| `--plotcat-border` | `color-mix(in srgb, var(--bs-body-color, #212529) 20%, var(--bs-body-bg, #ffffff))` | Border color for the exercise card and internal dividers |
+| `--plotcat-accent` | `var(--bs-primary, #0d6efd)` | Brand color for buttons, focus highlights, score badges, active mode toggles, and the wipe handle |
+| `--plotcat-accent-rgb` | `var(--bs-primary-rgb, 13, 110, 253)` | Space-separated RGB values used for focus ring and badge background opacity channels |
+| `--plotcat-bg` | `var(--bs-body-bg, #ffffff)` | Card and plot container background |
+| `--plotcat-nested-bg` | `color-mix(in srgb, var(--bs-body-color, #212529) 6%, var(--bs-body-bg, #ffffff))` | Surface color for the code editor and comparison control bar |
+| `--plotcat-shadow-color` | `rgb(var(--bs-emphasis-color-rgb, 0, 0, 0))` | Tint for card drop shadows and handle depth |
 
 ### Bootstrap Variable Integration
 
-PlotCat automatically inherits global colors from Quarto Bootstrap themes:
+PlotCat inherits global colors from Quarto Bootstrap themes automatically.
 
-- `--bs-body-color`: Primary body text color applied to text, labels, and editor code.
-- `--bs-body-bg`: Background color used as the baseline for card and plot surfaces.
-- `--bs-primary`: Main theme brand color mapped to `--plotcat-accent`.
-- `--bs-primary-rgb`: RGB tuple mapped to `--plotcat-accent-rgb`.
-- `--bs-font-monospace`: Font stack used inside the code editor block.
-- `--bs-body-font-family`: Font stack used for headers, labels, and buttons.
-- `--bs-secondary-color`: Text color for muted comparison labels and status messages.
-- `--bs-danger`: Text color applied when code execution returns an error.
+- `--bs-body-color`: Primary text color for labels, status messages, and editor code.
+- `--bs-body-bg`: Baseline for card and plot surfaces.
+- `--bs-primary`: Mapped to `--plotcat-accent`.
+- `--bs-primary-rgb`: Mapped to `--plotcat-accent-rgb`.
+- `--bs-font-monospace`: Font stack for the code editor.
+- `--bs-body-font-family`: Font stack for headers, labels, and buttons.
+- `--bs-secondary-color`: Color for muted comparison labels and idle status text.
+- `--bs-danger`: Color for execution error messages.
 
 ## Custom Styling Examples
 
 ### Theme Accent Override
 
-Change PlotCat accent color globally in a custom CSS file:
-
 ```css
-.plotcat {
+.plotcat.accent-green {
   --plotcat-accent: #059669;
   --plotcat-accent-rgb: 5, 150, 105;
 }
 ```
 
+::: {.plotcat .accent-green}
+```{r}
+#| eval: false
+tinyplot::tinyplot(dist ~ speed, data = cars, main = "Stopping distance by speed", xlab = "Speed", ylab = "Stopping distance")
+```
+
+```{r}
+#| eval: false
+tinyplot::tinyplot(dist ~ speed, data = cars)
+```
+:::
+
 ### Scoped Container Styling
 
-Adjust code editor height or card layout for specific exercise blocks:
+#### Custom card
 
 ```css
-#scatter-exercise .plotcat__editor {
-  height: 16rem;
-}
-
 .plotcat.custom-card {
-  --plotcat-bg: #f8fafc;
-  --plotcat-border: #cbd5e1;
+  --plotcat-bg: #fffbeb;
+  --plotcat-border: #f59e0b;
+  --plotcat-accent: #d97706;
+  --plotcat-accent-rgb: 217, 119, 6;
 }
 ```
+
+::: {.plotcat .custom-card}
+```{r}
+#| eval: false
+library(lattice)
+xyplot(mpg ~ wt, data = mtcars, main = "MPG vs Weight", xlab = "Weight", ylab = "MPG")
+```
+
+```{r}
+#| eval: false
+library(lattice)
+xyplot(mpg ~ wt, data = mtcars)
+```
+:::
+

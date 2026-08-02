@@ -64,10 +64,14 @@
 }
 
 .js-plotly-plot,
-.js-plotly-plot .plot-container,
+.js-plotly-plot .plot-container {
+  width: 100%;
+  height: 100%;
+}
+
 .js-plotly-plot .svg-container {
-  width: 100% !important;
-  height: 100% !important;
+  min-width: 100%;
+  min-height: 100%;
 }
 
 .plotcat-editor-container {
@@ -99,11 +103,11 @@
 .plotcat__editor .exercise-editor-header,
 .plotcat__editor .card.exercise-editor > .card-header,
 .plotcat__editor .exercise-cell-output {
-  display: none !important;
+  display: none;
 }
 
 #exercise-loading-indicator {
-  display: none !important;
+  display: none;
 }
 
 .plotcat__editor .cm-editor {
@@ -236,28 +240,15 @@
   display: none;
 }
 
-.plotcat__feedback {
-  font-size: 0.85rem;
-  color: var(--bs-secondary-color, #6c757d);
-  margin-top: 0.5rem;
-  line-height: 1.4;
-  display: none;
-}
-
 .plotcat--error .plotcat__status {
-  display: block !important;
-  color: var(--bs-danger, #dc3545) !important;
-  font-weight: 600;
-}
-
-.plotcat--error .plotcat__feedback:not(:empty) {
   display: block;
-  white-space: pre-wrap;
+  color: var(--bs-danger, #dc3545);
+  font-weight: 600;
 }
 
 .plotcat--complete .plotcat__score {
   background: hsla(var(--plotcat-score-hue, 120), 85%, 50%, 0.1);
-  color: hsl(var(--plotcat-score-hue, 120), 100%, 35%) !important;
+  color: hsl(var(--plotcat-score-hue, 120), 100%, 35%);
   border: 1px solid hsla(var(--plotcat-score-hue, 120), 85%, 50%, 0.2);
 }
 
