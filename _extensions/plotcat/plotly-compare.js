@@ -1,5 +1,3 @@
-import { resolveTitle } from './utils.js';
-
 const TEXT_KEYS = new Set([
   'text',
   'title',
@@ -188,6 +186,126 @@ function compareValue(expected, actual, path, state) {
   }
 }
 
+const STYLE_KEYS = new Set([
+  'color',
+  'colorscale',
+  'fill',
+  'fillcolor',
+  'hoverlabel',
+  'insidetextfont',
+  'line',
+  'marker',
+  'mode',
+  'opacity',
+  'outsidetextfont',
+  'selected',
+  'textfont',
+  'unselected'
+]);
+
+function weightedCategory(path) {
+  const root = path[0];
+  if (root === 'layout' || root === 'frames' || root === 'config') return 'layout';
+  if (root !== 'data') return 'data';
+
+  // Trace count and type are structural. All remaining trace properties are
+  // graded as data, except for the explicitly visual/style subtrees.
+  if (path.length === 2 || path[2] === 'type') return 'trace';
+  if (path.slice(2).some(segment => STYLE_KEYS.has(segment))) return 'style';
+  return 'data';
+}
+
+function createWeightedState() {
+  return {
+    categories: {
+      trace: { total: 0, mismatches: 0 },
+      data: { total: 0, mismatches: 0 },
+      style: { total: 0, mismatches: 0 },
+      layout: { total: 0, mismatches: 0 }
+    },
+    differences: []
+  };
+}
+
+function recordWeighted(state, path, expected, actual, kind, count = 1) {
+  const category = state.categories[weightedCategory(path)];
+  category.total += count;
+  category.mismatches += count;
+  if (state.differences.length < 10) {
+    state.differences.push({
+      path: formatPath(path),
+      expected,
+      actual,
+      kind
+    });
+  }
+}
+
+function compareWeightedValue(expected, actual, path, state) {
+  if (isPlainObject(expected)) {
+    if (!isPlainObject(actual)) {
+      const leaves = countLeaves(expected);
+      recordWeighted(state, path, expected, actual,
+        actual === undefined ? 'missing' : 'type', leaves);
+      return;
+    }
+    for (const key of Object.keys(expected)) {
+      if (!Object.hasOwn(actual, key)) {
+        const value = expected[key];
+        recordWeighted(state, [...path, key], value, undefined, 'missing', countLeaves(value));
+      } else {
+        compareWeightedValue(expected[key], actual[key], [...path, key], state);
+      }
+    }
+    return;
+  }
+
+  if (Array.isArray(expected)) {
+    if (!Array.isArray(actual)) {
+      recordWeighted(state, path, expected, actual,
+        actual === undefined ? 'missing' : 'type', countLeaves(expected));
+      return;
+    }
+    const shared = Math.min(expected.length, actual.length);
+    for (let i = 0; i < shared; i++) {
+      compareWeightedValue(expected[i], actual[i], [...path, i], state);
+    }
+    for (let i = shared; i < expected.length; i++) {
+      recordWeighted(state, [...path, i], expected[i], undefined, 'missing', countLeaves(expected[i]));
+    }
+    for (let i = shared; i < actual.length; i++) {
+      recordWeighted(state, [...path, i], undefined, actual[i], 'extra', countLeaves(actual[i]));
+    }
+    return;
+  }
+
+  const category = state.categories[weightedCategory(path)];
+  category.total++;
+  if (actual === undefined) {
+    category.mismatches++;
+    if (state.differences.length < 10) {
+      state.differences.push({ path: formatPath(path), expected, actual, kind: 'missing' });
+    }
+    return;
+  }
+
+  let matches = true;
+  if (expected === null) {
+    matches = actual === null;
+  } else if (typeof expected === 'number') {
+    matches = typeof actual === 'number' && closeNumber(expected, actual);
+  } else {
+    matches = typeof actual === typeof expected && actual === expected;
+  }
+  if (!matches) {
+    category.mismatches++;
+    if (state.differences.length < 10) {
+      const kind = expected === null || typeof actual !== typeof expected ? 'type' : 'value';
+      state.differences.push({ path: formatPath(path), expected, actual, kind });
+    }
+  }
+}
+
 function comparePlotlyWeighted(target, student, weights) {
   const w = {
     trace: weights.trace ?? 0.3,
@@ -195,112 +313,31 @@ function comparePlotlyWeighted(target, student, weights) {
     style: weights.style ?? 0.2,
     layout: weights.layout ?? 0.1
   };
-  const a = normalizeFigure(target);
-  const b = normalizeFigure(student);
-  const tTraces = a.data;
-  const sTraces = b.data;
-
-  let traceScore = 1;
-  if (tTraces.length !== sTraces.length) {
-    traceScore = Math.max(0, 1 - Math.abs(tTraces.length - sTraces.length) /
-      Math.max(tTraces.length, sTraces.length));
-  }
-
-  let dataScore = 1;
-  let styleScore = 1;
-  const minTraces = Math.min(tTraces.length, sTraces.length);
-
-  if (minTraces > 0) {
-    let typeMatches = 0;
-    let traceDataSum = 0;
-    let traceStyleSum = 0;
-
-    for (let i = 0; i < minTraces; i++) {
-      const t = tTraces[i] || {};
-      const s = sTraces[i] || {};
-      if (t.type === s.type) typeMatches++;
-
-      let dataDiff = 0;
-      let dataCount = 0;
-      for (const key of ['x', 'y', 'z', 'values', 'labels']) {
-        if (t[key] !== undefined || s[key] !== undefined) {
-          dataCount++;
-          const tArr = Array.isArray(t[key]) ? t[key] : [];
-          const sArr = Array.isArray(s[key]) ? s[key] : [];
-          if (tArr.length !== sArr.length) {
-            dataDiff++;
-          } else {
-            let itemDiff = 0;
-            for (let j = 0; j < tArr.length; j++) {
-              if (String(tArr[j]) !== String(sArr[j])) itemDiff++;
-            }
-            if (itemDiff > 0 && tArr.length > 0) dataDiff += itemDiff / tArr.length;
-          }
-        }
-      }
-      traceDataSum += dataCount ? 1 - dataDiff / dataCount : 1;
-
-      let styleDiff = 0;
-      let styleCount = 0;
-      if (t.mode !== undefined || s.mode !== undefined) {
-        styleCount++;
-        if (t.mode !== s.mode) styleDiff++;
-      }
-      const tMarker = t.marker || {};
-      const sMarker = s.marker || {};
-      for (const prop of ['color', 'size', 'symbol']) {
-        if (tMarker[prop] !== undefined || sMarker[prop] !== undefined) {
-          styleCount++;
-          if (String(tMarker[prop]) !== String(sMarker[prop])) styleDiff++;
-        }
-      }
-      const tLine = t.line || {};
-      const sLine = s.line || {};
-      for (const prop of ['color', 'width']) {
-        if (tLine[prop] !== undefined || sLine[prop] !== undefined) {
-          styleCount++;
-          if (String(tLine[prop]) !== String(sLine[prop])) styleDiff++;
-        }
-      }
-      traceStyleSum += styleCount ? 1 - styleDiff / styleCount : 1;
-    }
-
-    traceScore = traceScore * 0.4 + (typeMatches / minTraces) * 0.6;
-    dataScore = traceDataSum / minTraces;
-    styleScore = traceStyleSum / minTraces;
-  } else {
-    traceScore = 0;
-    dataScore = 0;
-    styleScore = 0;
-  }
-
-  const tLayout = a.layout;
-  const sLayout = b.layout;
-  let layoutScore = 1;
-  let layoutCount = 0;
-  let layoutDiff = 0;
-  const tTitle = resolveTitle(tLayout).trim();
-  const sTitle = resolveTitle(sLayout).trim();
-  if (tTitle || sTitle) {
-    layoutCount++;
-    if (tTitle !== sTitle) layoutDiff++;
-  }
-  for (const axis of ['xaxis', 'yaxis']) {
-    const tAxisTitle = resolveTitle(tLayout, axis).trim();
-    const sAxisTitle = resolveTitle(sLayout, axis).trim();
-    if (tAxisTitle || sAxisTitle) {
-      layoutCount++;
-      if (tAxisTitle !== sAxisTitle) layoutDiff++;
-    }
-  }
-  if (layoutCount > 0) layoutScore = 1 - layoutDiff / layoutCount;
-
-  const score = Math.round((traceScore * w.trace + dataScore * w.data +
-    styleScore * w.style + layoutScore * w.layout) * 100) / 100;
+  const state = createWeightedState();
+  compareWeightedValue(
+    normalize(normalizeFigure(target)),
+    normalize(normalizeFigure(student)),
+    [],
+    state
+  );
+  const categoryScore = category => {
+    const { total, mismatches } = state.categories[category];
+    return total ? Math.max(0, 1 - mismatches / total) : 1;
+  };
+  const categories = {
+    trace: categoryScore('trace'),
+    data: categoryScore('data'),
+    style: categoryScore('style'),
+    layout: categoryScore('layout')
+  };
+  const score = Math.round((categories.trace * w.trace + categories.data * w.data +
+    categories.style * w.style + categories.layout * w.layout) * 100) / 100;
   return {
     score: score * 100,
-    categories: { trace: traceScore, data: dataScore, style: styleScore, layout: layoutScore },
-    differences: []
+    categories,
+    differences: state.differences,
+    mismatchCount: Object.values(state.categories).reduce((sum, category) => sum + category.mismatches, 0),
+    targetLeafCount: Object.values(state.categories).reduce((sum, category) => sum + category.total, 0)
   };
 }
 
