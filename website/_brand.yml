@@ -1,0 +1,135 @@
+meta:
+  name:
+    short: Visruth
+    full: Visruth Srimath Kandali
+  link:
+    home: https://www.visruth.com
+    github: https://github.com/VisruthSK
+    bluesky: https://bsky.app/profile/visruth.com
+    linkedin: https://www.linkedin.com/in/visruthsk
+
+color:
+  palette:
+    cream: "#F6EFE1"
+    blackish: "#0A0A0A"
+    espresso: "#1E1512"
+    shell: "#F2E8DE"
+
+    oxblood: "#380C12"
+    oxblood-light: "#B0293A"
+    taupe: "#6B5B52"
+    taupe-light: "#C9BAAE"
+    blush: "#EAE0D8"
+    sable: "#241813"
+    teal: "#146860"
+    teal-light: "#5FCBB8"
+    ochre: "#A8721C"
+    ochre-light: "#F0BC5C"
+    carmine: "#A8283A"
+    carmine-light: "#D25668"
+
+    code-bg-light: "#F0E6DC"
+    code-bg-dark: "#1D1512"
+
+  background:
+    light: cream
+    dark: blackish
+  foreground:
+    light: espresso
+    dark: shell
+
+  primary:
+    light: oxblood
+    dark: oxblood-light
+
+  secondary:
+    light: taupe
+    dark: taupe-light
+  tertiary:
+    light: blush
+    dark: sable
+
+  success:
+    light: teal
+    dark: teal-light
+  info:
+    light: oxblood
+    dark: oxblood-light
+  warning:
+    light: ochre
+    dark: ochre-light
+  danger:
+    light: carmine
+    dark: carmine-light
+
+typography:
+  fonts:
+    - family: Domine
+      source: google
+      weight: [400, 500, 600, 700]
+      style: normal
+    - family: Valley Sans
+      source: file
+      files:
+        - path: https://www.visruth.com/fonts/ValleySans-Variable.woff2
+          weight: 400
+          style: normal
+        - path: https://www.visruth.com/fonts/ValleySans-Variable.woff2
+          weight: 700
+          style: normal
+        - path: https://www.visruth.com/fonts/ValleySans-Italic-Variable.woff2
+          weight: 400
+          style: italic
+        - path: https://www.visruth.com/fonts/ValleySans-Italic-Variable.woff2
+          weight: 700
+          style: italic
+    - family: CommitMono
+      source: file
+      files:
+        - path: https://www.visruth.com/fonts/CommitMono-400-Regular.woff2
+          weight: 400
+          style: normal
+        - path: https://www.visruth.com/fonts/CommitMono-400-Italic.woff2
+          weight: 400
+          style: italic
+        - path: https://www.visruth.com/fonts/CommitMono-700-Regular.woff2
+          weight: 700
+          style: normal
+        - path: https://www.visruth.com/fonts/CommitMono-700-Italic.woff2
+          weight: 700
+          style: italic
+
+  base: Domine
+  headings: Valley Sans
+  monospace: CommitMono
+
+  monospace-inline:
+    color:
+      light: carmine
+      dark: carmine-light
+    background-color:
+      light: code-bg-light
+      dark: code-bg-dark
+  monospace-block:
+    background-color:
+      light: code-bg-light
+      dark: code-bg-dark
+  link:
+    color:
+      light: carmine
+      dark: carmine-light
+
+defaults:
+  bootstrap:
+    defaults:
+      border-color: $brand-taupe-light
+      border-color-dark: $brand-taupe
+  quarto:
+    format:
+      dashboard:
+        include-in-header:
+          - text: |
+              <style>
+                .navbar-title { font-family: "Valley Sans" }
+                .quarto-color-scheme-toggle .bi::before { filter: brightness(0) invert(1) }
+              </style>
