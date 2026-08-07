@@ -96,7 +96,7 @@ try {
   await page.waitForFunction(() => document.body.classList.contains('quarto-dark'));
   const dark = await themeColors();
   assert.notDeepEqual(light, dark);
-  assert.equal(dark.body, 'rgb(34, 34, 34)');
+  assert.equal(dark.body, 'rgb(10, 10, 10)');
   assert.equal(dark.widget, dark.body);
   assert.equal(dark.plot, dark.body);
   assert.notEqual(dark.editor, 'rgb(248, 249, 250)');
