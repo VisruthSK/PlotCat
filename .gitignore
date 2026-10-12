@@ -11,3 +11,5 @@ website/_extensions/plotcat
 /node_modules/
 /tests/fixtures/*_files/
 /.test-output/
+/test-results/
+/playwright-report/

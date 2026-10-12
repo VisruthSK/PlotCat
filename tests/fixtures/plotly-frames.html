@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>PlotCat Plotly frames fixture</title></head>
+<body>
+<figure id="target"></figure>
+<script type="module">
+  import { loadPlotly, renderPlotly } from '../../_extensions/plotcat/plotly.js';
+  window.renderFigure = async figure => {
+    await loadPlotly();
+    return renderPlotly(document.getElementById('target'), figure);
+  };
+  window.fixtureReady = true;
+</script>
+</body>
+</html>

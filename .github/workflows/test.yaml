@@ -39,7 +39,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::knitr, any::rmarkdown
+          extra-packages: any::knitr, any::rmarkdown, any::reticulate
 
       - run: pip install ipykernel
 

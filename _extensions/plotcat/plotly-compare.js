@@ -1,36 +1,22 @@
-const TEXT_KEYS = new Set([
-  'text',
-  'title',
-  'hovertext',
-  'hovertemplate',
-  'texttemplate',
-  'name'
+const TEXT_KEYS = new Set(['text', 'title', 'hovertext', 'hovertemplate', 'texttemplate', 'name']);
+
+const STYLE_KEYS = new Set([
+  'color', 'colorscale', 'fill', 'fillcolor', 'hoverlabel', 'insidetextfont', 'line', 'marker',
+  'mode', 'opacity', 'outsidetextfont', 'selected', 'textfont', 'unselected'
 ]);
 
-export function normalizeFigure(value) {
-  let fig = value ?? {};
-  if (typeof value === 'string') {
-    try {
-      fig = JSON.parse(value);
-    } catch {
-      fig = {};
-    }
-  }
-  return {
-    data: fig.data ?? [],
-    layout: fig.layout ?? {},
-    frames: fig.frames ?? [],
-    config: fig.config ?? {}
-  };
+const MAX_DIFFERENCES = 10;
+
+function isPlainObject(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !ArrayBuffer.isView(value);
 }
 
-function isPlainObject(val) {
-  return typeof val === 'object' && val !== null && !Array.isArray(val) && !ArrayBuffer.isView(val);
+function isContainer(value) {
+  return Array.isArray(value) || isPlainObject(value);
 }
 
-function normalizeText(str) {
-  if (typeof str !== 'string') return str;
-  return str
+function normalizeText(text) {
+  return text
     .replace(/<strong>/g, '<b>')
     .replace(/<\/strong>/g, '</b>')
     .replace(/<em>/g, '<i>')
@@ -39,47 +25,27 @@ function normalizeText(str) {
 }
 
 function normalize(value, key = '') {
-  if (value === null || value === undefined) {
-    return value;
-  }
-  if (ArrayBuffer.isView(value)) {
-    value = Array.from(value);
-  }
-  if (Array.isArray(value)) {
-    return value.map(item => normalize(item, key));
-  }
+  if (value === null || value === undefined) return value;
+  if (ArrayBuffer.isView(value)) return Array.from(value);
+  if (Array.isArray(value)) return value.map(item => normalize(item, key));
   if (isPlainObject(value)) {
-    const res = {};
-    for (const k of Object.keys(value)) {
-      if (k === 'uid' || k.startsWith('_')) {
-        continue;
-      }
-      res[k] = normalize(value[k], k);
+    const result = {};
+    for (const name of Object.keys(value)) {
+      if (name === 'uid' || name.startsWith('_')) continue;
+      result[name] = normalize(value[name], name);
     }
-    return res;
+    return result;
   }
-  if (typeof value === 'string' && TEXT_KEYS.has(key)) {
-    return normalizeText(value);
-  }
+  if (typeof value === 'string' && TEXT_KEYS.has(key)) return normalizeText(value);
   return value;
 }
 
-export function countLeaves(val) {
-  if (val === null || val === undefined) {
-    return 1;
-  }
-  if (Array.isArray(val)) {
-    return val.reduce((sum, item) => sum + countLeaves(item), 0);
-  }
-  if (isPlainObject(val)) {
-    let sum = 0;
-    for (const k of Object.keys(val)) {
-      if (k === 'uid' || k.startsWith('_')) continue;
-      sum += countLeaves(val[k]);
-    }
-    return sum;
-  }
-  return 1;
+function countLeaves(value) {
+  if (!isContainer(value)) return 1;
+  if (Array.isArray(value)) return value.reduce((sum, item) => sum + countLeaves(item), 0);
+  return Object.keys(value)
+    .filter(name => name !== 'uid' && !name.startsWith('_'))
+    .reduce((sum, name) => sum + countLeaves(value[name]), 0);
 }
 
 function closeNumber(a, b) {
@@ -89,134 +55,76 @@ function closeNumber(a, b) {
 }
 
 function formatPath(path) {
-  return path.reduce((acc, seg) => {
-    if (typeof seg === 'number') {
-      return `${acc}[${seg}]`;
-    }
-    return acc ? `${acc}.${seg}` : String(seg);
+  return path.reduce((text, segment) => {
+    if (typeof segment === 'number') return `${text}[${segment}]`;
+    return text ? `${text}.${segment}` : String(segment);
   }, '');
 }
-
-function recordMismatch(state, path, expected, actual, kind, count = 1) {
-  state.mismatchCount += count;
-  if (state.differences.length < 10) {
-    state.differences.push({
-      path: formatPath(path),
-      expected,
-      actual,
-      kind
-    });
-  }
-}
-
-function compareValue(expected, actual, path, state) {
-  if (isPlainObject(expected)) {
-    if (!isPlainObject(actual)) {
-      const leaves = countLeaves(expected);
-      const kind = actual === undefined ? 'missing' : 'type';
-      recordMismatch(state, path, expected, actual, kind, leaves);
-      return;
-    }
-    for (const key of Object.keys(expected)) {
-      if (!Object.hasOwn(actual, key)) {
-        const expVal = expected[key];
-        const leaves = countLeaves(expVal);
-        recordMismatch(state, [...path, key], expVal, undefined, 'missing', leaves);
-      } else {
-        compareValue(expected[key], actual[key], [...path, key], state);
-      }
-    }
-    return;
-  }
-
-  if (Array.isArray(expected)) {
-    if (!Array.isArray(actual)) {
-      const leaves = countLeaves(expected);
-      const kind = actual === undefined ? 'missing' : 'type';
-      recordMismatch(state, path, expected, actual, kind, leaves);
-      return;
-    }
-    const eLen = expected.length;
-    const aLen = actual.length;
-    const minLen = Math.min(eLen, aLen);
-    for (let i = 0; i < minLen; i++) {
-      compareValue(expected[i], actual[i], [...path, i], state);
-    }
-    if (aLen < eLen) {
-      for (let i = minLen; i < eLen; i++) {
-        const expItem = expected[i];
-        const leaves = countLeaves(expItem);
-        recordMismatch(state, [...path, i], expItem, undefined, 'missing', leaves);
-      }
-    } else if (aLen > eLen) {
-      for (let i = eLen; i < aLen; i++) {
-        recordMismatch(state, [...path, i], undefined, actual[i], 'extra', 1);
-      }
-    }
-    return;
-  }
-
-  // Primitive or null
-  if (actual === undefined) {
-    recordMismatch(state, path, expected, actual, 'missing', 1);
-    return;
-  }
-
-  if (expected === null) {
-    if (actual !== null) {
-      const kind = typeof actual !== typeof expected ? 'type' : 'value';
-      recordMismatch(state, path, expected, actual, kind, 1);
-    }
-    return;
-  }
-
-  if (typeof expected === 'number') {
-    if (typeof actual !== 'number') {
-      recordMismatch(state, path, expected, actual, 'type', 1);
-    } else if (!closeNumber(expected, actual)) {
-      recordMismatch(state, path, expected, actual, 'value', 1);
-    }
-    return;
-  }
-
-  if (typeof actual !== typeof expected) {
-    recordMismatch(state, path, expected, actual, 'type', 1);
-  } else if (expected !== actual) {
-    recordMismatch(state, path, expected, actual, 'value', 1);
-  }
-}
-
-const STYLE_KEYS = new Set([
-  'color',
-  'colorscale',
-  'fill',
-  'fillcolor',
-  'hoverlabel',
-  'insidetextfont',
-  'line',
-  'marker',
-  'mode',
-  'opacity',
-  'outsidetextfont',
-  'selected',
-  'textfont',
-  'unselected'
-]);
 
 function weightedCategory(path) {
   const root = path[0];
   if (root === 'layout' || root === 'frames' || root === 'config') return 'layout';
   if (root !== 'data') return 'data';
-
-  // Trace count and type are structural. All remaining trace properties are
-  // graded as data, except for the explicitly visual/style subtrees.
   if (path.length === 2 || path[2] === 'type') return 'trace';
   if (path.slice(2).some(segment => STYLE_KEYS.has(segment))) return 'style';
   return 'data';
 }
 
-function createWeightedState() {
-  return {
+function record(state, path, expected, actual, kind) {
+  if (state.differences.length < MAX_DIFFERENCES) {
+    state.differences.push({ path: formatPath(path), expected, actual, kind });
+  }
+}
+
+function mismatch(state, path, expected, actual, kind) {
+  const count = countLeaves(kind === 'extra' ? actual : expected);
+  const category = state.categories[weightedCategory(path)];
+  category.total += count;
+  category.mismatches += count;
+  record(state, path, expected, actual, kind);
+}
+
+function leafKind(expected, actual) {
+  if (actual === undefined) return 'missing';
+  if (expected === null) return actual === null ? null : 'type';
+  if (typeof actual !== typeof expected) return 'type';
+  if (typeof expected === 'number') return closeNumber(expected, actual) ? null : 'value';
+  return expected === actual ? null : 'value';
+}
+
+function compareLeaf(expected, actual, path, state) {
+  const category = state.categories[weightedCategory(path)];
+  category.total++;
+  const kind = leafKind(expected, actual);
+  if (kind) {
+    category.mismatches++;
+    record(state, path, expected, actual, kind);
+  }
+}
+
+function compareValue(expected, actual, path, state) {
+  if (Array.isArray(expected) && Array.isArray(actual)) {
+    const shared = Math.min(expected.length, actual.length);
+    for (let i = 0; i < shared; i++) compareValue(expected[i], actual[i], [...path, i], state);
+    for (let i = shared; i < expected.length; i++) mismatch(state, [...path, i], expected[i], undefined, 'missing');
+    for (let i = shared; i < actual.length; i++) mismatch(state, [...path, i], undefined, actual[i], 'extra');
+  } else if (isPlainObject(expected) && isPlainObject(actual)) {
+    for (const key of Object.keys(expected)) {
+      if (Object.hasOwn(actual, key)) {
+        compareValue(expected[key], actual[key], [...path, key], state);
+      } else {
+        mismatch(state, [...path, key], expected[key], undefined, 'missing');
+      }
+    }
+  } else if (isContainer(expected)) {
+    mismatch(state, path, expected, actual, actual === undefined ? 'missing' : 'type');
+  } else {
+    compareLeaf(expected, actual, path, state);
+  }
+}
+
+export function comparePlotly(target, student, weights) {
+  const state = {
     categories: {
       trace: { total: 0, mismatches: 0 },
       data: { total: 0, mismatches: 0 },
@@ -225,113 +133,14 @@ function createWeightedState() {
     },
     differences: []
   };
-}
+  compareValue(normalizeFigure(target), normalizeFigure(student), [], state);
 
-function recordWeighted(state, path, expected, actual, kind, count = 1) {
-  const category = state.categories[weightedCategory(path)];
-  category.total += count;
-  category.mismatches += count;
-  if (state.differences.length < 10) {
-    state.differences.push({
-      path: formatPath(path),
-      expected,
-      actual,
-      kind
-    });
-  }
-}
-
-function compareWeightedValue(expected, actual, path, state) {
-  if (isPlainObject(expected)) {
-    if (!isPlainObject(actual)) {
-      const leaves = countLeaves(expected);
-      recordWeighted(state, path, expected, actual,
-        actual === undefined ? 'missing' : 'type', leaves);
-      return;
-    }
-    for (const key of Object.keys(expected)) {
-      if (!Object.hasOwn(actual, key)) {
-        const value = expected[key];
-        recordWeighted(state, [...path, key], value, undefined, 'missing', countLeaves(value));
-      } else {
-        compareWeightedValue(expected[key], actual[key], [...path, key], state);
-      }
-    }
-    return;
-  }
-
-  if (Array.isArray(expected)) {
-    if (!Array.isArray(actual)) {
-      recordWeighted(state, path, expected, actual,
-        actual === undefined ? 'missing' : 'type', countLeaves(expected));
-      return;
-    }
-    const shared = Math.min(expected.length, actual.length);
-    for (let i = 0; i < shared; i++) {
-      compareWeightedValue(expected[i], actual[i], [...path, i], state);
-    }
-    for (let i = shared; i < expected.length; i++) {
-      recordWeighted(state, [...path, i], expected[i], undefined, 'missing', countLeaves(expected[i]));
-    }
-    for (let i = shared; i < actual.length; i++) {
-      recordWeighted(state, [...path, i], undefined, actual[i], 'extra', countLeaves(actual[i]));
-    }
-    return;
-  }
-
-  const category = state.categories[weightedCategory(path)];
-  category.total++;
-  if (actual === undefined) {
-    category.mismatches++;
-    if (state.differences.length < 10) {
-      state.differences.push({ path: formatPath(path), expected, actual, kind: 'missing' });
-    }
-    return;
-  }
-
-  let matches = true;
-  if (expected === null) {
-    matches = actual === null;
-  } else if (typeof expected === 'number') {
-    matches = typeof actual === 'number' && closeNumber(expected, actual);
-  } else {
-    matches = typeof actual === typeof expected && actual === expected;
-  }
-  if (!matches) {
-    category.mismatches++;
-    if (state.differences.length < 10) {
-      const kind = expected === null || typeof actual !== typeof expected ? 'type' : 'value';
-      state.differences.push({ path: formatPath(path), expected, actual, kind });
-    }
-  }
-}
-
-function comparePlotlyWeighted(target, student, weights) {
-  const w = {
-    trace: weights.trace ?? 0.3,
-    data: weights.data ?? 0.4,
-    style: weights.style ?? 0.2,
-    layout: weights.layout ?? 0.1
-  };
-  const state = createWeightedState();
-  compareWeightedValue(
-    normalize(normalizeFigure(target)),
-    normalize(normalizeFigure(student)),
-    [],
-    state
-  );
-  const categoryScore = category => {
-    const { total, mismatches } = state.categories[category];
-    return total ? Math.max(0, 1 - mismatches / total) : 1;
-  };
-  const categories = {
-    trace: categoryScore('trace'),
-    data: categoryScore('data'),
-    style: categoryScore('style'),
-    layout: categoryScore('layout')
-  };
-  const score = Math.round((categories.trace * w.trace + categories.data * w.data +
-    categories.style * w.style + categories.layout * w.layout) * 100) / 100;
+  const categories = Object.fromEntries(Object.entries(state.categories).map(([name, { total, mismatches }]) => [
+    name,
+    total ? Math.max(0, 1 - mismatches / total) : 1
+  ]));
+  const score = Math.round((categories.trace * weights.trace + categories.data * weights.data +
+    categories.style * weights.style + categories.layout * weights.layout) * 100) / 100;
   return {
     score: score * 100,
     categories,
@@ -341,34 +150,12 @@ function comparePlotlyWeighted(target, student, weights) {
   };
 }
 
-function comparePlotlyExact(target, student) {
-  const normTarget = normalize(normalizeFigure(target));
-  const normStudent = normalize(normalizeFigure(student));
-
-  const targetLeafCount = countLeaves(normTarget);
-  const state = {
-    mismatchCount: 0,
-    differences: []
-  };
-
-  compareValue(normTarget, normStudent, [], state);
-
-  let score;
-  if (targetLeafCount === 0) {
-    score = state.mismatchCount === 0 ? 100 : 0;
-  } else {
-    const raw = 100 * (1 - state.mismatchCount / targetLeafCount);
-    score = Math.max(0, Math.min(100, Math.round(raw)));
-  }
-
+function normalizeFigure(figure) {
+  const normalized = normalize(figure ?? {});
   return {
-    score,
-    differences: state.differences,
-    mismatchCount: state.mismatchCount,
-    targetLeafCount
+    data: normalized.data ?? [],
+    layout: normalized.layout ?? {},
+    frames: normalized.frames ?? [],
+    config: normalized.config ?? {}
   };
-}
-
-export function comparePlotly(target, student, weights) {
-  return weights ? comparePlotlyWeighted(target, student, weights) : comparePlotlyExact(target, student);
 }
