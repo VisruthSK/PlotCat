@@ -204,16 +204,12 @@ try {
 
   // ── Static source checks ───────────────────────────────────────
   const lua = await readFile(new URL('../_extensions/plotcat/plotcat.lua', import.meta.url), 'utf8');
-  const runtime = await readFile(new URL('../_extensions/plotcat/runtime-manager.js', import.meta.url), 'utf8');
-  const pyodide = await readFile(new URL('../_extensions/plotcat/pyodide-adapter.js', import.meta.url), 'utf8');
-  const webr = await readFile(new URL('../_extensions/plotcat/webr-adapter.js', import.meta.url), 'utf8');
+  const runtime = await readFile(new URL('../_extensions/plotcat/runtimes.js', import.meta.url), 'utf8');
 
   assert.doesNotMatch(lua, /packages_for/);
   assert.doesNotMatch(lua, /packages\s*=/);
   assert.doesNotMatch(runtime, /manifest\.packages/);
   assert.doesNotMatch(runtime, /installPackages/);
-  assert.doesNotMatch(pyodide, /micropip|pyimport|loadPackage/);
-  assert.doesNotMatch(webr, /installPackages/);
 
   console.log(`TIMING: static checks ${secondsSince(t4)}s`);
   console.log(`TIMING: total ${secondsSince(t0)}s`);

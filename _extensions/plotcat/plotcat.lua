@@ -57,21 +57,19 @@ local function extract_engine(block)
   return nil
 end
 
+local function copy_weights()
+  local copy = {}
+  for category, fields in pairs(DEFAULT_WEIGHTS) do
+    copy[category] = {}
+    for field, value in pairs(fields) do
+      copy[category][field] = value
+    end
+  end
+  return copy
+end
+
 local function parse_attributes(attrs, yaml_meta)
-  local weights = {
-    svg = {
-      geometry = DEFAULT_WEIGHTS.svg.geometry,
-      text = DEFAULT_WEIGHTS.svg.text,
-      style = DEFAULT_WEIGHTS.svg.style,
-      frame = DEFAULT_WEIGHTS.svg.frame
-    },
-    plotly = {
-      trace = DEFAULT_WEIGHTS.plotly.trace,
-      data = DEFAULT_WEIGHTS.plotly.data,
-      style = DEFAULT_WEIGHTS.plotly.style,
-      layout = DEFAULT_WEIGHTS.plotly.layout
-    }
-  }
+  local weights = copy_weights()
 
   local yaml_overrides = yaml_meta and yaml_meta.weights
   if yaml_overrides then
@@ -145,6 +143,7 @@ local function widget(id, engine, target, starter, extra_classes, weights_json, 
   local manifest = quarto.json.encode({
     id = id,
     engine = engine,
+    plotly = target:lower():find("plotly", 1, true) ~= nil,
     width = dimensions and dimensions.width or nil,
     height = dimensions and dimensions.height or nil
   })
@@ -168,15 +167,24 @@ local function widget(id, engine, target, starter, extra_classes, weights_json, 
     '  <div class="plotcat-editor-container"><div class="plotcat__editor" id="', escape_html(dom_id), '-editor">\n'
   }
 
+  local mode_labels = {
+    {"side-by-side", "Side by side", true},
+    {"overlay", "Overlay", false},
+    {"wipe", "Wipe", false}
+  }
+  local mode_inputs = {}
+  for _, mode in ipairs(mode_labels) do
+    table.insert(mode_inputs, '        <label><input type="radio" name="' .. escape_html(dom_id) .. '-mode" value="' ..
+      mode[1] .. '"' .. (mode[3] and " checked" or "") .. "> " .. mode[2] .. "</label>\n")
+  end
+
   local html_after_parts = {
     '  </div></div>\n',
     '  <div class="plotcat__actions">\n',
     '    <button class="plotcat__button" type="button" data-plotcat-run>Run</button>\n',
     '    <div class="plotcat__compare plotcat__controls"><span class="plotcat__compare-label">Compare</span>\n',
     '      <div class="plotcat__compare-options">\n',
-    '        <label><input type="radio" name="', escape_html(dom_id), '-mode" value="side-by-side" checked> Side by side</label>\n',
-    '        <label><input type="radio" name="', escape_html(dom_id), '-mode" value="overlay"> Overlay</label>\n',
-    '        <label><input type="radio" name="', escape_html(dom_id), '-mode" value="wipe"> Wipe</label>\n',
+    table.concat(mode_inputs),
     '      </div>\n',
     '    </div>\n',
     '  </div>\n',
@@ -225,7 +233,6 @@ function Div(div)
         })
       end
     elseif cell.t == "CodeBlock" then
-      local engine = extract_engine(cell)
       table.insert(chunks, {
         block = cell,
         cell = pandoc.Div({cell}),
@@ -253,7 +260,7 @@ function Div(div)
     version = "0.3.0",
     scripts = {{path = "plotcat.js", attribs = {type = "module"}}},
     stylesheets = {"plotcat.css"},
-    resources = {"svg.js", "plotly-compare.js", "runtime-manager.js", "webr-adapter.js", "pyodide-adapter.js", "quarto-live-bridge.js", "utils.js"},
+    resources = {"svg.js", "plotly-compare.js", "plotly.js", "runtimes.js", "runtime-r.js", "runtime-python.js"},
     head = '<link rel="preconnect" href="https://cdn.plot.ly" crossorigin><link rel="dns-prefetch" href="https://webr.r-wasm.org"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net">'
   })
 

@@ -1,11 +1,17 @@
-import { parseSvgDoc, serializeSvgDoc, resolveTitle } from './utils.js';
-
 const unsafeUrl = /^\s*(?:https?:|data:|javascript:|\/\/)/i;
 const round = value => String(Math.round(Number(value) * 1000) / 1000);
 const geometryAttributes = ['d','cx','cy','r','x','y','width','height','x1','y1','x2','y2','points','transform'];
 const styleAttributes = ['fill','stroke','opacity','fill-opacity','stroke-opacity','stroke-width'];
 const tagSelector = 'path,circle,rect,line,polygon,polyline,text,clipPath';
 const fragmentUrl = /url\(\s*(['"]?)#([^)'"]+)\1\s*\)/g;
+
+function parseSvgDoc(source) {
+  return new DOMParser().parseFromString(source, 'image/svg+xml');
+}
+
+function serializeSvgDoc(doc) {
+  return new XMLSerializer().serializeToString(doc.documentElement);
+}
 
 export function rewriteSvgIdReferences(value, ids) {
   return value
@@ -121,26 +127,11 @@ export function prepareSvg(source, prefix) {
   return { svg: serializeSvgDoc(doc), features: extractFeaturesFromDoc(doc) };
 }
 
-export function sanitizeSvg(source) {
-  const doc = parseSvgDoc(source);
-  sanitizeDoc(doc);
-  return serializeSvgDoc(doc);
-}
-
-export function scopeSvgIds(source, prefix) {
-  const doc = parseSvgDoc(source);
-  scopeDocIds(doc, prefix);
-  return serializeSvgDoc(doc);
-}
-
-export function normalizeSvg(source) {
-  const doc = parseSvgDoc(source);
-  normalizeDoc(doc);
-  return doc.documentElement;
-}
-
-export function extractFeatures(source) {
-  return extractFeaturesFromDoc(normalizeSvg(source));
+export function displaySvg(container, source, prefix) {
+  const prepared = prepareSvg(source, prefix);
+  const fragment = document.createRange().createContextualFragment(prepared.svg);
+  container.replaceChildren(fragment);
+  return prepared.features;
 }
 
 function bagOverlap(a, b) {
@@ -168,29 +159,11 @@ function frameSimilarity(aAspect, bAspect, dimA, dimB) {
   return Math.abs(aAspect - bAspect) / Math.max(aAspect, bAspect) <= 0.01 ? 1 : 0;
 }
 
-export function compareSvgFeatures(target, student, weights = {}) {
-  const w = {
-    geometry: weights.geometry ?? 0.6,
-    text: weights.text ?? 0.15,
-    style: weights.style ?? 0.1,
-    frame: weights.frame ?? 0.15,
-  };
+export function compareSvgFeatures(target, student, weights) {
   const coarse = bagOverlap(coarseGeometry(target), coarseGeometry(student));
   const text = bagOverlap(target.text, student.text);
   const style = bagOverlap(target.styles, student.styles);
   const frame = frameSimilarity(target.aspect, student.aspect, target.dimensions, student.dimensions);
-  const rawScore = coarse * w.geometry + text * w.text + style * w.style + frame * w.frame;
-  const score = Math.round(rawScore * 1e6) / 1e6;
-  return { score, categories: { geometry: coarse, text, style, frame } };
+  const rawScore = coarse * weights.geometry + text * weights.text + style * weights.style + frame * weights.frame;
+  return Math.round(rawScore * 1e6) / 1e6;
 }
-
-export function compareSvg(target, student, weights) {
-  return compareSvgFeatures(
-    typeof target === 'object' && target !== null && target.counts ? target : extractFeatures(target),
-    typeof student === 'object' && student !== null && student.counts ? student : extractFeatures(student),
-    weights
-  );
-}
-
-export { comparePlotly } from './plotly-compare.js';
-

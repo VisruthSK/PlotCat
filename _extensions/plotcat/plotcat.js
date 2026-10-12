@@ -1,38 +1,47 @@
-import { compareSvgFeatures, comparePlotly, prepareSvg } from './svg.js';
-import { withRetry, errorMessage } from './utils.js';
-import { runtimeManager } from './runtime-manager.js';
+import { compareSvgFeatures, displaySvg } from './svg.js';
+import { comparePlotly } from './plotly-compare.js';
+import { loadPlotly, renderPlotly } from './plotly.js';
+import { renderPlot, ENGINES } from './runtimes.js';
 
-let plotlyPromise;
-
-function loadPlotly() {
-  if (window.Plotly) {
-    return Promise.resolve(window.Plotly);
+const outputs = {
+  svg: {
+    show: (container, result, prefix) => displaySvg(container, result.svg, prefix),
+    score: (target, student, weights) => compareSvgFeatures(target, student, weights.svg)
+  },
+  plotly: {
+    show: async (container, result) => {
+      await loadPlotly();
+      await renderPlotly(container, result.figure);
+      return result.figure;
+    },
+    score: (target, student, weights) => comparePlotly(target, student, weights.plotly).score / 100
   }
+};
 
-  if (!plotlyPromise) {
-    plotlyPromise = withRetry(() => new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.plot.ly/plotly-3.6.0.min.js';
-      script.onload = () => resolve(window.Plotly);
-      script.onerror = () => reject(new Error(
-        'Could not load Plotly from the CDN. Check your internet connection ' +
-        'and any network restrictions. Plotly exercises need access to ' +
-        'https://cdn.plot.ly/plotly-3.6.0.min.js.'
-      ));
-      document.head.appendChild(script);
-    })).catch(error => {
-      plotlyPromise = undefined;
-      throw error;
-    });
-  }
-
-  return plotlyPromise;
+function whenVisible(element) {
+  if (!('IntersectionObserver' in window)) return Promise.resolve();
+  return new Promise(resolve => {
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        observer.disconnect();
+        resolve();
+      }
+    }, { rootMargin: '400px' });
+    observer.observe(element);
+  });
 }
 
 function decodeTarget(encoded) {
   const binary = atob(encoded);
-  const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
+  return new TextDecoder().decode(Uint8Array.from(binary, char => char.charCodeAt(0)));
+}
+
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function resultError(result) {
+  return new Error([result.message, result.output].filter(Boolean).join('\n'));
 }
 
 function setMode(root, mode) {
@@ -40,14 +49,14 @@ function setMode(root, mode) {
   root.classList.add(`plotcat--${mode}`);
 }
 
-function packageHint(msg) {
-  if (msg.includes('requireNamespace') || msg.includes('package is not available') || (msg.includes('not') && msg.includes('module'))) {
-    return msg + ' Required packages must be listed under `format.live-html` in your Quarto config.';
+function packageHint(message) {
+  if (message.includes('requireNamespace') || message.includes('package is not available') || (message.includes('not') && message.includes('module'))) {
+    return message + ' Required packages must be listed under `format.live-html` in your Quarto config.';
   }
-  return msg;
+  return message;
 }
 
-function limitPlotlyToSideBySide(root) {
+function limitToSideBySide(root) {
   const radios = root.querySelectorAll('input[value="overlay"], input[value="wipe"]');
   root.querySelector('input[value="side-by-side"]').checked = true;
   radios.forEach(input => {
@@ -55,113 +64,59 @@ function limitPlotlyToSideBySide(root) {
     input.closest('label').title = 'Overlay and wipe are unavailable for Plotly charts.';
   });
   setMode(root, 'side-by-side');
-  return radios;
-}
-
-function svgFragment(svg) {
-  return document.createRange().createContextualFragment(svg);
 }
 
 function studentCode(root) {
-  const editor = root.querySelector(
-    '.plotcat__editor .cm-content'
-  );
-
+  const editor = root.querySelector('.plotcat__editor .cm-content');
   if (!editor) {
     throw new Error(
       "PlotCat could not find Quarto Live's code editor. " +
       "Ensure Quarto Live is installed and use `format: live-html`."
     );
   }
-
   return editor.innerText;
 }
 
-async function renderPlotly(target, figure) {
-  const previous = target.querySelector('.js-plotly-plot');
-  if (previous && window.Plotly) {
-    window.Plotly.purge(previous);
-  }
-  target.replaceChildren();
-  target.style.height = '280px';
-  const div = document.createElement('div');
-  div.style.width = '100%';
-  div.style.height = '100%';
-  div.style.alignSelf = 'stretch';
-  div.style.flexGrow = '1';
-  target.appendChild(div);
-
-  const layout = structuredClone(figure.layout || {});
-  delete layout.width;
-  delete layout.height;
-  layout.autosize = true;
-  layout.margin = {
-    l: 40,
-    r: 10,
-    t: 30,
-    b: 40,
-    ...layout.margin
-  };
-
-  const config = { ...(figure.config || {}), responsive: true, displayModeBar: false };
-  await Plotly.newPlot(div, figure.data || [], layout, config);
-  if (Array.isArray(figure.frames) && figure.frames.length > 0) {
-    await Plotly.addFrames(div, figure.frames);
-  }
-  return div;
+function scoreHue(score) {
+  if (score < 0.5) return score * 2 * 35;
+  if (score < 0.8) return 35 + ((score - 0.5) / 0.3) * 25;
+  return 60 + ((score - 0.8) / 0.2) * 60;
 }
 
-export function mountPlotCat(root, manager) {
-  const mgr = (manager && typeof manager.get === 'function') ? manager : runtimeManager;
+export function mountPlotCat(root) {
   const manifest = JSON.parse(root.dataset.plotcatManifest);
-  const adapterPromise = mgr.get(manifest.engine);
-  adapterPromise.catch(() => {});
-
   const weights = JSON.parse(atob(root.dataset.plotcatWeights));
   const run = root.querySelector('[data-plotcat-run]');
   const status = root.querySelector('.plotcat__status');
   const target = root.querySelector('[data-plotcat-target]');
   const student = root.querySelector('[data-plotcat-student]');
+  const size = { width: manifest.width || 7, height: manifest.height || 5 };
+  const prefix = (root.id || manifest.id || 'plotcat').replace(/[^a-zA-Z0-9_-]/g, '-');
+  const label = ENGINES[manifest.engine].label;
 
-  const targetCodeBase64 = root.dataset.plotcatTargetCode;
-  const svgPrefix = (root.id || manifest.id || 'plotcat').replace(/[^a-zA-Z0-9_-]/g, '-');
+  let targetKind = null;
+  let targetCaptured = null;
 
-  let width = manifest.width || 7;
-  let height = manifest.height || 5;
-
-  let targetSvg = null;
-  let targetFeatures = null;
-  let targetFigure = null;
-  let outputType = null;
+  const visible = whenVisible(root);
+  if (manifest.plotly) visible.then(() => loadPlotly().catch(() => {}));
 
   async function renderTarget() {
-    const targetCode = decodeTarget(targetCodeBase64);
-    const adapter = await adapterPromise;
-
-    status.textContent = 'Rendering target…';
-    const result = await mgr.run(manifest.engine, () => adapter.renderSvg(targetCode, { width, height }));
-
+    const targetCode = decodeTarget(root.dataset.plotcatTargetCode);
+    await visible;
+    status.textContent = `Loading ${label}…`;
+    const result = await renderPlot(manifest.engine, targetCode, size);
+    const output = outputs[result.kind];
+    if (!output) throw resultError(result);
     if (result.kind === 'plotly') {
-      outputType = 'plotly';
-      targetFigure = result.figure;
       status.textContent = 'Loading Plotly…';
-      await loadPlotly();
-      limitPlotlyToSideBySide(root);
-      await renderPlotly(target, targetFigure);
-    } else if (result.kind === 'svg') {
-      outputType = 'svg';
-      const result_ = prepareSvg(result.svg, `${svgPrefix}-target`);
-      targetSvg = result_.svg;
-      targetFeatures = result_.features;
-      target.replaceChildren(svgFragment(result_.svg));
-    } else {
-      throw new Error(result.message);
+      limitToSideBySide(root);
     }
+    targetCaptured = await output.show(target, result, `${prefix}-target`);
+    targetKind = result.kind;
   }
 
-  if (targetCodeBase64) {
+  if (root.dataset.plotcatTargetCode) {
     run.disabled = true;
-    status.textContent = `Loading ${manifest.engine === 'r' ? 'WebR' : 'Pyodide'}…`;
     renderTarget()
       .then(() => { status.textContent = ''; run.disabled = false; })
       .catch(error => {
@@ -171,22 +126,19 @@ export function mountPlotCat(root, manager) {
         run.disabled = false;
       });
   } else {
-    const targetSvgEl = target.querySelector('svg');
-    if (targetSvgEl) {
-      outputType = 'svg';
-      const result_ = prepareSvg(targetSvgEl.outerHTML, `${svgPrefix}-target`);
-      targetSvg = result_.svg;
-      targetFeatures = result_.features;
-      target.replaceChildren(svgFragment(result_.svg));
+    const staticSvg = target.querySelector('svg');
+    if (staticSvg) {
+      targetKind = 'svg';
+      targetCaptured = displaySvg(target, staticSvg.outerHTML, `${prefix}-target`);
       status.textContent = '';
       run.disabled = false;
     }
   }
 
-  const radios = root.querySelectorAll('input[type=radio]');
-  radios.forEach(input => {
+  root.querySelectorAll('input[type=radio]').forEach(input => {
     input.addEventListener('change', () => setMode(root, input.value));
   });
+
   const wipeHandle = root.querySelector('[data-plotcat-wipe-handle]');
   const plotBody = root.querySelector('.plotcat__body');
   let wipeValue = 50;
@@ -195,7 +147,7 @@ export function mountPlotCat(root, manager) {
     const percent = Math.round(Math.max(0, Math.min(100, Number(value))));
     wipeValue = percent;
     root.style.setProperty('--plotcat-wipe', `${percent}%`);
-    if (wipeHandle) wipeHandle.setAttribute('aria-valuenow', String(percent));
+    wipeHandle.setAttribute('aria-valuenow', String(percent));
   }
 
   if (wipeHandle && plotBody) {
@@ -219,62 +171,31 @@ export function mountPlotCat(root, manager) {
     });
     wipeHandle.addEventListener('pointercancel', () => { dragging = false; });
     wipeHandle.addEventListener('keydown', event => {
-      const current = wipeValue;
-      const next = event.key === 'Home' ? 0
-        : event.key === 'End' ? 100
-        : event.key === 'ArrowLeft' || event.key === 'ArrowDown' ? current - 1
-        : event.key === 'ArrowRight' || event.key === 'ArrowUp' ? current + 1
-        : null;
-      if (next !== null) {
+      const steps = { Home: 0, End: 100, ArrowLeft: wipeValue - 1, ArrowDown: wipeValue - 1, ArrowRight: wipeValue + 1, ArrowUp: wipeValue + 1 };
+      if (event.key in steps) {
         event.preventDefault();
-        setWipe(next);
+        setWipe(steps[event.key]);
       }
     });
   }
 
   run.addEventListener('click', async () => {
-    if (!targetSvg && !targetFigure) return;
+    if (!targetKind) return;
     root.classList.remove('plotcat--error', 'plotcat--complete');
     root.classList.add('plotcat--running');
     run.disabled = true;
     status.textContent = 'Running…';
     try {
-      const adapter = await mgr.get(manifest.engine);
-      const result = await mgr.run(manifest.engine, () => adapter.renderSvg(studentCode(root), { width, height }));
+      const result = await renderPlot(manifest.engine, studentCode(root), size);
+      const output = outputs[result.kind];
+      if (!output) throw resultError(result);
+      if (result.kind !== targetKind) throw new Error('Student output must use the same plot type as the target.');
+      const studentCaptured = await output.show(student, result, `${prefix}-student`);
+      const score = output.score(targetCaptured, studentCaptured, weights);
 
-      let score;
-      if (result.kind === 'plotly') {
-        if (outputType !== 'plotly') {
-          throw new Error('Student output must use the same plot type as the target.');
-        }
-        status.textContent = 'Loading Plotly…';
-        await loadPlotly();
-        await renderPlotly(student, result.figure);
-        score = comparePlotly(targetFigure, result.figure, weights.plotly).score / 100;
-      } else if (result.kind === 'svg') {
-        if (outputType !== 'svg') {
-          throw new Error('Student output must use the same plot type as the target.');
-        }
-        const result_ = prepareSvg(result.svg, `${svgPrefix}-student`);
-        student.replaceChildren(svgFragment(result_.svg));
-        score = compareSvgFeatures(targetFeatures, result_.features, weights.svg).score;
-      } else if (result.kind === 'no-plot') {
-        throw new Error(result.message);
-      } else {
-        throw new Error(result.traceback ? `${result.message}\n${result.traceback}` : result.message);
-      }
-
-      let hue;
-      if (score < 0.5) {
-        hue = score * 2 * 35;
-      } else if (score < 0.8) {
-        hue = 35 + ((score - 0.5) / 0.3) * 25;
-      } else {
-        hue = 60 + ((score - 0.8) / 0.2) * 60;
-      }
       const scoreEl = root.querySelector('.plotcat__score');
       scoreEl.textContent = `${Math.round(score * 100)}%`;
-      scoreEl.style.setProperty('--plotcat-score-hue', Math.round(hue));
+      scoreEl.style.setProperty('--plotcat-score-hue', Math.round(scoreHue(score)));
       status.textContent = '';
       root.classList.add('plotcat--complete');
     } catch (error) {
@@ -287,4 +208,4 @@ export function mountPlotCat(root, manager) {
   });
 }
 
-document.querySelectorAll('.plotcat[data-plotcat-manifest]').forEach(el => mountPlotCat(el));
+document.querySelectorAll('.plotcat[data-plotcat-manifest]').forEach(mountPlotCat);

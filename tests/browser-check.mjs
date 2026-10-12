@@ -10,49 +10,64 @@ async function load() {
   await page.waitForFunction(() => window.fixtureReady === true);
 }
 
-async function runWithDifferentOutputTypes(targetResult, studentResult) {
+const liveHelpers = `
+window.installLive = (responses, failure) => {
+  const queue = [...responses];
+  const runtime = {
+    evalRVoid: async () => {},
+    evalRString: async () => queue.shift(),
+    runPythonAsync: async code => code.startsWith('plotcat_render(') ? queue.shift() : undefined
+  };
+  const promise = failure ? Promise.reject(new Error(failure)) : Promise.resolve(runtime);
+  window._ojs = { ojsConnector: { mainModule: { value: async key => ({
+    webROjs: { webRPromise: promise },
+    pyodideOjs: { pyodidePromise: promise }
+  })[key] } } };
+};
+window.waitIdle = root => new Promise(resolve => {
+  const poll = () => root.querySelector('[data-plotcat-run]').disabled ? setTimeout(poll, 5) : resolve();
+  poll();
+});
+`;
+await page.addInitScript(liveHelpers);
+
+async function runWithDifferentOutputTypes(targetRaw, studentRaw) {
   await load();
-  return page.evaluate(async ({ targetResult, studentResult }) => {
+  return page.evaluate(async ({ targetRaw, studentRaw }) => {
     const root = document.querySelector('.plotcat');
     root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
     root.dataset.plotcatTargetCode = btoa('target');
     window.Plotly = { newPlot: async () => {}, addFrames: async () => {}, purge: () => {} };
-    const results = [targetResult, studentResult];
-    window.plotcatUi.mountPlotCat(root, {
-      get: async () => ({ renderSvg: async () => results.shift() }),
-      run: async (_engine, task) => task()
-    });
-    const run = root.querySelector('[data-plotcat-run]');
-    await new Promise(resolve => {
-      const poll = () => run.disabled ? setTimeout(poll, 0) : resolve();
-      poll();
-    });
-    run.click();
-    await new Promise(resolve => setTimeout(resolve, 0));
+    installLive([targetRaw, studentRaw]);
+    window.plotcatUi.mountPlotCat(root);
+    await waitIdle(root);
+    root.querySelector('[data-plotcat-run]').click();
+    await waitIdle(root);
     return {
       status: root.querySelector('.plotcat__status').textContent,
       complete: root.classList.contains('plotcat--complete')
     };
-  }, { targetResult, studentResult });
+  }, { targetRaw, studentRaw });
 }
 
 try {
   await load();
-  const sanitized = await page.evaluate(() => window.plotcatSvg.sanitizeSvg(`<svg xmlns="http://www.w3.org/2000/svg"><!-- note --><metadata>private</metadata><script>alert(1)</script><foreignObject>bad</foreignObject><rect onclick="bad()" fill="url(https://bad.test/a)"/><image href="data:image/png;base64,abc"/><use href="#safe"/></svg>`));
+  const sanitized = await page.evaluate(() => window.plotcatSvg.prepareSvg('<svg xmlns="http://www.w3.org/2000/svg"><!-- note --><metadata>private</metadata><script>alert(1)</script><foreignObject>bad</foreignObject><rect onclick="bad()" fill="url(https://bad.test/a)"/><image href="data:image/png;base64,abc"/><use href="#safe"/></svg>', 'safe').svg);
   assert.doesNotMatch(sanitized, /script|foreignObject|metadata|onclick|https:|data:image|note/);
   assert.match(sanitized, /href="#safe"/);
   const malformed = await page.evaluate(() => {
-    try { window.plotcatSvg.sanitizeSvg('<html/>'); return ''; } catch (error) { return error.message; }
+    try { window.plotcatSvg.prepareSvg('<html/>', 'safe'); return ''; } catch (error) { return error.message; }
   });
   assert.match(malformed, /valid SVG/);
 
-  const scoped = await page.evaluate(() => window.plotcatSvg.scopeSvgIds('<svg xmlns="http://www.w3.org/2000/svg"><defs><path id="glyph"/><clipPath id="clip"><rect/></clipPath></defs><use href="#glyph"/><g clip-path="url(#clip)"/></svg>', 'student'));
-  assert.match(scoped, /id="student-glyph"/);
-  assert.match(scoped, /href="#student-glyph"/);
-  assert.match(scoped, /url\(#student-clip\)/);
+  const scoped = await page.evaluate(() => window.plotcatSvg.prepareSvg('<svg xmlns="http://www.w3.org/2000/svg"><defs><path id="glyph"/><clipPath id="clip"><rect/></clipPath></defs><use href="#glyph"/><g clip-path="url(#clip)"/></svg>', 'student').svg);
+  assert.match(scoped, /id="student-id0"/);
+  assert.match(scoped, /href="#student-id0"/);
+  assert.match(scoped, /url\(#student-id1\)/);
 
   const normalized = await page.evaluate(() => {
-    const element = window.plotcatSvg.normalizeSvg(`<svg xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="generated"><rect width="1.23456"/></clipPath></defs><g clip-path="url(#generated)" style="stroke: red; fill: blue"/></svg>`);
+    const source = '<svg xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="generated"><rect width="1.23456"/></clipPath></defs><g clip-path="url(#generated)" style="stroke: red; fill: blue"/></svg>';
+    const element = new DOMParser().parseFromString(window.plotcatSvg.prepareSvg(source, 'p').svg, 'image/svg+xml').documentElement;
     return {
       id: element.querySelector('clipPath').id,
       reference: element.querySelector('g').getAttribute('clip-path'),
@@ -60,30 +75,7 @@ try {
       style: element.querySelector('g').getAttribute('style')
     };
   });
-  assert.deepEqual(normalized, { id: 'id0', reference: 'url(#id0)', width: '1.235', style: 'fill: blue;stroke: red' });
-
-  const preparedReferences = await page.evaluate(() => {
-    const source = `<svg xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <path id="marker" d="M0 0h1v1z"/>
-        <clipPath id="clip"><rect width="1" height="1"/></clipPath>
-      </defs>
-      <use href="#marker"/>
-      <g clip-path="url('#clip')"/>
-    </svg>`;
-    const prepared = window.plotcatSvg.prepareSvg(source, 'plot');
-    const doc = new DOMParser().parseFromString(prepared.svg, 'image/svg+xml');
-    return {
-      ids: [...doc.querySelectorAll('[id]')].map(node => node.id),
-      href: doc.querySelector('use').getAttribute('href'),
-      clip: doc.querySelector('g').getAttribute('clip-path')
-    };
-  });
-  assert.deepEqual(preparedReferences, {
-    ids: ['plot-id0', 'plot-id1'],
-    href: '#plot-id0',
-    clip: 'url(#plot-id1)'
-  });
+  assert.deepEqual(normalized, { id: 'p-id0', reference: 'url(#p-id0)', width: '1.235', style: 'fill: blue;stroke: red' });
 
   const rendererFixtures = [
     {
@@ -197,56 +189,58 @@ try {
   }
 
   const comparison = await page.evaluate(() => {
-    const target = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/><text x="1" y="2">Speed</text></svg>`;
-    const same = window.plotcatSvg.compareSvg(target, target);
-    const different = window.plotcatSvg.compareSvg(target, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><rect fill="blue"/><rect/><text>Distance</text></svg>`);
-    return { same, different, features: window.plotcatSvg.extractFeatures(target) };
+    const weights = { geometry: 0.6, text: 0.15, style: 0.1, frame: 0.15 };
+    window.scoreSvg = (a, b) => window.plotcatSvg.compareSvgFeatures(
+      window.plotcatSvg.prepareSvg(a, 'target').features,
+      window.plotcatSvg.prepareSvg(b, 'student').features,
+      weights
+    );
+    const target = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/><text x="1" y="2">Speed</text></svg>';
+    return {
+      same: window.scoreSvg(target, target),
+      different: window.scoreSvg(target, '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><rect fill="blue"/><rect/><text>Distance</text></svg>'),
+      counts: window.plotcatSvg.prepareSvg(target, 'features').features.counts
+    };
   });
-  assert.equal(comparison.same.score, 1);
-  assert.ok(comparison.different.score < comparison.same.score);
-  assert.equal(comparison.different.categories.text, 0);
-  assert.equal(comparison.features.counts.circle, 1);
+  assert.equal(comparison.same, 1);
+  assert.ok(comparison.different < comparison.same);
+  assert.equal(comparison.counts.circle, 1);
 
   const rendererTolerance = await page.evaluate(() => {
     const target = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20.1" cy="40.1" r="2" fill="red"/><text x="10" y="90">Speed</text></svg>';
     const equivalent = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500pt" height="500pt"><circle cx="100.4" cy="200.4" r="10" fill="red"/><text x="48" y="451">Speed</text></svg>';
     const changed = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="80" cy="10" r="20" fill="blue"/><text x="10" y="90">Distance</text></svg>';
-    return { equivalent: window.plotcatSvg.compareSvg(target, equivalent), changed: window.plotcatSvg.compareSvg(target, changed) };
+    return { equivalent: window.scoreSvg(target, equivalent), changed: window.scoreSvg(target, changed) };
   });
-  assert.equal(rendererTolerance.equivalent.score, 1);
-  assert.ok(rendererTolerance.changed.score < 1);
+  assert.equal(rendererTolerance.equivalent, 1);
+  assert.ok(rendererTolerance.changed < 1);
 
   const swappedScore = await page.evaluate(() => {
     const target = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="5" fill="red"/><circle cx="90" cy="90" r="5" fill="blue"/></svg>';
     const swapped = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="90" r="5" fill="red"/><circle cx="90" cy="10" r="5" fill="blue"/></svg>';
-    return window.plotcatSvg.compareSvg(target, swapped);
+    return window.scoreSvg(target, swapped);
   });
-  assert.ok(swappedScore.score < 0.6, 'swapped positions should score below 0.6');
+  assert.ok(swappedScore < 0.6, 'swapped positions should score below 0.6');
 
   const scatteredWrong = await page.evaluate(() => {
     const target = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="1" cy="1" r="0.2" fill="red"/><circle cx="2" cy="3" r="0.2" fill="red"/><circle cx="4" cy="5" r="0.2" fill="red"/></svg>';
     const wrong = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="8" cy="8" r="0.2" fill="red"/><circle cx="7" cy="6" r="0.2" fill="red"/><circle cx="5" cy="4" r="0.2" fill="red"/></svg>';
-    return window.plotcatSvg.compareSvg(target, wrong);
+    return window.scoreSvg(target, wrong);
   });
-  assert.ok(scatteredWrong.score < 0.6, 'wrong positions should score below 0.6');
+  assert.ok(scatteredWrong < 0.6, 'wrong positions should score below 0.6');
 
   await load();
   const successfulRun = await page.evaluate(async () => {
     const root = document.querySelector('.plotcat');
     root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
-    const { runtimeManager } = await import('../../_extensions/plotcat/runtime-manager.js');
-    const calls = [];
-    runtimeManager.get = async engine => { calls.push({ engine }); return { renderSvg: async () => ({ kind: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>bad()</script><circle fill="red"/></svg>' }) }; };
-    runtimeManager.run = async (_engine, task) => task();
+    installLive(['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>bad()</script><circle fill="red"/></svg>']);
     window.plotcatUi.mountPlotCat(root);
-    const wipeMode = root.querySelector('input[value=wipe]'); wipeMode.click();
-    const handle = root.querySelector('[data-plotcat-wipe-handle]');
-    handle.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
-    const overlay = root.querySelector('input[value=overlay]'); overlay.click();
+    root.querySelector('input[value=wipe]').click();
+    root.querySelector('[data-plotcat-wipe-handle]').dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    root.querySelector('input[value=overlay]').click();
     root.querySelector('[data-plotcat-run]').click();
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await waitIdle(root);
     return {
-      engine: calls[0].engine,
       overlay: root.classList.contains('plotcat--overlay'),
       wipe: root.style.getPropertyValue('--plotcat-wipe'),
       student: root.querySelector('[data-plotcat-student]').innerHTML,
@@ -256,34 +250,24 @@ try {
       enabled: !root.querySelector('[data-plotcat-run]').disabled
     };
   });
-  assert.deepEqual(successfulRun, { engine: 'r', overlay: true, wipe: '100%', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: '', complete: true, enabled: true });
+  assert.deepEqual(successfulRun, { overlay: true, wipe: '100%', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: '', complete: true, enabled: true });
 
   await load();
   const forEachRun = await page.evaluate(async () => {
     const root = document.querySelector('.plotcat');
     root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
-    const { runtimeManager } = await import('../../_extensions/plotcat/runtime-manager.js');
-    const calls = [];
-    runtimeManager.get = async engine => {
-      calls.push({ engine });
-      return { renderSvg: async () => ({ kind: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg>' }) };
-    };
-    runtimeManager.run = async (_engine, task) => task();
-
-    // Call using forEach to simulate automatic mounting (passes index as second argument)
+    installLive(['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"/></svg>']);
     [root].forEach(window.plotcatUi.mountPlotCat);
-
     root.querySelector('[data-plotcat-run]').click();
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await waitIdle(root);
     return {
-      engine: calls[0]?.engine,
       student: root.querySelector('[data-plotcat-student]').innerHTML,
       score: root.querySelector('.plotcat__score').textContent,
       status: root.querySelector('.plotcat__status').textContent,
       complete: root.classList.contains('plotcat--complete')
     };
   });
-  assert.deepEqual(forEachRun, { engine: 'r', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: '', complete: true });
+  assert.deepEqual(forEachRun, { student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: '', complete: true });
 
   await load();
   const plotlyRendering = await page.evaluate(async () => {
@@ -302,13 +286,9 @@ try {
       frames: [{ name: 'step-1', data: [{ y: [3] }] }],
       config: { scrollZoom: true, displayModeBar: true }
     };
-    const adapter = { renderSvg: async () => ({ kind: 'plotly', figure }) };
-    const manager = { get: async () => adapter, run: async (_engine, task) => task() };
-    window.plotcatUi.mountPlotCat(root, manager);
-    await new Promise(resolve => {
-      const poll = () => root.querySelector('[data-plotcat-run]').disabled ? setTimeout(poll, 0) : resolve();
-      poll();
-    });
+    installLive([JSON.stringify({ type: 'plotly', data: figure })]);
+    window.plotcatUi.mountPlotCat(root);
+    await waitIdle(root);
     return calls;
   });
   assert.deepEqual(plotlyRendering, [
@@ -328,8 +308,10 @@ try {
   await load();
   const failedRun = await page.evaluate(async () => {
     const root = document.querySelector('.plotcat'); root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
-    window.plotcatUi.mountPlotCat(root, { get: async () => { throw new Error('R package tinyplot is unavailable.'); }, run: async () => {} });
-    root.querySelector('[data-plotcat-run]').click(); await new Promise(resolve => setTimeout(resolve, 0));
+    installLive([], 'R package tinyplot is unavailable.');
+    window.plotcatUi.mountPlotCat(root);
+    root.querySelector('[data-plotcat-run]').click();
+    await waitIdle(root);
     return { status: root.querySelector('.plotcat__status').textContent, error: root.classList.contains('plotcat--error'), enabled: !root.querySelector('[data-plotcat-run]').disabled };
   });
   assert.deepEqual(failedRun, { status: 'R package tinyplot is unavailable.', error: true, enabled: true });
@@ -339,11 +321,9 @@ try {
     const root = document.querySelector('.plotcat');
     root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
     root.dataset.plotcatTargetCode = btoa('target');
-    window.plotcatUi.mountPlotCat(root, {
-      get: async () => { throw new Error('target failed'); },
-      run: async () => {}
-    });
-    await new Promise(resolve => setTimeout(resolve, 0));
+    installLive([], 'target failed');
+    window.plotcatUi.mountPlotCat(root);
+    await waitIdle(root);
     return {
       status: root.querySelector('.plotcat__status').textContent,
       enabled: !root.querySelector('[data-plotcat-run]').disabled
@@ -351,8 +331,8 @@ try {
   });
   assert.deepEqual(failedTarget, { status: 'Error rendering target: target failed', enabled: true });
 
-  const svg = { kind: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg"><circle/></svg>' };
-  const plotly = { kind: 'plotly', figure: { data: [] } };
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg"><circle/></svg>';
+  const plotly = JSON.stringify({ type: 'plotly', data: { data: [] } });
   for (const [target, student] of [[svg, plotly], [plotly, svg]]) {
     assert.deepEqual(
       await runWithDifferentOutputTypes(target, student),
