@@ -1,30 +1,26 @@
 const unsafeUrl = /^\s*(?:https?:|data:|javascript:|\/\/)/i;
+const unsafeUrlFunction = /url\(\s*['"]?(?:https?:|data:|javascript:|\/\/)/i;
+const numberPattern = /-?\d*\.\d+(?:e[-+]?\d+)?/gi;
+const whitespaceRun = /\s+/g;
 const round = value => String(Math.round(Number(value) * 1000) / 1000);
 const geometryAttributes = ['d','cx','cy','r','x','y','width','height','x1','y1','x2','y2','points','transform'];
 const styleAttributes = ['fill','stroke','opacity','fill-opacity','stroke-opacity','stroke-width'];
 const tagSelector = 'path,circle,rect,line,polygon,polyline,text,clipPath';
 const fragmentUrl = /url\(\s*(['"]?)#([^)'"]+)\1\s*\)/g;
+const genericFontFamily = /^sans$|^sans-serif$|^serif$|^monospace$/i;
 
 function parseSvgDoc(source) {
   return new DOMParser().parseFromString(source, 'image/svg+xml');
 }
 
-function serializeSvgDoc(doc) {
-  return new XMLSerializer().serializeToString(doc.documentElement);
+function serializeSvgElement(element) {
+  return new XMLSerializer().serializeToString(element);
 }
 
 export function rewriteSvgIdReferences(value, ids) {
   return value
     .replace(fragmentUrl, (_, _quote, id) => `url(#${ids.get(id) || id})`)
     .replace(/^#(.+)$/, (_, id) => `#${ids.get(id) || id}`);
-}
-
-function rewriteDocIdReferences(doc, ids) {
-  doc.querySelectorAll('*').forEach(node => {
-    for (const attr of [...node.attributes]) {
-      attr.value = rewriteSvgIdReferences(attr.value, ids);
-    }
-  });
 }
 
 function sanitizeDoc(doc) {
@@ -35,51 +31,50 @@ function sanitizeDoc(doc) {
   const comments = [];
   while (walker.nextNode()) comments.push(walker.currentNode);
   comments.forEach(node => node.remove());
-  doc.querySelectorAll('*').forEach(node => {
-    for (const attr of [...node.attributes]) {
-      const isLink = attr.name === 'href' || attr.name.endsWith(':href');
-      if (/^on/i.test(attr.name) || (isLink && unsafeUrl.test(attr.value)) ||
-          /url\(\s*['"]?(?:https?:|data:|javascript:|\/\/)/i.test(attr.value)) {
-        node.removeAttribute(attr.name);
-      }
-    }
-  });
 }
 
-function normalizeDoc(doc) {
+function unsafeAttribute({ name, value }) {
+  const isLink = name === 'href' || name.endsWith(':href');
+  return /^on/i.test(name) || (isLink && unsafeUrl.test(value)) || unsafeUrlFunction.test(value);
+}
+
+function scopeIds(doc, prefix) {
   const ids = new Map();
   let index = 0;
   doc.querySelectorAll('[id]').forEach(node => {
-    const old = node.id;
-    const id = `id${index++}`;
-    ids.set(old, id);
-    node.id = id;
+    const scoped = `${prefix}-id${index++}`;
+    ids.set(node.id, scoped);
+    node.id = scoped;
   });
-  rewriteDocIdReferences(doc, ids);
+  return ids;
+}
+
+function normalizeValue(value, name, ids) {
+  if (value.includes('#')) value = rewriteSvgIdReferences(value, ids);
+  if (value.includes('.')) value = value.replace(numberPattern, round);
+  if (/\s/.test(value)) value = value.replace(whitespaceRun, ' ').trim();
+  if (name === 'style') value = value.split(';').filter(Boolean).map(x => x.trim()).sort().join(';');
+  return value;
+}
+
+function normalizeDoc(doc, ids) {
   doc.querySelectorAll('*').forEach(node => {
-    for (const attr of [...node.attributes]) {
-      let value = attr.value.replace(/-?\d*\.\d+(?:e[-+]?\d+)?/gi, round).replace(/\s+/g, ' ').trim();
-      if (attr.name === 'style') value = value.split(';').filter(Boolean).map(x => x.trim()).sort().join(';');
-      attr.value = value;
+    for (let i = node.attributes.length - 1; i >= 0; i--) {
+      const attr = node.attributes[i];
+      if (unsafeAttribute(attr)) {
+        node.removeAttribute(attr.name);
+        continue;
+      }
+      const value = normalizeValue(attr.value, attr.name, ids);
+      if (value !== attr.value) attr.value = value;
     }
   });
   doc.querySelectorAll('text').forEach(node => {
     const family = node.getAttribute('font-family');
-    if (!family || /^sans$|^sans-serif$|^serif$|^monospace$/i.test(family.trim())) {
+    if (!family || genericFontFamily.test(family.trim())) {
       node.setAttribute('font-family', 'system-ui, -apple-system, sans-serif');
     }
   });
-}
-
-function scopeDocIds(doc, prefix) {
-  const ids = new Map();
-  doc.querySelectorAll('[id]').forEach(node => {
-    const original = node.id;
-    const scoped = `${prefix}-${original}`;
-    ids.set(original, scoped);
-    node.id = scoped;
-  });
-  rewriteDocIdReferences(doc, ids);
 }
 
 function extractFeaturesFromDoc(doc) {
@@ -122,15 +117,19 @@ function extractFeaturesFromDoc(doc) {
 export function prepareSvg(source, prefix) {
   const doc = parseSvgDoc(source);
   sanitizeDoc(doc);
-  normalizeDoc(doc);
-  scopeDocIds(doc, prefix);
-  return { svg: serializeSvgDoc(doc), features: extractFeaturesFromDoc(doc) };
+  const ids = scopeIds(doc, prefix);
+  normalizeDoc(doc, ids);
+  const element = doc.documentElement;
+  return {
+    element,
+    get svg() { return serializeSvgElement(element); },
+    features: extractFeaturesFromDoc(doc)
+  };
 }
 
 export function displaySvg(container, source, prefix) {
   const prepared = prepareSvg(source, prefix);
-  const fragment = document.createRange().createContextualFragment(prepared.svg);
-  container.replaceChildren(fragment);
+  container.replaceChildren(document.adoptNode(prepared.element));
   return prepared.features;
 }
 
@@ -146,12 +145,17 @@ function bagOverlap(a, b) {
   return total ? shared / total : 1;
 }
 
+const coarseCache = new WeakMap();
+
 function coarseGeometry(features) {
+  if (coarseCache.has(features)) return coarseCache.get(features);
   const scale = features.scale || 100;
-  return features.geometry.map(value => value.replace(/-?\d*\.?\d+(?:e[-+]?\d+)?/gi, number => {
+  const coarse = features.geometry.map(value => value.replace(/-?\d*\.?\d+(?:e[-+]?\d+)?/gi, number => {
     const normalized = Math.round((Number(number) / scale) * 1000) / 1000;
     return String(Object.is(normalized, -0) ? 0 : normalized);
   }));
+  coarseCache.set(features, coarse);
+  return coarse;
 }
 
 function frameSimilarity(aAspect, bAspect, dimA, dimB) {
