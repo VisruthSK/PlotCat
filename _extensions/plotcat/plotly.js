@@ -22,13 +22,15 @@ export function loadPlotly() {
 }
 
 export async function renderPlotly(container, figure) {
-  const previous = container.querySelector('.js-plotly-plot');
-  if (previous && window.Plotly) window.Plotly.purge(previous);
-  container.replaceChildren();
-  container.style.height = '280px';
-  const div = document.createElement('div');
-  div.style.cssText = 'width:100%;height:100%;align-self:stretch;flex-grow:1';
-  container.appendChild(div);
+  let div = container.querySelector(':scope > .plotcat-plotly');
+  if (!div) {
+    container.replaceChildren();
+    container.style.height = '280px';
+    div = document.createElement('div');
+    div.className = 'plotcat-plotly';
+    div.style.cssText = 'width:100%;height:100%;align-self:stretch;flex-grow:1';
+    container.appendChild(div);
+  }
 
   const layout = structuredClone(figure.layout || {});
   delete layout.width;
@@ -37,9 +39,6 @@ export async function renderPlotly(container, figure) {
   layout.margin = { l: 40, r: 10, t: 30, b: 40, ...layout.margin };
 
   const config = { ...(figure.config || {}), responsive: true, displayModeBar: false };
-  await window.Plotly.newPlot(div, figure.data || [], layout, config);
-  if (Array.isArray(figure.frames) && figure.frames.length > 0) {
-    await window.Plotly.addFrames(div, figure.frames);
-  }
+  await window.Plotly.react(div, { data: figure.data || [], layout, frames: figure.frames || [], config });
   return div;
 }

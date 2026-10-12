@@ -37,7 +37,7 @@ async function runWithDifferentOutputTypes(targetRaw, studentRaw) {
     const root = document.querySelector('.plotcat');
     root.dataset.plotcatManifest = '{"id":"test","engine":"r"}';
     root.dataset.plotcatTargetCode = btoa('target');
-    window.Plotly = { newPlot: async () => {}, addFrames: async () => {}, purge: () => {} };
+    window.Plotly = { react: async () => {} };
     installLive([targetRaw, studentRaw]);
     window.plotcatUi.mountPlotCat(root);
     await waitIdle(root);
@@ -276,9 +276,7 @@ try {
     root.dataset.plotcatTargetCode = btoa('fig');
     const calls = [];
     window.Plotly = {
-      purge: () => {},
-      newPlot: async (_div, data, layout, config) => calls.push({ type: 'newPlot', data, layout, config }),
-      addFrames: async (_div, frames) => calls.push({ type: 'addFrames', frames })
+      react: async (_div, figure) => calls.push({ type: 'react', figure })
     };
     const figure = {
       data: [{ type: 'scatter', x: [1], y: [2] }],
@@ -293,16 +291,18 @@ try {
   });
   assert.deepEqual(plotlyRendering, [
     {
-      type: 'newPlot',
-      data: [{ type: 'scatter', x: [1], y: [2] }],
-      layout: {
-        title: { text: 'Animated' },
-        autosize: true,
-        margin: { l: 40, r: 10, t: 30, b: 40 }
-      },
-      config: { scrollZoom: true, displayModeBar: false, responsive: true }
-    },
-    { type: 'addFrames', frames: [{ name: 'step-1', data: [{ y: [3] }] }] }
+      type: 'react',
+      figure: {
+        data: [{ type: 'scatter', x: [1], y: [2] }],
+        layout: {
+          title: { text: 'Animated' },
+          autosize: true,
+          margin: { l: 40, r: 10, t: 30, b: 40 }
+        },
+        frames: [{ name: 'step-1', data: [{ y: [3] }] }],
+        config: { scrollZoom: true, displayModeBar: false, responsive: true }
+      }
+    }
   ]);
 
   await load();
