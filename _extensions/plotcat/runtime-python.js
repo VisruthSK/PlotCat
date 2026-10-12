@@ -44,8 +44,6 @@ def plotcat_render(code, width, height):
 
 export const python = {
   label: 'Pyodide',
-  ojsKey: 'pyodideOjs',
-  promiseKey: 'pyodidePromise',
   example: 'plt.plot(), ggplot(), go.Figure()',
   setup: runtime => runtime.runPythonAsync(PYTHON_RUNNER),
   evaluate: (runtime, call) => runtime.runPythonAsync(call)

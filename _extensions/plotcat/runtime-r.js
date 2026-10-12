@@ -35,8 +35,6 @@ plotcat_render <- function(code, width, height) {
 
 export const r = {
   label: 'WebR',
-  ojsKey: 'webROjs',
-  promiseKey: 'webRPromise',
   example: 'plot(), ggplot(), tinyplot()',
   setup: runtime => runtime.evalRVoid(R_RUNNER),
   evaluate: (runtime, call) => runtime.evalRString(call)

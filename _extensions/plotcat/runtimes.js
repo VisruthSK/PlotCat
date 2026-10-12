@@ -3,24 +3,27 @@ import { python } from './runtime-python.js';
 
 const ENGINES = { r, python };
 
-function waitForOjs() {
-  return new Promise(resolve => {
-    const check = () => {
-      const main = window._ojs?.ojsConnector?.mainModule;
-      if (main) resolve(main);
-      else setTimeout(check, 50);
-    };
-    check();
-  });
+function deferred() {
+  let resolve;
+  const promise = new Promise(done => { resolve = done; });
+  return { promise, resolve };
 }
 
+const runtimeSources = { r: deferred(), python: deferred() };
+const provided = { r: false, python: false };
+
+export const bridge = {
+  provide(engine, runtimePromise) {
+    provided[engine] = true;
+    runtimeSources[engine].resolve(runtimePromise);
+  }
+};
+
+export const isRuntimeProvided = engine => provided[engine];
+
 async function bootRuntime(engine) {
-  const config = ENGINES[engine];
-  const main = await waitForOjs();
-  const ojs = await main.value(config.ojsKey);
-  const runtime = await ojs[config.promiseKey];
-  if (!runtime) throw new Error(`Quarto Live did not provide the ${config.label} runtime. Use format: live-html.`);
-  await config.setup(runtime);
+  const runtime = await runtimeSources[engine].promise;
+  await ENGINES[engine].setup(runtime);
   return runtime;
 }
 

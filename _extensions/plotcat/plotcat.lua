@@ -1,4 +1,5 @@
 local seen_ids = {}
+local engines_in_use = {}
 local validation_errors = {}
 local validation_error_set = {}
 local exercise_counter = 0
@@ -258,7 +259,7 @@ function Div(div)
   quarto.doc.add_html_dependency({
     name = "plotcat",
     version = "0.4.0",
-    scripts = {{path = "plotcat.js", attribs = {type = "module"}}},
+    scripts = {{path = "bridge.js"}, {path = "plotcat.js", attribs = {type = "module"}}},
     stylesheets = {"plotcat.css"},
     resources = {"svg.js", "plotly-compare.js", "plotly.js", "runtimes.js", "runtime-r.js", "runtime-python.js"},
     head = '<link rel="preconnect" href="https://cdn.plot.ly" crossorigin><link rel="dns-prefetch" href="https://webr.r-wasm.org"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net">'
@@ -274,11 +275,39 @@ function Div(div)
   local plotcat_meta = quarto.metadata.get("plotcat") or {}
   local weights_tbl, dims, heading = parse_attributes(div.attributes, plotcat_meta)
   local weights = quarto.json.encode(weights_tbl)
+  engines_in_use[engine] = true
   return widget(id, engine, chunks[1].block.text, starter, extra_class_str, weights, dims, heading)
+end
+
+local RUNTIME_BRIDGES = {
+  { engine = "r", promise = "webROjs.webRPromise" },
+  { engine = "python", promise = "pyodideOjs.pyodidePromise" }
+}
+
+local function bridge_cell(bridge)
+  return {
+    methodName = "interpret",
+    cellName = "plotcat-bridge-" .. bridge.engine,
+    inline = false,
+    source = string.format('plotCatBridge_%s = window.plotCat.provide("%s", %s)', bridge.engine, bridge.engine, bridge.promise)
+  }
+end
+
+local function ojs_module_block(cells)
+  return pandoc.RawBlock("html", "<script type=\"ojs-module-contents\">\n" .. quarto.base64.encode(quarto.json.encode({ contents = cells })) .. "\n</script>")
 end
 
 function Pandoc(doc)
   if #validation_errors > 0 then assert(false, table.concat(validation_errors, "\n")) end
+  local cells = {}
+  for _, bridge in ipairs(RUNTIME_BRIDGES) do
+    if engines_in_use[bridge.engine] then
+      local cell = bridge_cell(bridge)
+      table.insert(cells, cell)
+      table.insert(doc.blocks, pandoc.Div({}, pandoc.Attr(cell.cellName, {"d-none"})))
+    end
+  end
+  if #cells > 0 then table.insert(doc.blocks, ojs_module_block(cells)) end
   return doc
 end
 
