@@ -135,7 +135,7 @@ local function parse_attributes(attrs, yaml_meta)
 end
 
 local function escape_html(value)
-  return value:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;")
+  return (value:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"))
 end
 
 local function widget(id, engine, target, starter, extra_classes, weights_json, dimensions, heading)
@@ -257,7 +257,7 @@ function Div(div)
 
   quarto.doc.add_html_dependency({
     name = "plotcat",
-    version = "0.3.0",
+    version = "0.4.0",
     scripts = {{path = "plotcat.js", attribs = {type = "module"}}},
     stylesheets = {"plotcat.css"},
     resources = {"svg.js", "plotly-compare.js", "plotly.js", "runtimes.js", "runtime-r.js", "runtime-python.js"},

@@ -3,18 +3,12 @@ import { python } from './runtime-python.js';
 
 const ENGINES = { r, python };
 
-function waitForOjs(timeoutMs = 15000) {
-  return new Promise((resolve, reject) => {
-    const started = performance.now();
+function waitForOjs() {
+  return new Promise(resolve => {
     const check = () => {
       const main = window._ojs?.ojsConnector?.mainModule;
-      if (main) {
-        resolve(main);
-      } else if (performance.now() - started >= timeoutMs) {
-        reject(new Error('Quarto Live did not initialize its OJS runtime.'));
-      } else {
-        requestAnimationFrame(check);
-      }
+      if (main) resolve(main);
+      else setTimeout(check, 50);
     };
     check();
   });
@@ -25,6 +19,7 @@ async function bootRuntime(engine) {
   const main = await waitForOjs();
   const ojs = await main.value(config.ojsKey);
   const runtime = await ojs[config.promiseKey];
+  if (!runtime) throw new Error(`Quarto Live did not provide the ${config.label} runtime. Use format: live-html.`);
   await config.setup(runtime);
   return runtime;
 }
