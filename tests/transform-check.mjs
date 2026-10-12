@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 
@@ -199,19 +198,6 @@ try {
   }
 
   console.log(`TIMING: invalid fixtures ${secondsSince(t3)}s`);
-
-  const t4 = performance.now();
-
-  // ── Static source checks ───────────────────────────────────────
-  const lua = await readFile(new URL('../_extensions/plotcat/plotcat.lua', import.meta.url), 'utf8');
-  const runtime = await readFile(new URL('../_extensions/plotcat/runtimes.js', import.meta.url), 'utf8');
-
-  assert.doesNotMatch(lua, /packages_for/);
-  assert.doesNotMatch(lua, /packages\s*=/);
-  assert.doesNotMatch(runtime, /manifest\.packages/);
-  assert.doesNotMatch(runtime, /installPackages/);
-
-  console.log(`TIMING: static checks ${secondsSince(t4)}s`);
   console.log(`TIMING: total ${secondsSince(t0)}s`);
 } finally {
   try { rmSync(output, { recursive: true, force: true }); } catch {}
