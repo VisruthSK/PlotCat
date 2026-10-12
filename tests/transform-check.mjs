@@ -14,7 +14,7 @@ const renderTimeout = Number(process.env.PLOTCAT_QUARTO_TIMEOUT_MS ?? 90000);
 
 function copyExtensions(dir) {
   cpSync(resolve('_extensions'), resolve(dir, '_extensions'), { recursive: true });
-  cpSync(resolve('website/_extensions/r-wasm'), resolve(dir, '_extensions/r-wasm'), { recursive: true });
+  cpSync(resolve('website/_extensions/live'), resolve(dir, '_extensions/live'), { recursive: true });
 }
 
 function readFixture(file) {

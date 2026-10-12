@@ -26,8 +26,8 @@ test('required stable classes are present', async () => {
   assert.doesNotMatch(lua, /runbutton/);
   assert.doesNotMatch(lua, /live\/live\.lua/);
   assert.equal(existsSync(new URL('../_extensions/plotcat/live', import.meta.url)), false);
-  assert.equal(existsSync(new URL('../_extensions/r-wasm', import.meta.url)), false);
-  assert.equal(existsSync(new URL('../website/_extensions/r-wasm/live/_extension.yml', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../_extensions/live', import.meta.url)), false);
+  assert.equal(existsSync(new URL('../website/_extensions/live/_extension.yml', import.meta.url)), true);
   assert.match(lua, /engine == "r" and "webr" or "pyodide"/);
   assert.match(extension, /path: plotcat\.lua\s+at: pre-ast/);
   assert.doesNotMatch(lua, /plotcat__slider|data-plotcat-wipe=/);
