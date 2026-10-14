@@ -4,86 +4,67 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ENGINES, enqueue, renderOn } from '../_extensions/plotcat/runtimes.js';
+import { bridge, enqueue, isRuntimeProvided, renderOn, renderPlot } from '../_extensions/plotcat/runtimes.js';
 import { R_RUNNER } from '../_extensions/plotcat/runtime-r.js';
 
 const SVG = '<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>';
+const SIZE = { width: 7, height: 5 };
 
-function rRuntime(response) {
-  const calls = { setup: '', call: '' };
+function fakeR(response) {
   return {
-    calls,
-    runtime: {
-      evalRVoid: async code => { calls.setup = code; },
-      evalRString: async call => { calls.call = call; return response; }
-    }
+    evalRVoid: async () => {},
+    evalRString: async () => response
   };
 }
 
-function pythonRuntime(response) {
-  const calls = { setup: '', call: '' };
+function fakePython(response) {
   return {
-    calls,
-    runtime: {
-      runPythonAsync: async code => {
-        if (code.includes('def plotcat_render')) calls.setup = code;
-        else { calls.call = code; return response; }
-      }
-    }
+    runPythonAsync: async code => code.startsWith('plotcat_render(') ? response : undefined
   };
 }
 
-test('R runner is installed once and renders SVG held in memory', async () => {
-  const { runtime, calls } = rRuntime(SVG);
-  await ENGINES.r.setup(runtime);
-  assert.match(calls.setup, /svglite::svgstring\(/);
-  assert.doesNotMatch(calls.setup, /\/tmp|tempfile/);
-  assert.match(calls.setup, /plotcat_render <- function\(code, width, height\)/);
-  const result = await renderOn('r', runtime, 'plot(cars)', { width: 7, height: 5 });
-  assert.deepEqual(result, { kind: 'svg', svg: SVG });
-  assert.equal(calls.call, 'plotcat_render("plot(cars)", 7, 5)');
+test('R renders SVG returned by the runner, with the code passed as a string literal', async () => {
+  const runtime = fakeR(SVG);
+  const calls = [];
+  runtime.evalRString = async call => { calls.push(call); return SVG; };
+  assert.deepEqual(await renderOn('r', runtime, 'plot(cars)', SIZE), { kind: 'svg', svg: SVG });
+  assert.deepEqual(calls, ['plotcat_render("plot(cars)", 7, 5)']);
 });
 
 test('R plotly output is returned as a figure', async () => {
   const figure = { data: [{ type: 'scatter' }], layout: {} };
-  const { runtime } = rRuntime(JSON.stringify({ type: 'plotly', data: figure }));
-  const result = await renderOn('r', runtime, 'plotly::plot_ly()', { width: 7, height: 5 });
-  assert.deepEqual(result, { kind: 'plotly', figure });
+  const runtime = fakeR(JSON.stringify({ type: 'plotly', data: figure }));
+  assert.deepEqual(await renderOn('r', runtime, 'plotly::plot_ly()', SIZE), { kind: 'plotly', figure });
 });
 
 test('R errors and missing plots carry the captured output', async () => {
-  const error = rRuntime('{"type":"error","message":"unexpected symbol","output":"hi\\n"}');
+  const failing = fakeR('{"type":"error","message":"unexpected symbol","output":"hi\\n"}');
   assert.deepEqual(
-    await renderOn('r', error.runtime, 'plot(', { width: 7, height: 5 }),
+    await renderOn('r', failing, 'plot(', SIZE),
     { kind: 'error', message: 'unexpected symbol', output: 'hi\n' }
   );
-  const noPlot = rRuntime('{"type":"no-plot","output":"[1] 2\\n"}');
-  const result = await renderOn('r', noPlot.runtime, '1 + 1', { width: 7, height: 5 });
-  assert.equal(result.kind, 'no-plot');
-  assert.match(result.message, /plot\(\), ggplot\(\), tinyplot\(\)/);
+  const noPlot = await renderOn('r', fakeR('{"type":"no-plot","output":"[1] 2\\n"}'), '1 + 1', SIZE);
+  assert.equal(noPlot.kind, 'no-plot');
+  assert.equal(noPlot.output, '[1] 2\n');
+  assert.match(noPlot.message, /plot\(\), ggplot\(\), tinyplot\(\)/);
 });
 
-test('Python runner is installed once and renders SVG per call', async () => {
-  const { runtime, calls } = pythonRuntime(SVG);
-  await ENGINES.python.setup(runtime);
-  assert.match(calls.setup, /def plotcat_render\(code, width, height\)/);
-  assert.match(calls.setup, /namespace = \{"__builtins__": __builtins__\}/);
-  assert.match(calls.setup, /result\.draw\(\)/);
-  const result = await renderOn('python', runtime, 'fig, ax = plt.subplots()', { width: 7, height: 5 });
-  assert.deepEqual(result, { kind: 'svg', svg: SVG });
-  assert.equal(calls.call, 'plotcat_render("fig, ax = plt.subplots()", 7, 5)');
-});
+test('Python renders SVG, reports plotly, no-plot, and error results', async () => {
+  assert.deepEqual(await renderOn('python', fakePython(SVG), 'fig, ax = plt.subplots()', SIZE), { kind: 'svg', svg: SVG });
 
-test('Python no-plot and error results are reported with context', async () => {
-  const noPlot = pythonRuntime('{"type": "no-plot", "output": "hello\\n"}');
-  const result = await renderOn('python', noPlot.runtime, 'print("hello")', { width: 7, height: 5 });
-  assert.equal(result.kind, 'no-plot');
-  assert.match(result.message, /plt\.plot\(\), ggplot\(\), go\.Figure\(\)/);
-  assert.equal(result.output, 'hello\n');
-
-  const failed = pythonRuntime('{"type": "error", "message": "NameError: x", "output": ""}');
+  const figure = { data: [], layout: {} };
   assert.deepEqual(
-    await renderOn('python', failed.runtime, 'x', { width: 7, height: 5 }),
+    await renderOn('python', fakePython(JSON.stringify({ type: 'plotly', data: figure })), 'go.Figure()', SIZE),
+    { kind: 'plotly', figure }
+  );
+
+  const noPlot = await renderOn('python', fakePython('{"type": "no-plot", "output": "hello\\n"}'), 'print("hello")', SIZE);
+  assert.equal(noPlot.kind, 'no-plot');
+  assert.equal(noPlot.output, 'hello\n');
+  assert.match(noPlot.message, /plt\.plot\(\), ggplot\(\), go\.Figure\(\)/);
+
+  assert.deepEqual(
+    await renderOn('python', fakePython('{"type": "error", "message": "NameError: x", "output": ""}'), 'x', SIZE),
     { kind: 'error', message: 'NameError: x', output: '' }
   );
 });
@@ -107,6 +88,19 @@ test('different engine queues run independently', async () => {
   releaseR();
   await r;
   assert.deepEqual(order, ['r-start', 'python', 'r-end']);
+});
+
+test('a runtime is reported as provided only after the bridge receives it', async () => {
+  assert.equal(isRuntimeProvided('python'), false);
+  bridge.provide('python', Promise.resolve(fakePython(SVG)));
+  assert.equal(isRuntimeProvided('python'), true);
+  assert.deepEqual(await renderPlot('python', 'fig', SIZE), { kind: 'svg', svg: SVG });
+});
+
+test('a runtime that fails to start rejects the render with its own error', async () => {
+  bridge.provide('r', Promise.reject(new Error('webR could not start')));
+  assert.equal(isRuntimeProvided('r'), true);
+  await assert.rejects(renderPlot('r', 'plot(cars)', SIZE), /webR could not start/);
 });
 
 test('R runner returns a complete SVG document when R is installed', async t => {

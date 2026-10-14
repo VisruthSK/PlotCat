@@ -3,29 +3,27 @@ import { python } from './runtime-python.js';
 
 const ENGINES = { r, python };
 
-function waitForOjs(timeoutMs = 15000) {
-  return new Promise((resolve, reject) => {
-    const started = performance.now();
-    const check = () => {
-      const main = window._ojs?.ojsConnector?.mainModule;
-      if (main) {
-        resolve(main);
-      } else if (performance.now() - started >= timeoutMs) {
-        reject(new Error('Quarto Live did not initialize its OJS runtime.'));
-      } else {
-        requestAnimationFrame(check);
-      }
-    };
-    check();
-  });
+function deferred() {
+  let resolve;
+  const promise = new Promise(done => { resolve = done; });
+  return { promise, resolve };
 }
 
+const runtimeSources = { r: deferred(), python: deferred() };
+const provided = { r: false, python: false };
+
+export const bridge = {
+  provide(engine, runtimePromise) {
+    provided[engine] = true;
+    runtimeSources[engine].resolve(runtimePromise);
+  }
+};
+
+export const isRuntimeProvided = engine => provided[engine];
+
 async function bootRuntime(engine) {
-  const config = ENGINES[engine];
-  const main = await waitForOjs();
-  const ojs = await main.value(config.ojsKey);
-  const runtime = await ojs[config.promiseKey];
-  await config.setup(runtime);
+  const runtime = await runtimeSources[engine].promise;
+  await ENGINES[engine].setup(runtime);
   return runtime;
 }
 
