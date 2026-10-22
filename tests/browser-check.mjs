@@ -19,10 +19,8 @@ window.installLive = (responses, failure) => {
     runPythonAsync: async code => code.startsWith('plotcat_render(') ? queue.shift() : undefined
   };
   const promise = failure ? Promise.reject(new Error(failure)) : Promise.resolve(runtime);
-  window._ojs = { ojsConnector: { mainModule: { value: async key => ({
-    webROjs: { webRPromise: promise },
-    pyodideOjs: { pyodidePromise: promise }
-  })[key] } } };
+  window.plotCat.provide('r', promise);
+  window.plotCat.provide('python', promise);
 };
 window.waitIdle = root => new Promise(resolve => {
   const poll = () => root.querySelector('[data-plotcat-run]').disabled ? setTimeout(poll, 5) : resolve();
@@ -331,7 +329,28 @@ try {
   });
   assert.deepEqual(failedTarget, { status: 'Error rendering target: target failed', enabled: true });
 
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg"><circle/></svg>';
+  await load();
+  const lateRuntime = await page.evaluate(async () => {
+    const root = document.querySelector('.plotcat');
+    root.dataset.plotcatManifest = '{"id":"test","engine":"python"}';
+    root.dataset.plotcatTargetCode = btoa('fig');
+    window.plotcatUi.mountPlotCat(root);
+    await new Promise(resolve => setTimeout(resolve, 5500));
+    const waiting = root.querySelector('.plotcat__status').textContent;
+    window.plotCat.provide('python', Promise.resolve({
+      runPythonAsync: async code => code.startsWith('plotcat_render(') ? '{"type":"no-plot","output":""}' : undefined
+    }));
+    await new Promise(resolve => {
+      const poll = () => root.querySelector('[data-plotcat-run]').disabled ? setTimeout(poll, 5) : resolve();
+      poll();
+    });
+    return { waiting, status: root.querySelector('.plotcat__status').textContent, error: root.classList.contains('plotcat--error') };
+  });
+  assert.deepEqual(lateRuntime.waiting, 'Waiting for Quarto Live…');
+  assert.equal(lateRuntime.error, true);
+  assert.match(lateRuntime.status, /^Error rendering target: Code did not produce a plot/);
+
+  const svg ='<svg xmlns="http://www.w3.org/2000/svg"><circle/></svg>';
   const plotly = JSON.stringify({ type: 'plotly', data: { data: [] } });
   for (const [target, student] of [[svg, plotly], [plotly, svg]]) {
     assert.deepEqual(
