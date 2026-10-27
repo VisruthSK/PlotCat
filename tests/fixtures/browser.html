@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><title>PlotCat browser fixture</title></head>
+<head><meta charset="utf-8"><title>PlotCat browser fixture</title><link rel="stylesheet" href="../../_extensions/plotcat/plotcat.css"></head>
 <body>
 <section class="plotcat plotcat--side-by-side" data-plotcat-weights="eyJzdmciOnsiZ2VvbWV0cnkiOjAuNSwidGV4dCI6MC4yNSwic3R5bGUiOjAuMTUsImZyYW1lIjowLjEsImdlb21ldHJ5X2NvdW50cyI6MC40LCJnZW9tZXRyeV9jb2Fyc2UiOjAuNn0sInBsb3RseSI6eyJ0cmFjZSI6MC4zLCJkYXRhIjowLjQsInN0eWxlIjowLjIsImxheW91dCI6MC4xfX0=">
   <div class="plotcat__body">
@@ -9,14 +9,16 @@
     <button type="button" data-plotcat-wipe-handle aria-valuenow="50"></button>
   </div>
   <div class="plotcat__editor">
-    <div class="cm-editor">
+    <div><div class="exercise-editor cm-editor">
       <div class="cm-content">plot(1)</div>
-    </div>
+    </div></div>
   </div><button data-plotcat-run>Run</button>
   <fieldset><label><input type="radio" value="side-by-side" checked> Side by side</label><label><input type="radio" value="overlay"> Overlay</label><label><input type="radio" value="wipe"> Wipe</label></fieldset>
   <div class="plotcat__status"></div><output class="plotcat__score"></output><div class="plotcat__feedback"></div>
 </section>
 <script type="module">
+  const editor = document.querySelector('.exercise-editor').parentElement;
+  editor.oninput = () => { editor.value = { code: 'plot(1)' }; };
   window.plotcatSvg = await import('../../_extensions/plotcat/svg.js');
   window.plotcatUi = await import('../../_extensions/plotcat/plotcat.js');
   window.fixtureReady = true;

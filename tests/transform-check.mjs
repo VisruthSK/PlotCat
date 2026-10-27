@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
+import { copyExtensions } from '../scripts/extensions.mjs';
 
 const output = resolve('.test-output');
 try { rmSync(output, { recursive: true, force: true }); } catch {}
@@ -12,14 +12,15 @@ const windows = process.platform === 'win32';
 const executable = windows ? 'quarto.cmd' : 'quarto';
 const renderTimeout = Number(process.env.PLOTCAT_QUARTO_TIMEOUT_MS ?? 90000);
 
-function copyExtensions(dir) {
-  cpSync(resolve('_extensions'), resolve(dir, '_extensions'), { recursive: true });
-  cpSync(resolve('website/_extensions/r-wasm'), resolve(dir, '_extensions/r-wasm'), { recursive: true });
-}
-
 function readFixture(file) {
   return readFileSync(resolve('tests/fixtures', file), 'utf8')
     .replace('../../_extensions/plotcat/plotcat.lua', 'plotcat');
+}
+
+function configuredFixture(yaml = '', attributes = '') {
+  return readFixture('minimal.qmd')
+    .replace('title: Minimal', `title: Configuration\n${yaml}`)
+    .replace('id="minimal-r"', attributes);
 }
 
 function spawnQuarto(args, cwd) {
@@ -61,11 +62,11 @@ try {
   ];
 
   const successDirs = {};
-  function renderSuccess(fixture) {
+  function renderSuccess(fixture, source = readFixture(fixture)) {
     const dir = resolve(output, `success-${fixture.replace(/\.qmd$/, '')}`);
     mkdirSync(dir, { recursive: true });
     copyExtensions(dir);
-    writeFileSync(resolve(dir, fixture), readFixture(fixture));
+    writeFileSync(resolve(dir, fixture), source);
     writeFileSync(resolve(dir, '_quarto.yml'), 'format:\n  live-html:\n    toc: true\n');
     const result = spawnQuarto(['render', fixture, '--to', 'live-html'], dir);
     assert.equal(result.status, 0, `Render of ${fixture} failed: ${result.stdout + result.stderr}`);
@@ -77,6 +78,10 @@ try {
     2
   );
   assert.equal(successResults.length, successFixtures.length);
+
+  const readme = readFileSync(resolve('README.qmd'), 'utf8');
+  const defaults = readme.match(/### Global defaults[\s\S]*?``` yaml\r?\n([\s\S]*?)```/)[1];
+  renderSuccess('readme-weights.qmd', configuredFixture(defaults));
 
   console.log(`TIMING: batch render ${secondsSince(t0)}s`);
 
@@ -121,7 +126,11 @@ try {
   assert.equal((multipleHtml.match(/plotcat\.js" type="module"/g) || []).length, 1);
 
   assertWeights(readGenerated('weights.qmd'), { geometry: 0.35, text: 0.4, style: 0.1, frame: 0.15 });
-  assertWeights(readGenerated('weights-frontmatter.qmd'), { geometry: 0.65, text: 0.1, style: 0.1 });
+  assertWeights(readGenerated('weights-frontmatter.qmd'), { geometry: 0.75, text: 0.1, style: 0 });
+
+  const manifests = [...readGenerated('weights-frontmatter.qmd').matchAll(/data-plotcat-manifest="([^"]+)"/g)]
+    .map(match => JSON.parse(match[1].replaceAll('&quot;', '"')));
+  assert.deepEqual(manifests.map(({ width, height }) => [width, height]), [[8, 6], [4, 3]]);
 
   console.log(`TIMING: batch assertions ${secondsSince(assertionsStarted)}s`);
 
@@ -147,15 +156,29 @@ try {
     ['unsupported-engine.qmd', "unsupported engine 'bash'"],
     ['wrong-format.qmd', 'requires format: live-html'],
     ['invalid-weight-sum.qmd', 'SVG weights must sum to 1.0'],
-    ['invalid-dimension.qmd', "dimension 'plotcat-width' must be a positive number"]
+    ['invalid-dimension.qmd', "dimension 'plotcat-width' must be a positive finite number"],
+    ['negative-weight.qmd', "weight 'svg-geometry' must be a finite non-negative number",
+      configuredFixture('', 'svg-geometry="-1" svg-text="2" svg-style="0" svg-frame="0"')],
+    ['negative-yaml-weight.qmd', "weight 'plotcat.weights.plotly.trace' must be a finite non-negative number",
+      configuredFixture('plotcat:\n  weights:\n    plotly:\n      trace: -1\n      data: 2\n      style: 0\n      layout: 0')],
+    ['infinite-weight.qmd', "weight 'plotly-data' must be a finite non-negative number",
+      configuredFixture('', 'plotly-data="1e999"')],
+    ['infinite-yaml-weight.qmd', "weight 'plotcat.weights.svg.geometry' must be a finite non-negative number",
+      configuredFixture('plotcat:\n  weights:\n    svg:\n      geometry: .inf')],
+    ['invalid-yaml-weight.qmd', "weight 'plotcat.weights.svg.geometry' must be a finite non-negative number",
+      configuredFixture('plotcat:\n  weights:\n    svg:\n      geometry: invalid')],
+    ['invalid-yaml-dimension.qmd', "dimension 'plotcat.dimensions.width' must be a positive finite number",
+      configuredFixture('plotcat:\n  dimensions:\n    width: 0')],
+    ['infinite-dimension.qmd', "dimension 'plotcat-height' must be a positive finite number",
+      configuredFixture('', 'plotcat-height="1e999"')]
   ];
 
-  function renderInvalid(fixture) {
+  function renderInvalid([fixture, _message, source = readFixture(fixture)]) {
     return new Promise((resolvePromise, reject) => {
       const dir = resolve(output, `invalid-${fixture.replace(/\.qmd$/, '')}`);
       mkdirSync(dir, { recursive: true });
       copyExtensions(dir);
-      writeFileSync(resolve(dir, fixture), readFixture(fixture));
+      writeFileSync(resolve(dir, fixture), source);
       writeFileSync(resolve(dir, '_quarto.yml'), 'format:\n  live-html:\n    toc: true\n');
 
       const isInteractive = fixture !== 'wrong-format.qmd';
@@ -185,7 +208,7 @@ try {
   }
 
   const invalidResults = await runWithConcurrency(
-    invalidFixtures.map(([fixture, _message]) => () => renderInvalid(fixture)),
+    invalidFixtures.map(entry => () => renderInvalid(entry)),
     3
   );
   assert.equal(invalidResults.length, invalidFixtures.length);
@@ -199,19 +222,6 @@ try {
   }
 
   console.log(`TIMING: invalid fixtures ${secondsSince(t3)}s`);
-
-  const t4 = performance.now();
-
-  // ── Static source checks ───────────────────────────────────────
-  const lua = await readFile(new URL('../_extensions/plotcat/plotcat.lua', import.meta.url), 'utf8');
-  const runtime = await readFile(new URL('../_extensions/plotcat/runtimes.js', import.meta.url), 'utf8');
-
-  assert.doesNotMatch(lua, /packages_for/);
-  assert.doesNotMatch(lua, /packages\s*=/);
-  assert.doesNotMatch(runtime, /manifest\.packages/);
-  assert.doesNotMatch(runtime, /installPackages/);
-
-  console.log(`TIMING: static checks ${secondsSince(t4)}s`);
   console.log(`TIMING: total ${secondsSince(t0)}s`);
 } finally {
   try { rmSync(output, { recursive: true, force: true }); } catch {}

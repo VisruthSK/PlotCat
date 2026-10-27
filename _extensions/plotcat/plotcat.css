@@ -102,21 +102,8 @@
 }
 
 .plotcat__editor .exercise-editor-header,
-.plotcat__editor .exercise-editor-title,
-.plotcat__editor .exercise-title,
-.plotcat__editor .card-header,
-.plotcat__editor .card-footer,
-.plotcat__editor .card-title,
-.plotcat__editor .exercise-cell-output,
-.plotcat__editor [class*="card-header"],
-.plotcat__editor [class*="editor-header"],
-.plotcat__editor [class*="exercise-header"],
-.plotcat__editor [class*="exercise-title"] {
+.plotcat__editor .exercise-cell-output {
   display: none !important;
-}
-
-#exercise-loading-indicator {
-  display: none;
 }
 
 .plotcat__editor .cm-editor {
@@ -246,11 +233,13 @@
   font-weight: 500;
   color: var(--bs-secondary-color, #6c757d);
   margin-top: 0.75rem;
+}
+
+.plotcat__status:empty {
   display: none;
 }
 
 .plotcat--error .plotcat__status {
-  display: block;
   color: var(--bs-danger, #dc3545);
   font-weight: 600;
 }

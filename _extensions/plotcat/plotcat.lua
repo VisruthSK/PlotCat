@@ -1,4 +1,5 @@
 local seen_ids = {}
+local engines_in_use = {}
 local validation_errors = {}
 local validation_error_set = {}
 local exercise_counter = 0
@@ -68,6 +69,16 @@ local function copy_weights()
   return copy
 end
 
+local function parse_number(value, label, positive)
+  local raw = (type(value) == "number" or type(value) == "string") and tostring(value) or pandoc.utils.stringify(value)
+  local num = tonumber(raw)
+  if num and num >= 0 and num < math.huge and (not positive or num > 0) then
+    return num
+  end
+  local requirement = positive and "a positive finite number" or "a finite non-negative number"
+  fail(label .. " must be " .. requirement .. ", got '" .. raw .. "'")
+end
+
 local function parse_attributes(attrs, yaml_meta)
   local weights = copy_weights()
 
@@ -77,8 +88,7 @@ local function parse_attributes(attrs, yaml_meta)
       if weights[cat] then
         for field, val in pairs(fields) do
           if weights[cat][field] ~= nil then
-            local raw = type(val) == "number" and tostring(val) or (type(val) == "string" and val or pandoc.utils.stringify(val))
-            local num = tonumber(raw)
+            local num = parse_number(val, "weight 'plotcat.weights." .. cat .. "." .. field .. "'", false)
             if num then weights[cat][field] = num end
           end
         end
@@ -87,36 +97,22 @@ local function parse_attributes(attrs, yaml_meta)
   end
 
   local yaml_dims = (yaml_meta and yaml_meta.dimensions) or {}
-  local dims = {
-    width = tonumber(yaml_dims.width),
-    height = tonumber(yaml_dims.height)
-  }
+  local dims = {}
+  for _, name in ipairs({"width", "height"}) do
+    if yaml_dims[name] ~= nil then
+      dims[name] = parse_number(yaml_dims[name], "dimension 'plotcat.dimensions." .. name .. "'", true)
+    end
+  end
 
   local heading = yaml_meta and yaml_meta.heading and pandoc.utils.stringify(yaml_meta.heading) or nil
 
   for key, value in pairs(attrs) do
     local spec = ATTR_SPEC[key]
     if type(spec) == "table" then
-      local num = tonumber(value)
-      if num then
-        weights[spec[1]][spec[2]] = num
-      else
-        fail("weight '" .. key .. "' must be a number, got '" .. value .. "'")
-      end
-    elseif spec == "width" then
-      local num = tonumber(value)
-      if num and num > 0 then
-        dims.width = num
-      else
-        fail("dimension 'plotcat-width' must be a positive number, got '" .. value .. "'")
-      end
-    elseif spec == "height" then
-      local num = tonumber(value)
-      if num and num > 0 then
-        dims.height = num
-      else
-        fail("dimension 'plotcat-height' must be a positive number, got '" .. value .. "'")
-      end
+      local num = parse_number(value, "weight '" .. key .. "'", false)
+      if num then weights[spec[1]][spec[2]] = num end
+    elseif spec == "width" or spec == "height" then
+      dims[spec] = parse_number(value, "dimension '" .. key .. "'", true)
     elseif spec == "heading" then
       heading = value
     end
@@ -135,7 +131,7 @@ local function parse_attributes(attrs, yaml_meta)
 end
 
 local function escape_html(value)
-  return value:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;")
+  return (value:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"))
 end
 
 local function widget(id, engine, target, starter, extra_classes, weights_json, dimensions, heading)
@@ -257,8 +253,8 @@ function Div(div)
 
   quarto.doc.add_html_dependency({
     name = "plotcat",
-    version = "0.3.0",
-    scripts = {{path = "plotcat.js", attribs = {type = "module"}}},
+    version = "0.4.0",
+    scripts = {{path = "bridge.js"}, {path = "plotcat.js", attribs = {type = "module"}}},
     stylesheets = {"plotcat.css"},
     resources = {"svg.js", "plotly-compare.js", "plotly.js", "runtimes.js", "runtime-r.js", "runtime-python.js"},
     head = '<link rel="preconnect" href="https://cdn.plot.ly" crossorigin><link rel="dns-prefetch" href="https://webr.r-wasm.org"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net">'
@@ -274,11 +270,39 @@ function Div(div)
   local plotcat_meta = quarto.metadata.get("plotcat") or {}
   local weights_tbl, dims, heading = parse_attributes(div.attributes, plotcat_meta)
   local weights = quarto.json.encode(weights_tbl)
+  engines_in_use[engine] = true
   return widget(id, engine, chunks[1].block.text, starter, extra_class_str, weights, dims, heading)
+end
+
+local RUNTIME_BRIDGES = {
+  { engine = "r", promise = "webROjs.webRPromise" },
+  { engine = "python", promise = "pyodideOjs.pyodidePromise" }
+}
+
+local function bridge_cell(bridge)
+  return {
+    methodName = "interpret",
+    cellName = "plotcat-bridge-" .. bridge.engine,
+    inline = false,
+    source = string.format('plotCatBridge_%s = window.plotCat.provide("%s", %s)', bridge.engine, bridge.engine, bridge.promise)
+  }
+end
+
+local function ojs_module_block(cells)
+  return pandoc.RawBlock("html", "<script type=\"ojs-module-contents\">\n" .. quarto.base64.encode(quarto.json.encode({ contents = cells })) .. "\n</script>")
 end
 
 function Pandoc(doc)
   if #validation_errors > 0 then assert(false, table.concat(validation_errors, "\n")) end
+  local cells = {}
+  for _, bridge in ipairs(RUNTIME_BRIDGES) do
+    if engines_in_use[bridge.engine] then
+      local cell = bridge_cell(bridge)
+      table.insert(cells, cell)
+      table.insert(doc.blocks, pandoc.Div({}, pandoc.Attr(cell.cellName, {"d-none"})))
+    end
+  end
+  if #cells > 0 then table.insert(doc.blocks, ojs_module_block(cells)) end
   return doc
 end
 

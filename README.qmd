@@ -20,7 +20,7 @@ The included examples cover base R, `ggplot2`, `tinyplot`, `lattice`,
 
 ## Installation
 
-Add Quarto Live, then `PlotCat`:
+Add Quarto Live (v0.2.0 or later), then `PlotCat`:
 
 ``` bash
 quarto add r-wasm/quarto-live
@@ -137,7 +137,9 @@ plotcat:
       geometry: 0.5
       text: 0.25
     plotly:
+      trace: 0.2
       data: 0.5
+      style: 0.1
       layout: 0.2
 ```
 
@@ -228,6 +230,13 @@ plotcat:
   directly with functions such as `read.csv("https://...")` in R
   or `pd.read_csv("https://...")` in Python. Required packages must be
   available in WebAssembly.
+
+## Development
+
+Quarto Live is a pinned dev dependency, so `pnpm install` fetches it.
+Builds and transform tests copy it, and PlotCat, into their output
+directories. Edit PlotCat under `_extensions/plotcat`, then run
+`pnpm check`.
 
 ## Design Inspiration
 

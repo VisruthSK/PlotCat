@@ -3,13 +3,24 @@ format: live-html
 filters:
   - ../../_extensions/plotcat/plotcat.lua
 plotcat:
+  dimensions:
+    width: 8
+    height: 6
   weights:
     svg:
-      geometry: 0.65
+      geometry: 0.75
       text: 0.1
+      style: 0
 ---
 
 ::: {.plotcat id="fm-weights"}
+```{r}
+#| eval: false
+plot(cars)
+```
+:::
+
+::: {.plotcat plotcat-width="4" plotcat-height="3"}
 ```{r}
 #| eval: false
 plot(cars)

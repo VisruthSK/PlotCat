@@ -1,7 +1,12 @@
 import { compareSvgFeatures, displaySvg } from './svg.js';
 import { comparePlotly } from './plotly-compare.js';
 import { loadPlotly, renderPlotly } from './plotly.js';
-import { renderPlot, ENGINES } from './runtimes.js';
+import { renderPlot, ENGINES, bridge, isRuntimeProvided } from './runtimes.js';
+
+const BRIDGE_WAIT_MS = 5000;
+
+for (const [engine, runtimePromise] of window.plotCat?.queue ?? []) bridge.provide(engine, runtimePromise);
+window.plotCat = bridge;
 
 const outputs = {
   svg: {
@@ -67,14 +72,16 @@ function limitToSideBySide(root) {
 }
 
 function studentCode(root) {
-  const editor = root.querySelector('.plotcat__editor .cm-content');
-  if (!editor) {
+  const editor = root.querySelector('.plotcat__editor .exercise-editor')?.parentElement;
+  if (!editor?.oninput) {
     throw new Error(
       "PlotCat could not find Quarto Live's code editor. " +
       "Ensure Quarto Live is installed and use `format: live-html`."
     );
   }
-  return editor.innerText;
+  // Commit the full document without dispatching an OJS evaluation event.
+  editor.oninput(new CustomEvent('input', { detail: { commit: true } }));
+  return editor.value.code;
 }
 
 function scoreHue(score) {
@@ -104,7 +111,10 @@ export function mountPlotCat(root) {
     const targetCode = decodeTarget(root.dataset.plotcatTargetCode);
     await visible;
     status.textContent = `Loading ${label}…`;
-    const result = await renderPlot(manifest.engine, targetCode, size);
+    const waiting = setTimeout(() => {
+      if (!isRuntimeProvided(manifest.engine)) status.textContent = 'Waiting for Quarto Live…';
+    }, BRIDGE_WAIT_MS);
+    const result = await renderPlot(manifest.engine, targetCode, size).finally(() => clearTimeout(waiting));
     const output = outputs[result.kind];
     if (!output) throw resultError(result);
     if (result.kind === 'plotly') {
@@ -178,6 +188,14 @@ export function mountPlotCat(root) {
       }
     });
   }
+
+  const editor = root.querySelector('.plotcat__editor');
+  editor.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || !(event.ctrlKey || event.metaKey)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    run.click();
+  }, true);
 
   run.addEventListener('click', async () => {
     if (!targetKind) return;
