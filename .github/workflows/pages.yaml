@@ -18,8 +18,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-        with:
-          submodules: recursive
 
       - uses: pnpm/action-setup@v6
         with:
@@ -35,6 +33,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tinytex: true
+
+      - run: quarto add r-wasm/quarto-live@v0.2.0 --no-prompt
 
       - name: Set up R
         uses: r-lib/actions/setup-r@v2

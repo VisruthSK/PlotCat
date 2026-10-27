@@ -249,12 +249,10 @@ plotcat:
 
 ## Development
 
-Clone with `git clone --recurse-submodules`, or run
-`git submodule update --init --recursive` in an existing checkout.
-Quarto Live is pinned in `vendor/quarto-live`; Dependabot checks it
-weekly. Builds and transform tests copy its extension into their output
-directories. Edit PlotCat under `_extensions/plotcat`, then run
-`pnpm check`.
+Install Quarto Live in the checkout with
+`quarto add r-wasm/quarto-live@v0.2.0 --no-prompt`. Builds and transform tests
+copy it, and PlotCat, into their output directories. Edit PlotCat under
+`_extensions/plotcat`, then run `pnpm check`.
 
 ## Design Inspiration
 
