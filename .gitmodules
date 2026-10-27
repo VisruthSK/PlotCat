@@ -1,0 +1,4 @@
+[submodule "vendor/quarto-live"]
+	path = vendor/quarto-live
+	url = https://github.com/r-wasm/quarto-live.git
+	branch = main

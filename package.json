@@ -12,7 +12,7 @@
     "test:browser": "node tests/browser-check.mjs",
     "test": "pnpm test:unit && pnpm test:transform && pnpm test:browser",
     "check": "pnpm test && pnpm build && pnpm test:e2e",
-    "prebuild": "node -e \"fs.rmSync('website/_extensions/plotcat',{recursive:true,force:true});fs.cpSync('_extensions/plotcat','website/_extensions/plotcat',{recursive:true})\"",
+    "prebuild": "node scripts/prepare-site.mjs",
     "build": "pnpm prebuild && quarto render website",
     "test:e2e": "playwright test"
   },

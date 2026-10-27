@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
+import { copyExtensions } from '../scripts/extensions.mjs';
 
 const output = resolve('.test-output');
 try { rmSync(output, { recursive: true, force: true }); } catch {}
@@ -10,11 +11,6 @@ const secondsSince = started => ((performance.now() - started) / 1000).toFixed(1
 const windows = process.platform === 'win32';
 const executable = windows ? 'quarto.cmd' : 'quarto';
 const renderTimeout = Number(process.env.PLOTCAT_QUARTO_TIMEOUT_MS ?? 90000);
-
-function copyExtensions(dir) {
-  cpSync(resolve('_extensions'), resolve(dir, '_extensions'), { recursive: true });
-  cpSync(resolve('website/_extensions/live'), resolve(dir, '_extensions/live'), { recursive: true });
-}
 
 function readFixture(file) {
   return readFileSync(resolve('tests/fixtures', file), 'utf8')
