@@ -9,14 +9,16 @@
     <button type="button" data-plotcat-wipe-handle aria-valuenow="50"></button>
   </div>
   <div class="plotcat__editor">
-    <div class="cm-editor">
+    <div><div class="exercise-editor cm-editor">
       <div class="cm-content">plot(1)</div>
-    </div>
+    </div></div>
   </div><button data-plotcat-run>Run</button>
   <fieldset><label><input type="radio" value="side-by-side" checked> Side by side</label><label><input type="radio" value="overlay"> Overlay</label><label><input type="radio" value="wipe"> Wipe</label></fieldset>
   <div class="plotcat__status"></div><output class="plotcat__score"></output><div class="plotcat__feedback"></div>
 </section>
 <script type="module">
+  const editor = document.querySelector('.exercise-editor').parentElement;
+  editor.oninput = () => { editor.value = { code: 'plot(1)' }; };
   window.plotcatSvg = await import('../../_extensions/plotcat/svg.js');
   window.plotcatUi = await import('../../_extensions/plotcat/plotcat.js');
   window.fixtureReady = true;

@@ -41,13 +41,15 @@ async function expectScore(widget: Locator, score: string) {
   await expect(widget.locator('.plotcat__score')).toHaveText(score);
 }
 
-test('a 300-line solution is read in full and scores against the target', async () => {
+test('Run reads executable code outside the editor viewport', async () => {
   const widget = exercise(2);
   await widget.scrollIntoViewIfNeeded();
   await expect(widget.locator('.plotcat__target-loading')).toHaveCount(0, { timeout: 480_000 });
-  const filler = Array.from({ length: 300 }, (_, index) => `# filler line ${index}`);
-  await setCode(widget, [...filler, tinyplotSolution].join('\n'));
+  const filler = Array.from({ length: 1000 }, () => '# filler');
+  await setCode(widget, ['solution <- function() {', tinyplotSolution, '}', ...filler, 'solution()'].join('\n'));
+  await expect(widget.locator('.cm-content')).not.toContainText('solution <-');
   await run(widget);
+  expect(await widget.locator('.plotcat__status').textContent()).toBe('');
   await expectScore(widget, '100%');
 });
 

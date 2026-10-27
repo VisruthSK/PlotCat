@@ -72,14 +72,16 @@ function limitToSideBySide(root) {
 }
 
 function studentCode(root) {
-  const editor = root.querySelector('.plotcat__editor .cm-content');
-  if (!editor) {
+  const editor = root.querySelector('.plotcat__editor .exercise-editor')?.parentElement;
+  if (!editor?.oninput) {
     throw new Error(
       "PlotCat could not find Quarto Live's code editor. " +
       "Ensure Quarto Live is installed and use `format: live-html`."
     );
   }
-  return editor.innerText;
+  // Commit the full document without dispatching an OJS evaluation event.
+  editor.oninput(new CustomEvent('input', { detail: { commit: true } }));
+  return editor.value.code;
 }
 
 function scoreHue(score) {
