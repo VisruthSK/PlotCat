@@ -34,7 +34,7 @@ jobs:
         with:
           tinytex: true
 
-      - run: quarto add r-wasm/quarto-live@v0.2.0 --no-prompt
+      - run: pnpm install --frozen-lockfile
 
       - name: Set up R
         uses: r-lib/actions/setup-r@v2

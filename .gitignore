@@ -14,4 +14,3 @@ website/_extensions/live
 /.test-output/
 /test-results/
 /playwright-report/
-/_extensions/r-wasm/

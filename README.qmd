@@ -233,10 +233,10 @@ plotcat:
 
 ## Development
 
-Install Quarto Live in the checkout with
-`quarto add r-wasm/quarto-live@v0.2.0 --no-prompt`. Builds and transform tests
-copy it, and PlotCat, into their output directories. Edit PlotCat under
-`_extensions/plotcat`, then run `pnpm check`.
+Quarto Live is a pinned dev dependency, so `pnpm install` fetches it.
+Builds and transform tests copy it, and PlotCat, into their output
+directories. Edit PlotCat under `_extensions/plotcat`, then run
+`pnpm check`.
 
 ## Design Inspiration
 

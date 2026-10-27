@@ -11,6 +11,9 @@ importers:
       playwright:
         specifier: ^1.64.1
         version: 1.64.1
+      quarto-live:
+        specifier: github:r-wasm/quarto-live#v0.2.0
+        version: https://codeload.github.com/r-wasm/quarto-live/tar.gz/d1459f7968efca5ccdb3cb8a993a399ec6d3e102
 
 packages:
 
@@ -24,6 +27,10 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
+  quarto-live@https://codeload.github.com/r-wasm/quarto-live/tar.gz/d1459f7968efca5ccdb3cb8a993a399ec6d3e102:
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/r-wasm/quarto-live/tar.gz/d1459f7968efca5ccdb3cb8a993a399ec6d3e102}
+    version: 0.0.0
+
 snapshots:
 
   playwright-core@1.64.1: {}
@@ -31,3 +38,5 @@ snapshots:
   playwright@1.64.1:
     dependencies:
       playwright-core: 1.64.1
+
+  quarto-live@https://codeload.github.com/r-wasm/quarto-live/tar.gz/d1459f7968efca5ccdb3cb8a993a399ec6d3e102: {}
