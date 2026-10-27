@@ -22,7 +22,7 @@ The included examples cover base R, `ggplot2`, `tinyplot`, `lattice`,
 
 ## Installation
 
-Add Quarto Live, then `PlotCat`:
+Add Quarto Live (v0.2.0 or later), then `PlotCat`:
 
 ``` bash
 quarto add r-wasm/quarto-live
