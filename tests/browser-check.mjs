@@ -237,6 +237,7 @@ try {
     root.querySelector('[data-plotcat-wipe-handle]').dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
     root.querySelector('input[value=overlay]').click();
     root.querySelector('[data-plotcat-run]').click();
+    const runningVisible = root.querySelector('.plotcat__status').checkVisibility();
     await waitIdle(root);
     return {
       overlay: root.classList.contains('plotcat--overlay'),
@@ -244,11 +245,23 @@ try {
       student: root.querySelector('[data-plotcat-student]').innerHTML,
       score: root.querySelector('.plotcat__score').textContent,
       status: root.querySelector('.plotcat__status').textContent,
+      runningVisible,
+      idleHidden: !root.querySelector('.plotcat__status').checkVisibility(),
       complete: root.classList.contains('plotcat--complete'),
       enabled: !root.querySelector('[data-plotcat-run]').disabled
     };
   });
-  assert.deepEqual(successfulRun, { overlay: true, wipe: '100%', student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>', score: '100%', status: '', complete: true, enabled: true });
+  assert.deepEqual(successfulRun, {
+    overlay: true,
+    wipe: '100%',
+    student: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle fill="red"></circle></svg>',
+    score: '100%',
+    status: '',
+    runningVisible: true,
+    idleHidden: true,
+    complete: true,
+    enabled: true
+  });
 
   await load();
   const forEachRun = await page.evaluate(async () => {
@@ -336,7 +349,8 @@ try {
     root.dataset.plotcatTargetCode = btoa('fig');
     window.plotcatUi.mountPlotCat(root);
     await new Promise(resolve => setTimeout(resolve, 5500));
-    const waiting = root.querySelector('.plotcat__status').textContent;
+    const status = root.querySelector('.plotcat__status');
+    const waiting = { text: status.textContent, visible: status.checkVisibility() };
     window.plotCat.provide('python', Promise.resolve({
       runPythonAsync: async code => code.startsWith('plotcat_render(') ? '{"type":"no-plot","output":""}' : undefined
     }));
@@ -346,7 +360,7 @@ try {
     });
     return { waiting, status: root.querySelector('.plotcat__status').textContent, error: root.classList.contains('plotcat--error') };
   });
-  assert.deepEqual(lateRuntime.waiting, 'Waiting for Quarto Live…');
+  assert.deepEqual(lateRuntime.waiting, { text: 'Waiting for Quarto Live…', visible: true });
   assert.equal(lateRuntime.error, true);
   assert.match(lateRuntime.status, /^Error rendering target: Code did not produce a plot/);
 

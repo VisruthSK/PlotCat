@@ -69,6 +69,16 @@ local function copy_weights()
   return copy
 end
 
+local function parse_number(value, label, positive)
+  local raw = (type(value) == "number" or type(value) == "string") and tostring(value) or pandoc.utils.stringify(value)
+  local num = tonumber(raw)
+  if num and num >= 0 and num < math.huge and (not positive or num > 0) then
+    return num
+  end
+  local requirement = positive and "a positive finite number" or "a finite non-negative number"
+  fail(label .. " must be " .. requirement .. ", got '" .. raw .. "'")
+end
+
 local function parse_attributes(attrs, yaml_meta)
   local weights = copy_weights()
 
@@ -78,8 +88,7 @@ local function parse_attributes(attrs, yaml_meta)
       if weights[cat] then
         for field, val in pairs(fields) do
           if weights[cat][field] ~= nil then
-            local raw = type(val) == "number" and tostring(val) or (type(val) == "string" and val or pandoc.utils.stringify(val))
-            local num = tonumber(raw)
+            local num = parse_number(val, "weight 'plotcat.weights." .. cat .. "." .. field .. "'", false)
             if num then weights[cat][field] = num end
           end
         end
@@ -88,36 +97,22 @@ local function parse_attributes(attrs, yaml_meta)
   end
 
   local yaml_dims = (yaml_meta and yaml_meta.dimensions) or {}
-  local dims = {
-    width = tonumber(yaml_dims.width),
-    height = tonumber(yaml_dims.height)
-  }
+  local dims = {}
+  for _, name in ipairs({"width", "height"}) do
+    if yaml_dims[name] ~= nil then
+      dims[name] = parse_number(yaml_dims[name], "dimension 'plotcat.dimensions." .. name .. "'", true)
+    end
+  end
 
   local heading = yaml_meta and yaml_meta.heading and pandoc.utils.stringify(yaml_meta.heading) or nil
 
   for key, value in pairs(attrs) do
     local spec = ATTR_SPEC[key]
     if type(spec) == "table" then
-      local num = tonumber(value)
-      if num then
-        weights[spec[1]][spec[2]] = num
-      else
-        fail("weight '" .. key .. "' must be a number, got '" .. value .. "'")
-      end
-    elseif spec == "width" then
-      local num = tonumber(value)
-      if num and num > 0 then
-        dims.width = num
-      else
-        fail("dimension 'plotcat-width' must be a positive number, got '" .. value .. "'")
-      end
-    elseif spec == "height" then
-      local num = tonumber(value)
-      if num and num > 0 then
-        dims.height = num
-      else
-        fail("dimension 'plotcat-height' must be a positive number, got '" .. value .. "'")
-      end
+      local num = parse_number(value, "weight '" .. key .. "'", false)
+      if num then weights[spec[1]][spec[2]] = num end
+    elseif spec == "width" or spec == "height" then
+      dims[spec] = parse_number(value, "dimension '" .. key .. "'", true)
     elseif spec == "heading" then
       heading = value
     end

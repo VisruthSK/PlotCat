@@ -151,7 +151,9 @@ plotcat:
       geometry: 0.5
       text: 0.25
     plotly:
+      trace: 0.2
       data: 0.5
+      style: 0.1
       layout: 0.2
 ```
 

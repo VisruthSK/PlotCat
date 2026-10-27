@@ -233,11 +233,13 @@
   font-weight: 500;
   color: var(--bs-secondary-color, #6c757d);
   margin-top: 0.75rem;
+}
+
+.plotcat__status:empty {
   display: none;
 }
 
 .plotcat--error .plotcat__status {
-  display: block;
   color: var(--bs-danger, #dc3545);
   font-weight: 600;
 }
